@@ -5,7 +5,7 @@ Last updated: 2026-10-15 · Current focus: **M0 — Foundations** (`M0.2` and `M
 | Milestone | Done / total | Gate |
 | --- | --- | --- |
 | M0 Foundations | 8 / 9 | `bun run verify` (now ending in `cargo check`) and `cargo test`; `bun tauri dev` opens a window with the target injected |
-| M1 Shell and home | 3 / 9 | home → session view end to end; restart restores tabs |
+| M1 Shell and home | 4 / 9 | home → session view end to end; restart restores tabs |
 | M2 Session view | 0 / 10 | a live session streams, interrupts, queues and replies from the keyboard |
 | M3 Type and theme | 0 / 5 | both faces change live and survive a restart; theme applies and clears |
 | M4 Plugin host 0.1 | 0 / 8 | four example plugins install, work and uninstall through the documented API |
