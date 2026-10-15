@@ -6,6 +6,7 @@ import { registerRoute } from "@/app/routeRegistry";
 import { navigate, sessionRoute, settingsRoute } from "@/app/router";
 import { CONNECT_TITLE } from "@/constants/connect";
 import { ROUTE_PATH } from "@/constants/routes";
+import { TRANSCRIPT_EMPTY_LABEL, TRANSCRIPT_LABEL } from "@/constants/transcriptUi";
 
 const SESSION_ID = "ses_m04_app";
 const REGISTERED_PATH = "/m04-app-route";
@@ -27,14 +28,18 @@ describe("App", () => {
 		expect(screen.getByText("Recents")).toBeDefined();
 	});
 
-	test("navigates to the session page and shows the session id", () => {
-		render(
+	test("navigates to the session page and renders its transcript surface", () => {
+		const { container } = render(
 			<Providers>
 				<App />
 			</Providers>,
 		);
 		act(() => navigate(sessionRoute(SESSION_ID)));
-		expect(screen.getByText(new RegExp(SESSION_ID))).toBeDefined();
+		// No tab holds the session, so the surface names the empty case; the route's
+		// id still reaches the DOM, so the page is the one the route asked for.
+		expect(screen.getByLabelText(TRANSCRIPT_LABEL)).toBeDefined();
+		expect(screen.getByText(TRANSCRIPT_EMPTY_LABEL)).toBeDefined();
+		expect(container.querySelector(`[data-session="${SESSION_ID}"]`)).not.toBeNull();
 	});
 
 	test("navigates to the settings page", () => {
