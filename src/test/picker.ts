@@ -30,6 +30,13 @@ export function childRow(id: string, parent: string, title: string): Record<stri
 	return { ...pickerRow(id, title, "/dev/apps/child"), parentID: parent };
 }
 
+/**
+ * One `session.list` page. Model the **measured** shape (`docs/opencode-api.md`
+ * §4): a page that carries rows always carries a `next` anchor, even when it is
+ * short; the page that ends the list is `{ data: [], cursor: {} }` — empty, no
+ * `next`. A non-empty page that merely omits `next` is a shape the server never
+ * sends and would hide an end-of-list defect.
+ */
 export type PickerPage = {
 	readonly data: readonly Record<string, unknown>[];
 	readonly cursor?: { readonly next?: string | null };

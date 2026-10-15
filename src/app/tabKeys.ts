@@ -18,6 +18,9 @@ export type TabKeyActions = {
 	readonly onSwitchTab: (index: number) => void;
 };
 
+/** Any open overlay dialog: the strip's keys must not act through a modal. */
+const MODAL_SELECTOR = '[role="dialog"]';
+
 function hasCommandModifier(event: KeyboardEvent): boolean {
 	return event.metaKey || event.ctrlKey;
 }
@@ -53,13 +56,18 @@ export function indexForDigit(digit: string, count: number): number | null {
 	return index < count ? index : null;
 }
 
-/** Handle one keydown; returns `true` when it consumed the event. */
+/**
+ * Handle one keydown; returns `true` when it consumed the event. `modalOpen`
+ * suppresses every binding while an overlay dialog owns the window — ⌘W and ⌘T
+ * must not close or stack anything behind the picker.
+ */
 export function handleTabKey(
 	event: KeyboardEvent,
 	tabCount: number,
 	actions: TabKeyActions,
+	modalOpen = false,
 ): boolean {
-	if (!isTabKeyEvent(event)) return false;
+	if (modalOpen || !isTabKeyEvent(event)) return false;
 	if (matchesShortcut(event, SHORTCUT_NEW_SESSION)) {
 		event.preventDefault();
 		actions.onNewSession();
@@ -85,7 +93,7 @@ export function handleTabKey(
  */
 export function installTabKeyboard(readCount: () => number, actions: TabKeyActions): () => void {
 	const onKeyDown = (event: KeyboardEvent) => {
-		handleTabKey(event, readCount(), actions);
+		handleTabKey(event, readCount(), actions, document.querySelector(MODAL_SELECTOR) !== null);
 	};
 	window.addEventListener("keydown", onKeyDown);
 	return () => {

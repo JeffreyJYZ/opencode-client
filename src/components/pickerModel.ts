@@ -1,10 +1,11 @@
-import { sessionTitle } from "@/pages/homeModel";
+import { lastPathSegment, sessionTitle } from "@/pages/homeModel";
 import type { SessionRow } from "@/session/useSessions";
 
 /**
  * The picker's pure search model (spec 010 §Top nav: the picker searches *all
- * root sessions*): filter by title **and** directory, and split one text into
- * emphasised and plain segments so a row can mark the match.
+ * root sessions*): filter by title **and** the directory text a row renders,
+ * and split one text into emphasised and plain segments so a row can mark the
+ * match.
  *
  * No DOM and no colour — the row decides how a matched segment is styled. The
  * match is a substring, not fuzzy: a picker over tens of rows wants to be told
@@ -24,9 +25,14 @@ function needle(query: string): string {
 	return query.trim().toLowerCase();
 }
 
-/** What a row is searched by: its title and its session directory. */
+/**
+ * What a row is searched by: its title and **the directory text the row
+ * renders** (the last path segment only). Searching the full path would keep a
+ * row whose match is in a segment the row never shows — kept, and highlighted
+ * nowhere.
+ */
 function haystack(session: SessionRow): string {
-	return `${sessionTitle(session)}\n${session.location.directory}`.toLowerCase();
+	return `${sessionTitle(session)}\n${lastPathSegment(session.location.directory)}`.toLowerCase();
 }
 
 /** Whether one session matches `query`; a blank query matches everything. */

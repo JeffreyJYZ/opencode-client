@@ -6,6 +6,7 @@ import { SessionPicker } from "@/components/SessionPicker";
 import { optionId } from "@/components/SessionPickerRow";
 import { PICKER_LOAD_MORE_LABEL, PICKER_SEARCH_LABEL } from "@/constants/picker";
 import { ROUTE_PATH } from "@/constants/routes";
+import { NEW_SESSION_EVENT } from "@/constants/tabs";
 import { ClientProvider } from "@/session/ClientProvider";
 import { FIRST_PAGE, type PickerPage, pagedClient, pickerRow } from "@/test/picker";
 
@@ -15,16 +16,18 @@ afterEach(resetTabs);
 beforeEach(() => window.history.pushState(null, "", ROUTE_PATH.home));
 
 const OPEN_LABEL = "open picker";
+// Every page with rows carries `next` — the measured shape. `renderPicker`'s `c2`
+// is the empty terminal page, so following the cursor ends the list.
 const THREE: PickerPage = {
 	data: [
 		pickerRow("ses_a", "Alpha", "/dev/a"),
 		pickerRow("ses_b", "Beta", "/dev/b"),
 		pickerRow("ses_c", "Gamma", "/dev/c"),
 	],
-	cursor: {},
+	cursor: { next: "c2" },
 };
 const THREE_MORE: PickerPage = { ...THREE, cursor: { next: "c2" } };
-const ONE: PickerPage = { data: [pickerRow("ses_a", "Alpha", "/dev/a")], cursor: {} };
+const ONE: PickerPage = { data: [pickerRow("ses_a", "Alpha", "/dev/a")], cursor: { next: "c2" } };
 
 function renderPicker(page: PickerPage) {
 	const { client } = pagedClient({ [FIRST_PAGE]: page, c2: { data: [], cursor: {} } });
@@ -119,5 +122,29 @@ describe("SessionPicker keyboard and dismissal", () => {
 		fireEvent.change(input, { target: { value: "zzz" } });
 		await waitFor(() => expect(screen.queryAllByRole("option")).toHaveLength(0));
 		expect(screen.queryByRole("dialog")).not.toBeNull();
+	});
+
+	/**
+	 * The row renders only the last directory segment, so a query that hits a
+	 * middle segment keeps nothing — it used to keep the row and mark nothing.
+	 */
+	test("a query matching only a middle path segment keeps no row", async () => {
+		renderPicker({
+			data: [pickerRow("ses_a", "Alpha", "/dev/monorepos/opencode")],
+			cursor: { next: "c2" },
+		});
+		const input = openInput();
+		await waitFor(() => expect(screen.getAllByRole("option")).toHaveLength(1));
+		fireEvent.change(input, { target: { value: "monorepos" } });
+		await waitFor(() => expect(screen.queryAllByRole("option")).toHaveLength(0));
+		expect(screen.getByRole("dialog")).toBeDefined();
+	});
+
+	test("the `+` flow's signal closes the picker (one overlay at a time)", async () => {
+		renderPicker(THREE);
+		openInput();
+		await waitFor(() => expect(screen.getByRole("dialog")).toBeDefined());
+		window.dispatchEvent(new CustomEvent(NEW_SESSION_EVENT));
+		await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
 	});
 });

@@ -19,9 +19,19 @@ describe("pickerModel search", () => {
 		expect(filterSessions(ALL, "PARSER").map((s) => s.id)).toEqual(["ses_a"]);
 	});
 
-	test("matches a directory segment, case-insensitively", () => {
-		expect(filterSessions(ALL, "MONOREPOS").map((s) => s.id)).toEqual(["ses_a"]);
+	test("matches the directory text a row renders, case-insensitively", () => {
+		expect(filterSessions(ALL, "OPENCODE").map((s) => s.id)).toEqual(["ses_a"]);
 		expect(filterSessions(ALL, "tauri").map((s) => s.id)).toEqual(["ses_b"]);
+	});
+
+	/**
+	 * The row renders only the last segment, so a query that hits a middle
+	 * segment must keep nothing: a row kept with no visible reason is a row that
+	 * matched nothing the user can see (it used to render with `marks: []`).
+	 */
+	test("a middle path segment matches nothing", () => {
+		expect(filterSessions(ALL, "monorepos")).toEqual([]);
+		expect(sessionMatches(PARSER, "monorepos")).toBe(false);
 	});
 
 	test("a blank query keeps every row in arrival order", () => {

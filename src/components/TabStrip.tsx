@@ -6,6 +6,7 @@ import { moveTab } from "@/app/tabs";
 import { useTabs } from "@/app/useTabs";
 import { Tab, tabTitle } from "@/components/Tab";
 import { useMenuDismiss } from "@/components/useMenuDismiss";
+import { LAYER } from "@/constants/layers";
 import { OVERFLOW_LABEL, OVERFLOW_TITLE } from "@/constants/tabs";
 
 /**
@@ -30,7 +31,7 @@ const MENU_STYLE: CSSProperties = {
 	position: "absolute",
 	top: "100%",
 	right: 0,
-	zIndex: 1,
+	zIndex: LAYER.stripMenu,
 	display: "flex",
 	flexDirection: "column",
 	minWidth: "180px",

@@ -59,4 +59,12 @@ describe("tabKeys", () => {
 		expect(handleTabKey(keydown("w", false), 2, actions)).toBe(false);
 		expect(actions.calls).toEqual([]);
 	});
+
+	test("⌘W and ⌘T are inert while a modal is open", () => {
+		const actions = spy();
+		expect(handleTabKey(keydown("w", true), 3, actions, true)).toBe(false);
+		expect(handleTabKey(keydown("t", true), 3, actions, true)).toBe(false);
+		expect(handleTabKey(keydown("1", true), 3, actions, true)).toBe(false);
+		expect(actions.calls).toEqual([]);
+	});
 });

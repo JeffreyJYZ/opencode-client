@@ -1,5 +1,7 @@
-import type { CSSProperties } from "react";
+import { type CSSProperties, useEffect } from "react";
 import { CANCEL_LABEL, CREATE_SESSION_LABEL, DIRECTORY_INPUT_LABEL } from "@/constants/directories";
+import { LAYER } from "@/constants/layers";
+import { SESSION_PICKER_EVENT } from "@/constants/tabs";
 import type { DirectoryPicker } from "@/native/pickDirectory";
 import { useNewSessionFlow } from "@/session/useNewSessionFlow";
 
@@ -9,8 +11,8 @@ const STYLE: CSSProperties = {
 	display: "flex",
 	alignItems: "center",
 	justifyContent: "center",
-	background: "rgba(0, 0, 0, 0.5)",
-	zIndex: 50,
+	background: "var(--oc-scrim)",
+	zIndex: LAYER.overlay,
 };
 
 export type NewSessionFlowProps = {
@@ -20,6 +22,12 @@ export type NewSessionFlowProps = {
 
 export function NewSessionFlow({ picker, pickerAvailable }: NewSessionFlowProps) {
 	const flow = useNewSessionFlow({ picker, pickerAvailable });
+	const { cancel } = flow;
+	// The `⌕` picker opening dismisses this flow, so the two overlays never stack.
+	useEffect(() => {
+		window.addEventListener(SESSION_PICKER_EVENT, cancel);
+		return () => window.removeEventListener(SESSION_PICKER_EVENT, cancel);
+	}, [cancel]);
 	if (!flow.open) return null;
 	return (
 		<div style={STYLE} role="dialog" aria-label="New session">

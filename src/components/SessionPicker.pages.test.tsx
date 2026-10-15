@@ -48,7 +48,8 @@ const ONE_TWO_PLUS_OLDER: Record<string, PickerPage> = {
 		data: [pickerRow("ses_1", "Alpha", "/dev/a"), pickerRow("ses_2", "Beta", "/dev/b")],
 		cursor: { next: "c2" },
 	},
-	c2: { data: [pickerRow("ses_3", "Gamma older", "/dev/c")], cursor: {} },
+	// Measured shape: a short page still carries `next`, so page two is the end.
+	c2: { data: [pickerRow("ses_3", "Gamma older", "/dev/c")], cursor: { next: "c3" } },
 };
 
 describe("SessionPicker reaching past the first page", () => {
@@ -67,7 +68,8 @@ describe("SessionPicker reaching past the first page", () => {
 		fireEvent.click(screen.getByText(PICKER_LOAD_MORE_LABEL));
 		await waitFor(() => expect(screen.getAllByRole("option")).toHaveLength(3));
 		expect(text("option").join("|")).toContain("Gamma older");
-		expect(calls[1]).toMatchObject({ cursor: "c2", limit: 2 });
+		// Opening the picker refetched page one, so the cursor call is last.
+		expect(calls.at(-1)).toMatchObject({ cursor: "c2", limit: 2 });
 	});
 
 	test("a search with no match on page one pulls the page that holds it", async () => {
@@ -83,11 +85,11 @@ describe("SessionPicker reaching past the first page", () => {
 });
 
 describe("SessionPicker search and states", () => {
-	test("filters by directory, not only by title", async () => {
+	test("filters by the rendered directory segment, not only by title", async () => {
 		const { client } = pagedClient({
 			[FIRST_PAGE]: {
 				data: [
-					pickerRow("ses_1", "Alpha", "/dev/monorepos/x"),
+					pickerRow("ses_1", "Alpha", "/dev/apps/monorepos"),
 					pickerRow("ses_2", "Beta", "/dev/apps/y"),
 				],
 				cursor: {},

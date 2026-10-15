@@ -41,3 +41,7 @@ export const PICKER_MORE_ERROR_LABEL = "Could not load more";
 
 /** How many pixels from the bottom a scroll loads the next page. */
 export const PICKER_SCROLL_THRESHOLD_PX = 48;
+
+/** How long a no-match query settles before it pulls the next page, so typing
+ * does not fire one request per keystroke. */
+export const PICKER_SEARCH_DEBOUNCE_MS = 120;

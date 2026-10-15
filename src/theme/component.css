@@ -3,4 +3,7 @@
 :root {
 	--oc-prompt-rail: var(--oc-surface-raised-high);
 	--oc-band-surface: var(--oc-surface-raised);
+	/* The modal scrim: a translucent black shared by every overlay. No semantic
+	   token names one, so it is hand-set here rather than invented as a hue. */
+	--oc-scrim: rgb(0 0 0 / 50%);
 }

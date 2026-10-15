@@ -1,6 +1,7 @@
 import type { CSSProperties, KeyboardEvent, RefObject } from "react";
 import { SessionPickerList, type SessionPickerListProps } from "@/components/SessionPickerList";
 import { optionId } from "@/components/SessionPickerRow";
+import { LAYER } from "@/constants/layers";
 import {
 	PICKER_DIALOG_LABEL,
 	PICKER_LIST_ID,
@@ -34,8 +35,8 @@ const OVERLAY_STYLE: CSSProperties = {
 	alignItems: "flex-start",
 	justifyContent: "center",
 	paddingTop: "10vh",
-	background: "rgba(0, 0, 0, 0.5)",
-	zIndex: 60,
+	background: "var(--oc-scrim)",
+	zIndex: LAYER.overlay,
 };
 
 const DIALOG_STYLE: CSSProperties = {

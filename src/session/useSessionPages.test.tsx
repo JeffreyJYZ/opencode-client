@@ -33,7 +33,7 @@ describe("useSessionPages", () => {
 		const { client, calls } = pagedClient({
 			[FIRST_PAGE]: {
 				data: [pickerRow("ses_1", "One", "/a"), childRow("ses_c", "ses_1", "Child")],
-				cursor: {},
+				cursor: { next: "c2" },
 			},
 		});
 		const { result } = renderHook(() => useSessionPages(client));
@@ -57,7 +57,9 @@ describe("useSessionPages", () => {
 				data: [pickerRow("ses_1", "One", "/a"), pickerRow("ses_2", "Two", "/b")],
 				cursor: { next: "c2" },
 			},
-			c2: { data: [pickerRow("ses_3", "Three", "/c")], cursor: {} },
+			// A short page still carries `next` — the measured shape. The end is
+			// read from the raw count, not the cursor's absence.
+			c2: { data: [pickerRow("ses_3", "Three", "/c")], cursor: { next: "c3" } },
 		});
 		const { result } = renderHook(() => useSessionPages(client, 2));
 		await waitFor(() => expect(result.current.rows).toHaveLength(2));
@@ -101,14 +103,14 @@ describe("useSessionPages", () => {
 	test("a response that repeats a row does not duplicate it", async () => {
 		const { client } = pagedClient({
 			[FIRST_PAGE]: { data: [pickerRow("ses_1", "One", "/a")], cursor: { next: "c2" } },
-			c2: { data: [pickerRow("ses_1", "One", "/a")], cursor: {} },
+			c2: { data: [pickerRow("ses_1", "One", "/a")], cursor: { next: "c3" } },
 		});
 		const { result } = renderHook(() => useSessionPages(client, 1));
 		await waitFor(() => expect(result.current.hasMore).toBe(true));
 		await act(async () => {
 			result.current.loadMore();
 		});
-		await waitFor(() => expect(result.current.hasMore).toBe(false));
+		await waitFor(() => expect(result.current.loadingMore).toBe(false));
 		expect(result.current.rows).toHaveLength(1);
 	});
 });
