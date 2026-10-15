@@ -33,7 +33,7 @@ The web build (`bun run dev` in a browser) has no such global and keeps its own 
 
 ## Window state
 
-`tauri-plugin-window-state` persists size and position in the app config directory — `~/Library/Application Support/land.jyz.opencode/.window-state.json` on macOS, keyed by the `land.jyz.opencode` identifier — and restores them when the window becomes ready. The declared 1280×800 / min 800×500 in `src/lib.rs` are the first-run defaults and the floor.
+`tauri-plugin-window-state` persists size and position in the app config directory — `~/Library/Application Support/com.jyz.opencode.client/.window-state.json` on macOS, keyed by the `com.jyz.opencode.client` identifier — and restores them when the window becomes ready. The declared 1280×800 / min 800×500 in `src/lib.rs` are the first-run defaults and the floor.
 
 ## Run and build
 

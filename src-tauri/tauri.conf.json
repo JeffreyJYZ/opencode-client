@@ -2,7 +2,7 @@
 	"$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
 	"productName": "opencode client",
 	"version": "0.1.0",
-	"identifier": "land.jyz.opencode",
+	"identifier": "com.jyz.opencode.client",
 	"build": {
 		"frontendDist": "../dist",
 		"devUrl": "http://localhost:5173",
