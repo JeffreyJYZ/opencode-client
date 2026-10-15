@@ -3,5 +3,5 @@
 	"identifier": "default",
 	"description": "The main window's permissions: the core set only. The window-state plugin saves and restores Rust-side, so it needs no page-facing permission.",
 	"windows": ["main"],
-	"permissions": ["core:default"]
+	"permissions": ["core:default", "dialog:allow-open"]
 }

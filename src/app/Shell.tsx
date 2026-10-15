@@ -9,6 +9,7 @@ import {
 } from "@/app/tabSync";
 import { getTabSnapshot } from "@/app/tabs";
 import { TopNav } from "@/components/TopNav";
+import { NewSessionFlow } from "@/pages/NewSessionFlow";
 
 /**
  * The shell: the top nav above the route switch (spec 010 §Top nav, §Routes).
@@ -31,6 +32,7 @@ export function Shell() {
 		<>
 			<TopNav />
 			<App />
+			<NewSessionFlow />
 		</>
 	);
 }
