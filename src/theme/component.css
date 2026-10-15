@@ -1,0 +1,6 @@
+/* Component tokens, each defined in terms of a semantic token. */
+
+:root {
+	--oc-prompt-rail: var(--oc-surface-raised-high);
+	--oc-band-surface: var(--oc-surface-raised);
+}

@@ -1,0 +1,28 @@
+/* Non-colour tokens: radius, hairline, spacing, motion, leading, fonts. */
+
+:root {
+	--oc-radius: 4px;
+	--oc-radius-panel: 6px;
+	--oc-hairline: 1px;
+	--oc-space-1: 4px;
+	--oc-space-2: 8px;
+	--oc-space-3: 12px;
+	--oc-space-4: 16px;
+	--oc-space-5: 20px;
+	--oc-space-6: 24px;
+	--oc-space-7: 32px;
+	--oc-space-8: 48px;
+	--oc-motion: 180ms cubic-bezier(0.2, 0, 0, 1);
+	--oc-leading: 1.5;
+	--oc-font-ui: Geist, system-ui, -apple-system, "Segoe UI", sans-serif;
+	--oc-font-code:
+		"GeistMono Nerd Font", "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+	--oc-font-ui-size: 15px;
+	--oc-font-code-size: 13px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	:root {
+		--oc-motion: 0ms linear;
+	}
+}

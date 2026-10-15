@@ -1,0 +1,8 @@
+/* Theme tokens entry point.
+   Layers: primitive -> semantic -> component, plus non-colour foundations.
+   Primitive hue scales come from src/theme/vendor/opencode.json. */
+
+@import "./primitive.css";
+@import "./semantic.css";
+@import "./component.css";
+@import "./foundations.css";

@@ -1,0 +1,27 @@
+/* Semantic tokens: both dark (:root) and light ([data-theme="light"]) variants. */
+
+:root {
+	--oc-surface: var(--oc-num-gray-800);
+	--oc-surface-raised: var(--oc-num-gray-700);
+	--oc-surface-raised-high: var(--oc-num-gray-600);
+	--oc-text: var(--oc-num-gray-200);
+	--oc-text-muted: var(--oc-num-gray-400);
+	--oc-border: #484848;
+	--oc-accent: var(--oc-num-purple-200);
+	--oc-danger: var(--oc-num-red-200);
+	--oc-warn: var(--oc-num-orange-200);
+	--oc-focus: var(--oc-num-orange-200);
+}
+
+[data-theme="light"] {
+	--oc-surface: var(--oc-num-gray-800);
+	--oc-surface-raised: var(--oc-num-gray-700);
+	--oc-surface-raised-high: var(--oc-num-gray-600);
+	--oc-text: var(--oc-num-gray-200);
+	--oc-text-muted: var(--oc-num-gray-400);
+	--oc-border: #b8b8b8;
+	--oc-accent: var(--oc-num-orange-200);
+	--oc-danger: var(--oc-num-red-200);
+	--oc-warn: var(--oc-num-orange-200);
+	--oc-focus: var(--oc-num-blue-200);
+}
