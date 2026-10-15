@@ -141,6 +141,8 @@ Measured against client 2.0.29 / server 2.0.29; each one cost time the first tim
 - **`vcs.get()` resolves asynchronously per location**: `{"branch":{}}` immediately after the location is activated, the real branch ~0.5 s later — retry with a bound, and never call `/api/vcs/init` to prime it (it is a write; it creates a repository in a non-repo directory).
 - **Commands come from the global config's `commands` key** (plural) and load **asynchronously**: a `command.list()` right after `session.create()` can still be `[]`.
 - **Streaming payloads must be capped on ingest, not only at render** — a `tool.success` body or a `shell.ended` output arrives whole and a delta/`ended` pair re-inflates whatever streaming trimmed. Note `shell.ended` is paged (`output.output`).
+- **`session.text.delta` carries `ordinal: 0` on every frame** (measured 2026-10-15 against an isolated server, by capturing the frames before writing the reducer): it is a part index **within its family** — reasoning vs prose — not a delta counter. So a rule that treats a non-increasing ordinal as a duplicate, or an out-of-order arrival, **drops real deltas**; the app keys rows as `${message.id}:{r|t}${ordinal}` and counts the ordinal per family.
+- **`durable.seq` is per session, and `item.delivery` is not the queued rail** (same capture): there is no global sequence number, and whether a message was delivered comes from the delivery field's own values, never from its presence.
 - **A content-sized pane in a flex column needs `flex-shrink: 0`**, or it shrinks to fit instead of overflowing and a long transcript is silently clipped; `overflow-y: auto` alone does not fix it.
 
 ## 5. HTTP routes (132 endpoints)

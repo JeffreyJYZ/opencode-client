@@ -30,7 +30,7 @@ The server's API surface is documented in [`docs/opencode-api.md`](../opencode-a
 | `mcp.status.changed / tools.changed` | the MCP panel (a status event carries no `sessionID` — the panel re-reads on its own action) |
 | `vcs.branch.updated` | the statusline's `:branch` |
 
-- **The stream is volatile by contract** (a slow consumer overflows, a disconnect loses events), so gaps are repaired by **refetch**, never by replay: `session.messages` (transcript) and `session.context` / `session.stats` (panels).
+- **The stream is volatile by contract** (a slow consumer overflows, a disconnect loses events), so gaps are repaired by **refetch**, never by replay: `message.list` (transcript — the method is `message.list`, not `session.messages`, which is not on the pinned client; corrected when M2.1 read it) and `session.context` / `session.stats` (panels).
 - **Resync policy**: refetch on first connect, on a real failure, and when the session is empty; an **idle reconnect keeps** a populated transcript and knowingly leaves a short gap until the next failure or a session switch. Pending permissions/forms refetch on every live transition.
 - Reconnect uses a bounded backoff with an idle watchdog; the connection state is visible (a statusline dot and a banner while offline), never silent.
 
