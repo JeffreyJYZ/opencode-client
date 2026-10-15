@@ -2,6 +2,7 @@ import type { ComponentType } from "react";
 import { type Disposable, REFUSED } from "@/plugins/disposable";
 import { FAULT_AREAS, FAULT_REASONS, type FaultReason, recordFault } from "@/plugins/faults";
 import { isSlotName, type SlotName } from "@/plugins/slots";
+import { isComponent } from "@/plugins/validation";
 
 /**
  * The slot registry (spec 040 §The host, `ui.register`): a built-in area and a
@@ -59,7 +60,7 @@ function withEntry(entries: readonly StoredEntry[], entry: StoredEntry): StoredE
 
 function problemWith(contribution: SlotContribution): string | null {
 	if (typeof contribution.id !== "string" || contribution.id.trim() === "") return "an empty id";
-	if (contribution.component == null) return "a missing component";
+	if (!isComponent(contribution.component)) return "a missing or malformed component";
 	const order = contribution.order;
 	if (order !== undefined && !Number.isFinite(order)) {
 		return `a non-finite order (${String(order)})`;

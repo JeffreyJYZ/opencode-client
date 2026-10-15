@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import type { ComponentType } from "react";
+import { memo } from "react";
 import {
 	matchRegisteredRoute,
 	type RouteContribution,
@@ -68,6 +69,11 @@ describe("registerRoute", () => {
 			{ id: "", path: ROUTE_PATH_SEGMENT, component: handle },
 			{ id: `${ROUTE_ID}-relative`, path: "settings", component: handle },
 			{ id: `${ROUTE_ID}-no-component`, path: ROUTE_PATH_SEGMENT } as RouteContribution,
+			{
+				id: `${ROUTE_ID}-nonfunc`,
+				path: ROUTE_PATH_SEGMENT,
+				component: 42,
+			} as unknown as RouteContribution,
 		];
 		for (const contribution of malformed) {
 			expect(() => registerRoute(contribution)).not.toThrow();
@@ -75,6 +81,35 @@ describe("registerRoute", () => {
 			expect(lastFault()?.area).toBe(FAULT_AREAS.routes);
 		}
 		expect(matchRegisteredRoute(ROUTE_PATH_SEGMENT)).toBeNull();
+	});
+
+	test("accepts a React.memo component", () => {
+		const memoComponent = memo(() => null);
+		const disposable = track(
+			registerRoute({
+				id: `${ROUTE_ID}-memo`,
+				path: `/m04-memo-route`,
+				component: memoComponent,
+			}),
+		);
+		expect(matchRegisteredRoute("/m04-memo-route")?.id).toBe(`${ROUTE_ID}-memo`);
+		disposable.dispose();
+	});
+
+	test("refuses a built-in path without throwing", () => {
+		expect(() =>
+			registerRoute({ id: `${ROUTE_ID}-settings`, path: "/settings", component: handle }),
+		).not.toThrow();
+		expect(lastFault()?.reason).toBe(FAULT_REASONS.duplicatePath);
+		expect(lastFault()?.area).toBe(FAULT_AREAS.routes);
+		expect(matchRegisteredRoute("/settings")).toBeNull();
+	});
+
+	test("serves an unknown plugin path", () => {
+		track(
+			registerRoute({ id: `${ROUTE_ID}-plugin`, path: "/plugin/thing", component: handle }),
+		);
+		expect(matchRegisteredRoute("/plugin/thing")?.id).toBe(`${ROUTE_ID}-plugin`);
 	});
 
 	test("disposal removes exactly its own route", () => {

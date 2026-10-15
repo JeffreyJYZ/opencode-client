@@ -12,6 +12,12 @@ export type Route =
 	| { readonly kind: typeof ROUTE_KIND.session; readonly id: string }
 	| { readonly kind: typeof ROUTE_KIND.settings };
 
+/**
+ * NOTE: this allocates a fresh object every call. Safe only because `currentRoute()`
+ * caches by path and returns the stored instance; a caller that reads this identity
+ * in a dependency array would re-render forever. Prefer `currentRoute()` when
+ * you need a stable identity.
+ */
 export function homeRoute(): Route {
 	return { kind: ROUTE_KIND.home };
 }

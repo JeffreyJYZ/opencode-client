@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import type { ComponentType } from "react";
+import { memo } from "react";
 import type { Disposable } from "@/plugins/disposable";
 import { clearFaults, FAULT_AREAS, FAULT_REASONS, listFaults } from "@/plugins/faults";
 import {
@@ -92,12 +93,19 @@ describe("register", () => {
 				component: undefined,
 			} as unknown as SlotContribution,
 			{ id: "m04-nan", slot: TEST_SLOT, component: handle, order: Number.NaN },
+			{ id: "m04-nonfunc", slot: TEST_SLOT, component: 42 } as unknown as SlotContribution,
 		];
 		for (const contribution of malformed) {
 			expect(() => register(contribution)).not.toThrow();
 			expect(lastFault()?.reason).toBe(FAULT_REASONS.malformedEntry);
 		}
 		expect(ids()).toEqual([]);
+	});
+
+	test("accepts a React.memo component", () => {
+		const memoComponent = memo(() => null);
+		track(register({ id: "m04-memo", slot: TEST_SLOT, component: memoComponent }));
+		expect(ids()).toEqual(["m04-memo"]);
 	});
 
 	test("disposal removes exactly its own entry, and frees its id", () => {

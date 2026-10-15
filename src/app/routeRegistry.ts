@@ -1,15 +1,18 @@
 import type { ComponentType } from "react";
-import { normalizePath } from "@/app/router";
+import { normalizePath, pathToRoute } from "@/app/router";
 import { type Disposable, REFUSED } from "@/plugins/disposable";
 import { FAULT_AREAS, FAULT_REASONS, type FaultReason, recordFault } from "@/plugins/faults";
+import { isComponent } from "@/plugins/validation";
 
 /**
  * The route registry (spec 040 §The host, `routes.register`): a plugin may add a
  * path the router serves. A refused contribution is inert — nothing renders, a
  * `PluginFault` is recorded, and nothing throws.
  *
- * A registered path is matched before the built-in switch, so a contribution may
- * serve a path the router does not know and, deliberately, replace one it does.
+ * A registered path serves unknown paths only: it may not replace a built-in
+ * route (home, a session, or settings), since `/settings` is the route to the
+ * plugin manager. Built-in routes win the match; a colliding registration is
+ * refused here rather than silently losing it later.
  */
 
 /** What a route contribution carries. `id` and `path` are each unique. */
@@ -37,7 +40,7 @@ function problemWith(contribution: RouteContribution): string | null {
 	if (typeof contribution.path !== "string" || !contribution.path.startsWith("/")) {
 		return `a path that is not absolute ("${String(contribution.path)}")`;
 	}
-	if (contribution.component == null) return "a missing component";
+	if (!isComponent(contribution.component)) return "a missing or malformed component";
 	return null;
 }
 
@@ -76,6 +79,13 @@ export function registerRoute(contribution: RouteContribution): Disposable {
 			FAULT_REASONS.duplicatePath,
 			path,
 			`the path "${path}" is already registered`,
+		);
+	}
+	if (pathToRoute(path) !== null) {
+		return refuse(
+			FAULT_REASONS.duplicatePath,
+			path,
+			`the path "${path}" is a built-in route and cannot be replaced`,
 		);
 	}
 	const route: RouteContribution = {
