@@ -9,7 +9,7 @@
 		"preview": "vite preview",
 		"tauri": "tauri",
 		"fix": "biome check . --write",
-		"verify": "tsc -b && biome check . && bun scripts/check-file-length.ts && cargo check --manifest-path src-tauri/Cargo.toml && bun test"
+		"verify": "tsc -b && biome check . && bun scripts/check-file-length.ts && cargo fmt --check --manifest-path src-tauri/Cargo.toml && cargo check --manifest-path src-tauri/Cargo.toml && bun test"
 	},
 	"dependencies": {
 		"@opencode/client": "^2.0.29",
