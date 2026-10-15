@@ -12,6 +12,7 @@ import {
 import { TARGET_GLOBAL } from "@/constants/server";
 import { ClientProvider } from "@/session/ClientProvider";
 import { fakeProbe } from "@/test/session";
+import { quietClient } from "@/test/stream";
 
 /** RTL installs auto-cleanup once per process; this is not its first importer. */
 afterEach(cleanup);
@@ -44,7 +45,7 @@ function submit(): void {
 describe("ConnectSection", () => {
 	test("starts with no server, an empty form and no disconnect action", () => {
 		render(
-			<ClientProvider probe={fakeProbe("resolve").run}>
+			<ClientProvider probe={fakeProbe("resolve").run} client={quietClient()}>
 				<ConnectSection />
 			</ClientProvider>,
 		);
@@ -55,7 +56,7 @@ describe("ConnectSection", () => {
 
 	test("submitting connects: the trimmed url and password reach the blob and the state goes online", async () => {
 		render(
-			<ClientProvider probe={fakeProbe("resolve").run}>
+			<ClientProvider probe={fakeProbe("resolve").run} client={quietClient()}>
 				<ConnectSection />
 			</ClientProvider>,
 		);
@@ -71,7 +72,7 @@ describe("ConnectSection", () => {
 
 	test("a failing probe is the offline state, and disconnect keeps the stored target", async () => {
 		render(
-			<ClientProvider probe={fakeProbe("reject").run}>
+			<ClientProvider probe={fakeProbe("reject").run} client={quietClient()}>
 				<ConnectSection />
 			</ClientProvider>,
 		);

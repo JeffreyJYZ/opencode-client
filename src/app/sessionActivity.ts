@@ -1,19 +1,25 @@
-import { useEffect, useSyncExternalStore } from "react";
-import { SESSION_ACTIVE_POLL_MS } from "@/constants/tabs";
-import { useClient } from "@/session/ClientProvider";
-import type { OpenCodeClient } from "@/session/client";
+import { useSyncExternalStore } from "react";
+import type { ActivitySink } from "@/session/ingestEffects";
 
 /**
- * Which sessions are running, for the strip's status dots (spec 010 §Top nav).
+ * Which sessions are running, for the strip's status dots and the offline
+ * transition (spec 050 §Event ingest: "`session.execution.*` — the session's
+ * running flag; gates `esc interrupt`, the statusline hint, the tab dot").
  *
- * Today the honest source is `session.active()` read on mount and on a poll —
- * the event stream that supersedes it is M2.1's. A failed read keeps the last
- * state rather than blanking every dot; the offline banner owns the error.
+ * **M2.1 deleted the five-second `session.active()` poll that used to live here.**
+ * The set is fed by the event ingest now: `session.execution.started` **and** its
+ * `succeeded` / `failed` / `interrupted` counterparts (plus `session.idle`) set it
+ * per frame, and `session.active()` is read **once** per live transition, to
+ * hydrate what was already running before this app connected.
+ *
+ * The failure mode if the replacement were missing: the dots never change at all —
+ * every open session reads idle, so "running" is invisible and an interrupt cannot
+ * be gated on it. (A set fed only `started` would be the other half of the same
+ * bug: a session that finished keeps its dot lit forever.)
  */
 
 const EMPTY_SET: ReadonlySet<string> = new Set();
 let running: ReadonlySet<string> = EMPTY_SET;
-let clientPresent = false;
 const listeners = new Set<() => void>();
 
 function publish(next: ReadonlySet<string>): void {
@@ -32,58 +38,36 @@ export function getActivitySnapshot(): ReadonlySet<string> {
 	return running;
 }
 
-function readSnapshot(): ReadonlySet<string> {
-	return clientPresent ? running : EMPTY_SET;
+/** An execution frame's effect on one session's dot. */
+export function setSessionRunning(sessionID: string, isRunning: boolean): void {
+	const present = running.has(sessionID);
+	if (present === isRunning) return;
+	const next = new Set(running);
+	if (isRunning) next.add(sessionID);
+	else next.delete(sessionID);
+	publish(next);
 }
 
-/** One read of `session.active()`; the ids present are running. */
-export async function refreshActivity(client: OpenCodeClient): Promise<void> {
-	const active = await client.session.active();
-	const keys = Object.keys(active);
-	if (keys.length === running.size && keys.every((key) => running.has(key))) {
-		// Reuse the previous set so unchanged polls keep snapshot identity.
-		return;
-	}
-	publish(new Set(keys));
+/** The already-running ids, read once per live transition. Unchanged keeps the snapshot. */
+export function hydrateRunning(ids: readonly string[]): void {
+	if (ids.length === running.size && ids.every((id) => running.has(id))) return;
+	publish(new Set(ids));
 }
 
-/**
- * Poll until stopped. Returns the stop function; calling it twice is safe.
- * M2.1 deletes this and drives `publish` from the stream instead.
- */
-export function startActivityPolling(client: OpenCodeClient): () => void {
-	let stopped = false;
-	const poll = () => {
-		if (stopped) return;
-		void refreshActivity(client).catch(() => {
-			// Keep the last state; the banner owns the failure.
-		});
-	};
-	poll();
-	const timer = setInterval(poll, SESSION_ACTIVE_POLL_MS);
-	return () => {
-		stopped = true;
-		clearInterval(timer);
-	};
-}
-
-/** The running ids now; starts the poll for the app's client on mount. */
+/** The running ids now, straight from the store the ingest writes. */
 export function useSessionActivity(): ReadonlySet<string> {
-	const client = useClient();
-	useEffect(() => {
-		if (client === null) {
-			clientPresent = false;
-			publish(EMPTY_SET);
-			return;
-		}
-		clientPresent = true;
-		return startActivityPolling(client);
-	}, [client]);
-	return useSyncExternalStore(subscribe, readSnapshot);
+	return useSyncExternalStore(subscribe, getActivitySnapshot);
 }
 
-/** The tests' reset; production never calls it. */
+/** The ingest's seam into this store (spec 050 §Event ingest). */
+export const ACTIVITY: ActivitySink = {
+	setRunning: setSessionRunning,
+	hydrate: hydrateRunning,
+	clear: resetActivity,
+};
+
+/** Clear the set: a target change, a dropped stream, or the tests' reset. */
 export function resetActivity(): void {
-	clientPresent = false;
+	if (running.size === 0) return;
 	publish(EMPTY_SET);
 }

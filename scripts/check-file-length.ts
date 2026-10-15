@@ -23,6 +23,9 @@ const PATTERNS = ["**/*.{ts,tsx,js,jsx,mjs,cjs,css,json,html}", "src-tauri/**/*.
  * Paths the cap does not apply to: build output, dependencies, byte-identical
  * vendored copies (splitting them would break the diff against the mirror), and
  * machine-generated artifacts (a split would make them differ from their generator).
+ * `src/test/fixtures/` is the last kind: a captured stream or message list is one
+ * long line per frame on purpose, and reformatting it would stop it being the
+ * server's own bytes.
  */
 const SKIP_PREFIXES = [
 	"node_modules/",
@@ -33,6 +36,7 @@ const SKIP_PREFIXES = [
 	"src/theme/vendor/",
 	"src/theme/themes/",
 	"src/docs/reference.generated.ts",
+	"src/test/fixtures/",
 	".superpowers/",
 ];
 

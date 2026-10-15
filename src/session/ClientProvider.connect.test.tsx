@@ -13,6 +13,7 @@ import {
 } from "@/session/ClientProvider";
 import { CONNECTION_STATUS } from "@/session/connectionState";
 import { fakeProbe } from "@/test/session";
+import { quietClient } from "@/test/stream";
 
 /**
  * The connect flow's provider half (spec 050 §Target and auth): the stored target
@@ -78,7 +79,7 @@ describe("ClientProvider — the connect flow", () => {
 		updateSettings({ server: STORED });
 		setInjected(undefined);
 		render(
-			<ClientProvider probe={fakeProbe("resolve").run}>
+			<ClientProvider probe={fakeProbe("resolve").run} client={quietClient()}>
 				<Identity />
 				<Status />
 			</ClientProvider>,
@@ -90,7 +91,7 @@ describe("ClientProvider — the connect flow", () => {
 	test("the injected global still wins over a stored target", () => {
 		updateSettings({ server: STORED });
 		render(
-			<ClientProvider probe={fakeProbe("resolve").run}>
+			<ClientProvider probe={fakeProbe("resolve").run} client={quietClient()}>
 				<Identity />
 			</ClientProvider>,
 		);
@@ -100,7 +101,7 @@ describe("ClientProvider — the connect flow", () => {
 	test("connect stores the target and reaches online; disconnect drops to none but keeps it", async () => {
 		setInjected(undefined);
 		render(
-			<ClientProvider probe={fakeProbe("resolve").run}>
+			<ClientProvider probe={fakeProbe("resolve").run} client={quietClient()}>
 				<Controls />
 				<Identity />
 				<Status />
@@ -118,7 +119,10 @@ describe("ClientProvider — the connect flow", () => {
 		act(() => {
 			fireEvent.click(screen.getByTestId("disconnect"));
 		});
-		expect(screen.getByTestId("identity").textContent).toBe("no client none ");
+		// The test hands a client in, so `none` here is the *target*, not the client:
+		// "no target means no client" is asserted without that seam, in
+		// `ClientProvider.test.tsx`.
+		expect(screen.getByTestId("identity").textContent).toBe("client none ");
 		expect(screen.getByTestId("status").textContent).toBe(CONNECTION_STATUS.none);
 		// The blob keeps the target, so a relaunch reconnects without re-entering it.
 		expect(getSettings().server).toEqual(STORED);

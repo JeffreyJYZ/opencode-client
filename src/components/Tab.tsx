@@ -20,9 +20,9 @@ import {
 /**
  * One tab: a status dot, a title, a close affordance (spec 010 §Top nav).
  *
- * The dot reads the polled `session.active()` map until M2.1's stream lands;
- * the unread pip reads the store and clears on visit. Reorder is the native
- * HTML5 drag path — no library — with the index riding `dataTransfer`.
+ * The dot reads the running set the event stream feeds (M2.1); the unread pip
+ * reads the store and clears on visit. Reorder is the native HTML5 drag path —
+ * no library — with the index riding `dataTransfer`.
  */
 
 export const TAB_DRAG_MIME = "application/x-oc-tab-index";

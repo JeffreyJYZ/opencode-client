@@ -5,9 +5,11 @@ import {
 	useContext,
 	useEffect,
 	useMemo,
+	useRef,
 	useState,
 	useSyncExternalStore,
 } from "react";
+import { INGEST_HOOKS } from "@/app/ingestHooks";
 import type { ServerTarget } from "@/app/settings/server";
 import { updateSettings } from "@/app/settings/store";
 import { buildBundle, type ClientBundle, type ProbeOverride } from "@/session/bundle";
@@ -15,13 +17,18 @@ import type { OpenCodeClient } from "@/session/client";
 import type { ConnectionState } from "@/session/connectionState";
 import { readAndStripAuthToken, resolveTargets } from "@/session/environment";
 import type { ResolvedTarget } from "@/session/target";
+import type { TranscriptStore } from "@/session/transcriptStore";
 
 /**
- * The one client and its connection state, through a context (spec 050 §Target
- * and auth). Rebuilt only when the target actually changes — `connect` and
- * `disconnect` are the only writers — never per render, never per call, so
- * plugins can later reach the same instance as `host.opencode.client` (spec 040)
- * rather than through a mutable singleton.
+ * The one client, its connection state and its event ingest, through a context
+ * (spec 050 §Target and auth, §Event ingest). Rebuilt only when the target
+ * actually changes — `connect` and `disconnect` are the only writers — never per
+ * render, never per call, so plugins can later reach the same instance as
+ * `host.opencode.client` (spec 040) rather than through a mutable singleton.
+ *
+ * The **subscription's lifetime is this component's**: `ingest.start()` on mount
+ * and `ingest.stop()` on unmount, so a target change tears the old stream down
+ * (its timers and its abort controller with it) before the new one opens.
  */
 
 type ClientContextValue = ClientBundle & {
@@ -29,6 +36,8 @@ type ClientContextValue = ClientBundle & {
 	readonly connect: (server: ServerTarget) => void;
 	/** Drop the live connection. The blob keeps the target, so a relaunch reconnects. */
 	readonly disconnect: () => void;
+	/** The offline banner's retry: probe now, and re-open the stream. */
+	readonly retry: () => void;
 };
 
 const ClientContext = createContext<ClientContextValue | null>(null);
@@ -57,12 +66,14 @@ export function useConnection(): ConnectionState {
 	return useSyncExternalStore(connection.subscribe, connection.getState);
 }
 
+/** The transcript store the stream feeds (M2.1); M2.2 renders from it. */
+export function useTranscripts(): TranscriptStore {
+	return useClientContext().transcripts;
+}
+
 /** The retry action the offline banner exposes (spec 050: one retry, never a storm). */
 export function useRetryConnection(): () => void {
-	const { connection } = useClientContext();
-	return () => {
-		void connection.check();
-	};
+	return useClientContext().retry;
 }
 
 /** The connect action the settings section submits with. */
@@ -88,20 +99,36 @@ export function ClientProvider({ children, probe, client: clientOverride }: Clie
 	// before the first paint; every later resolution reuses the password it yielded.
 	const [authTokenPassword] = useState(() => readAndStripAuthToken());
 	const build = useCallback(
-		(target: ResolvedTarget | null) => buildBundle(target, probe, clientOverride),
+		(target: ResolvedTarget | null) => buildBundle(target, probe, clientOverride, INGEST_HOOKS),
 		[probe, clientOverride],
 	);
 	const [bundle, setBundle] = useState(() => build(resolveTargets(authTokenPassword)));
+	const restartRef = useRef<(() => void) | null>(null);
 
 	useEffect(() => {
 		void bundle.connection.check();
 		// StrictMode mounts twice; `check` de-duplicates in flight and `dispose` only
-		// stops the poll, so the second mount probes again rather than staying dead.
+		// drops listeners, so the second mount probes again rather than staying dead.
 		return () => {
 			bundle.connection.dispose();
 		};
 	}, [bundle]);
 
+	useEffect(() => {
+		const { ingest } = bundle;
+		if (ingest === null) return;
+		restartRef.current = ingest.restart;
+		ingest.start();
+		return () => {
+			restartRef.current = null;
+			ingest.stop();
+		};
+	}, [bundle]);
+
+	const retry = useCallback(() => {
+		void bundle.connection.check();
+		restartRef.current?.();
+	}, [bundle]);
 	const connect = useCallback(
 		(server: ServerTarget) => {
 			updateSettings({ server });
@@ -113,8 +140,8 @@ export function ClientProvider({ children, probe, client: clientOverride }: Clie
 		setBundle(build(null));
 	}, [build]);
 	const value = useMemo<ClientContextValue>(
-		() => ({ ...bundle, connect, disconnect }),
-		[bundle, connect, disconnect],
+		() => ({ ...bundle, connect, disconnect, retry }),
+		[bundle, connect, disconnect, retry],
 	);
 
 	return <ClientContext.Provider value={value}>{children}</ClientContext.Provider>;

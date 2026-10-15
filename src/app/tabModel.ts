@@ -30,6 +30,16 @@ export function settingsTab(): Tab {
 	return { kind: TAB_KIND.settings };
 }
 
+/**
+ * The session ids in a strip snapshot. The event ingest's held set (M2.1): a
+ * session is "one this app cares about" exactly while its tab is open.
+ */
+export function sessionIDs(snapshot: TabSnapshot): string[] {
+	const ids: string[] = [];
+	for (const tab of snapshot.tabs) if (tab.kind === TAB_KIND.session) ids.push(tab.id);
+	return ids;
+}
+
 export function sameTab(a: Tab, b: Tab): boolean {
 	return a.kind === b.kind && (a.kind === TAB_KIND.settings || a.id === (b as { id: string }).id);
 }

@@ -1,4 +1,4 @@
-import type { TimerScheduler } from "@/session/connection";
+import type { TimerScheduler } from "@/session/timers";
 
 /**
  * Test doubles for the connection seam. Shared so the store's tests and the

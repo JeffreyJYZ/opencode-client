@@ -1,19 +1,17 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import {
+	ACTIVITY,
 	getActivitySnapshot,
-	refreshActivity,
+	hydrateRunning,
 	resetActivity,
-	startActivityPolling,
+	setSessionRunning,
 } from "@/app/sessionActivity";
-import type { OpenCodeClient } from "@/session/client";
 
-function fakeClient(ids: string[]): OpenCodeClient {
-	return {
-		session: {
-			active: async () => Object.fromEntries(ids.map((id) => [id, { type: "running" }])),
-		},
-	} as unknown as OpenCodeClient;
-}
+/**
+ * The strip's running set. M2.1 feeds it from `session.execution.*` frames, so
+ * these tests are about the set and its snapshot identity — the frames themselves
+ * are `sessionIngest.test.ts`'s, against the captured stream.
+ */
 
 beforeEach(() => {
 	resetActivity();
@@ -24,50 +22,52 @@ afterEach(() => {
 });
 
 describe("sessionActivity", () => {
-	test("refreshActivity records the running ids", async () => {
-		await refreshActivity(fakeClient(["a", "b"]));
+	test("a started frame lights one session and only that one", () => {
+		setSessionRunning("a", true);
+		expect([...getActivitySnapshot()]).toEqual(["a"]);
+		setSessionRunning("b", true);
 		expect([...getActivitySnapshot()].sort()).toEqual(["a", "b"]);
 	});
 
-	test("an unchanged poll keeps the snapshot identity", async () => {
-		await refreshActivity(fakeClient(["a", "b"]));
-		const first = getActivitySnapshot();
-		await refreshActivity(fakeClient(["a", "b"]));
-		expect(getActivitySnapshot()).toBe(first);
-	});
-
-	test("a changed poll publishes a new set", async () => {
-		await refreshActivity(fakeClient(["a"]));
-		const first = getActivitySnapshot();
-		await refreshActivity(fakeClient(["a", "b"]));
-		expect(getActivitySnapshot()).not.toBe(first);
-		expect([...getActivitySnapshot()]).toEqual(["a", "b"]);
-	});
-
-	test("resetActivity clears the running set", async () => {
-		await refreshActivity(fakeClient(["a"]));
-		resetActivity();
+	test("a finished frame clears it again", () => {
+		setSessionRunning("a", true);
+		setSessionRunning("a", false);
 		expect(getActivitySnapshot().size).toBe(0);
 	});
 
-	test("a failed read keeps the last state", async () => {
-		await refreshActivity(fakeClient(["a"]));
-		const client = {
-			session: {
-				active: async () => {
-					throw new Error("boom");
-				},
-			},
-		} as unknown as OpenCodeClient;
-		await expect(refreshActivity(client)).rejects.toBeInstanceOf(Error);
-		expect([...getActivitySnapshot()]).toEqual(["a"]);
+	test("an unchanged write keeps the snapshot identity", () => {
+		setSessionRunning("a", true);
+		const first = getActivitySnapshot();
+		setSessionRunning("a", true);
+		setSessionRunning("b", false);
+		expect(getActivitySnapshot()).toBe(first);
 	});
 
-	test("startActivityPolling returns a stop function and reads once immediately", async () => {
-		const stop = startActivityPolling(fakeClient(["x"]));
-		// the immediate read is async; let it settle
-		await Bun.sleep(0);
-		expect([...getActivitySnapshot()]).toEqual(["x"]);
-		stop();
+	test("hydrateRunning adopts the already-running ids and keeps identity when unchanged", () => {
+		hydrateRunning(["a", "b"]);
+		const first = getActivitySnapshot();
+		expect([...first].sort()).toEqual(["a", "b"]);
+		hydrateRunning(["a", "b"]);
+		expect(getActivitySnapshot()).toBe(first);
+		hydrateRunning(["a"]);
+		expect(getActivitySnapshot()).not.toBe(first);
+	});
+
+	test("the ingest's sink is these three calls", () => {
+		ACTIVITY.setRunning("a", true);
+		expect([...getActivitySnapshot()]).toEqual(["a"]);
+		ACTIVITY.hydrate(["b"]);
+		expect([...getActivitySnapshot()]).toEqual(["b"]);
+		ACTIVITY.clear();
+		expect(getActivitySnapshot().size).toBe(0);
+	});
+
+	test("resetActivity clears and is a no-op on an empty set", () => {
+		const first = getActivitySnapshot();
+		resetActivity();
+		expect(getActivitySnapshot()).toBe(first);
+		setSessionRunning("a", true);
+		resetActivity();
+		expect(getActivitySnapshot().size).toBe(0);
 	});
 });

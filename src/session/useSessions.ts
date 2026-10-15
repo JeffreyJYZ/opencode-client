@@ -12,8 +12,8 @@ export type SessionRow = Awaited<ReturnType<OpenCodeClient["session"]["list"]>>[
  * own default page holds few roots, so the limit is named and non-default.
  *
  * `status` keeps the no-target and failed cases honest: neither reads as "you
- * have no sessions". Refetch is explicit (`reload`); the event-driven refresh is
- * M2.1's seam and is intentionally not polled here.
+ * have no sessions". Refetch is explicit (`reload`) — M2.1's ingest holds
+ * transcripts for the open tabs, not this list, and nothing here polls.
  *
  * `useSessions()` is the context-backed wrapper; `useSessionsWithClient(client)` is
  * the injectable core so tests (and any non-context caller) can drive every state

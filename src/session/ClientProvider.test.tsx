@@ -11,6 +11,7 @@ import { TARGET_GLOBAL } from "@/constants/server";
 import { ClientProvider, useClient, useConnection, useTarget } from "@/session/ClientProvider";
 import { CONNECTION_STATUS } from "@/session/connectionState";
 import { fakeProbe } from "@/test/session";
+import { quietClient } from "@/test/stream";
 
 /** RTL installs auto-cleanup once per process; this is not its first importer. */
 afterEach(cleanup);
@@ -51,7 +52,7 @@ describe("ClientProvider", () => {
 	test("builds one client from the injected target and reaches online", async () => {
 		const fake = fakeProbe("resolve");
 		render(
-			<ClientProvider probe={fake.run}>
+			<ClientProvider probe={fake.run} client={quietClient()}>
 				<Identity />
 				<Status />
 			</ClientProvider>,
@@ -64,7 +65,7 @@ describe("ClientProvider", () => {
 	test("a failed probe moves the app offline and the banner names the url it tried", async () => {
 		const fake = fakeProbe("reject");
 		render(
-			<ClientProvider probe={fake.run}>
+			<ClientProvider probe={fake.run} client={quietClient()}>
 				<OfflineBanner />
 				<Status />
 			</ClientProvider>,
@@ -80,7 +81,7 @@ describe("ClientProvider", () => {
 	test("the retry action probes again and the banner clears when the server answers", async () => {
 		const fake = fakeProbe("reject");
 		render(
-			<ClientProvider probe={fake.run}>
+			<ClientProvider probe={fake.run} client={quietClient()}>
 				<OfflineBanner />
 			</ClientProvider>,
 		);

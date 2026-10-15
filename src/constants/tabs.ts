@@ -35,13 +35,10 @@ export const TAB_CLOSE_LABEL = "×";
 /** The pip on a tab that produced output while unfocused. */
 export const UNREAD_MARK = "●";
 
-/** The status dot's hover text: the polled `session.active()` map, until M2.1. */
+/** The status dot's hover text: the running set the event stream feeds (M2.1). */
 export const TAB_RUNNING_TITLE = "running";
 export const TAB_IDLE_TITLE = "idle";
 export const TAB_UNREAD_LABEL = "unread";
-
-/** How often the strip re-reads `session.active()` until M2.1's stream lands. */
-export const SESSION_ACTIVE_POLL_MS = 5_000;
 
 /**
  * The window events the `+` button, the picker button and ⌘T dispatch. M1.3
