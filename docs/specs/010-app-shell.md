@@ -76,6 +76,7 @@ Two stores, deliberately. The window state is the **shell's** (`opencode.window`
 | `settings.tabs` | open views — session ids, plus the settings view while it is open — in order, plus the active tab |
 | `settings.lastRoute` | where to land on next launch |
 | `settings.lastOpened` | the session the app was last in, so a relaunch can offer it (`src/app/lastOpened.ts` always named M1.5 as its hydration seam; added to the table when M1.5 landed) |
+| `settings.server` | the stored target — url + password — for a build that is not served by its own server (M1.7). Never written to a log and never carried in a URL; the credential reaches the wire only as the `Authorization` header |
 | `settings.sidebar` | visible + width |
 | `settings.fonts` | interface face/size, code face/size (spec 030) |
 | `settings.recentDirectories` | the new-session chips |
