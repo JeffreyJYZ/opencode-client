@@ -1,5 +1,6 @@
 //! The desktop shell: one window, built in Rust so it can carry the target handover.
 
+mod csp;
 mod target;
 
 #[cfg(test)]
@@ -84,12 +85,15 @@ pub fn run() {
             // dev arm is compiled out of production.
             .on_navigation(|url| is_allowed_navigation(url, cfg!(dev)));
 
-            // The handover has to exist before the page's first script runs, which is
-            // why the window is built here rather than declared in `tauri.conf.json`:
-            // only this builder carries an initialization script.
-            if let Some(target) = &target {
-                window = window.initialization_script(target.initialization_script());
-            }
+            // The policy is assembled here — after the target resolved above,
+            // before the window exists — so its `connect-src` names this
+            // launch's server and nothing guessed. The handover has to exist
+            // before the page's first script runs, which is why the window is
+            // built here rather than declared in `tauri.conf.json`: only this
+            // builder carries an initialization script. It is set even with no
+            // target, because the policy applies to the web build too.
+            let script = csp::initialization_script(target.as_ref(), cfg!(dev));
+            window = window.initialization_script(script);
 
             window.build()?;
             Ok(())
