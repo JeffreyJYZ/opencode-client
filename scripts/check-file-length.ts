@@ -28,6 +28,7 @@ const SKIP_PREFIXES = [
 	"node_modules/",
 	"dist/",
 	"src-tauri/target/",
+	"src-tauri/gen/",
 	"public/plugins/",
 	"src/theme/vendor/",
 	"src/theme/themes/",
