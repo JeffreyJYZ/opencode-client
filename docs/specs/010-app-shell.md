@@ -1,0 +1,84 @@
+# 010 — Shell, navigation and the home page
+
+## Window
+
+- One Tauri 2 window, sized by the OS the first time and restored afterwards (window state persisted by the shell, not by React).
+- The window is created in **Rust `setup`**, not in `tauri.conf.json` (`app.windows: []`), because only `WebviewWindowBuilder` can carry an `initialization_script` that runs before the app's own scripts (`src-tauri/README.md` documents the shell; written in M0.2).
+- That script injects the server target: `window.__OC_TARGET__ = { url, password }`. Rust resolves it from `OPENCODE_SERVER_URL` / `OPENCODE_PASSWORD` / `OPENCODE_AUTH_TOKEN`, else from the registered service file `~/.local/state/opencode/service.json` (`OPENCODE_SERVICE_FILE` overrides the path). The web build has no such global and falls back to its own origin or a stored target.
+- No custom title bar in v1; the window title is `<session title> — opencode` on a session route, `opencode` elsewhere. The macOS traffic lights stay where they are.
+- Menu: `File` (New session…, Close tab, Quit), `View` (Toggle sidebar, Command palette, Reload), `Help` (Docs, Report issue). Everything in the menu also has a keybinding and a palette entry; the menu bar is a convenience, never the only path.
+
+## Routes
+
+| Route | Renders | Notes |
+| --- | --- | --- |
+| `/` (home) | recents, new session, settings entry | the app's landing surface; opens even with no sessions |
+| `/session/:id` | the session view (spec 020) | `:id` is the server's session id; an unknown or child session id renders the same "no session" state as home's empty case |
+| `/settings` | settings sections, built-in + plugin | **renders in the tab strip as its own tab** (opened by the gear, ⌘, or the palette; closeable and reopenable like a session tab). Each section is a foldable panel and a plugin registers one. The plugin manager is a section here, not a route of its own (spec 040): always registered, never disableable |
+
+- The router is internal (`src/app/router.ts`): a `Route` union, `useRoute()` (history API + `popstate`), `navigate(route)`, and a registry so a plugin may contribute a route. No router dependency.
+- Depth is two: a top-level surface and, inside a session, its panels. No nested navigators.
+- Back/forward work through the browser history (⌘[ / ⌘]), because this is a webview and users expect it.
+
+## Top nav — sessions and tabs
+
+The sketch's "top nav contains sessions/tabs". One row, full width, always visible; it is what makes several sessions usable in one window.
+
+| Region | Contents |
+| --- | --- |
+| left | app mark (click → home), then the tab strip |
+| centre/left-flowing | **tabs**, one per open view: a **session** (status dot, title, close on hover) or the **settings surface** (a labelled tab, closeable like any other). A tab is a view, not only a session |
+| right | `+ New session`, session picker `⌕` (all root sessions, searchable), settings gear (opens `/settings`, whose sections include Plugins), overflow `⋯` (plugin-contributed nav items) |
+
+- Tab status dot comes from the session's execution state (`session.execution.*`), so a background tab shows that a turn is running. A tab that has produced output while unfocused gets a subtle unread mark until visited.
+- Overlap with the TUI: the TUI's horizontal strip is its sessions rail. We keep the shape (one strip, one row, status per session) and add desktop affordances — middle-click close, drag to reorder, overflow menu past the window width, ⌘1…⌘9 to switch, ⌘W to close, ⌘T for new session.
+- The strip is a **slot host**: `topnav.left`, `topnav.center`, `topnav.right`. Built-in controls register into it through the same API a plugin uses (spec 040 §Modularity).
+
+## Home page
+
+Opens by default on launch when no tab is restored — the sketch's "homepage should open with recents, with a settings button".
+
+| Block | Contents |
+| --- | --- |
+| Recents | root sessions from `session.list({ parentID: null, order: "desc", limit: SESSION_PAGE_LIMIT })`, newest first, grouped by the **day of `time.updated`** (`Today`, then `Date.prototype.toDateString()`), one line per session: title, directory (last path segment, truncated), relative time, agent·model if known. Click → opens the session view. |
+| New session | one primary button: pick a directory (native directory picker, spec 040 `host.native.pickDirectory`), then `session.create()` in that directory and open it. Recent directories are listed as one-click chips; the picker remembers the last used directory. |
+| Settings | a button in the top-right of the page and in the top nav; opens `/settings`. |
+| Continue where you left off | the last opened session, as a single card, if any (local UI state). |
+| Plugin surface | `home.hero`, `home.widgets` (a grid), `home.actions` — e.g. a plugin offering "new session in this repo". |
+
+- Empty state: when the server has no root sessions, the page shows the new-session action, the settings button, and one line naming the connected server (`url`, version from `server.info()`), so a misconfigured target is visible rather than a blank page.
+- A child session (a subagent's) never appears in recents or in the picker — root sessions only, the same rule the previous build measured out of `session.list`.
+
+## Desktop behaviours (the "UX like desktop" half)
+
+- **Command palette** (⌘K / ctrl+K): sessions, commands (server `command.list` + client commands + plugin commands), settings sections (including the Plugins section), theme switch, font size, and every open tab — Settings included — which it can focus. Fuzzy-filtered, keyboard driven.
+- **Keyboard map** (single table in `src/constants/keys.ts`, rendered into the palette's help): ⌘K palette, ⌘T new session, ⌘W close tab, ⌘1…⌘9 tab switch, ⌘B toggle sidebar, ⌘,settings, ⌘R reload session, Esc interrupt a running turn, ⌘↩ send vs ↩ newline (configurable), ⌥↑/⌥↓ jump between prompts.
+- **Context menus** (right-click): tab (close, close others, rename, copy directory), recent row (open, copy path, delete session), transcript row (copy text, copy code, expand/collapse, open file at path), sidebar panel (collapse, detach later).
+- **Hover affordances** the TUI cannot have: copy buttons on code blocks and tool output, "expand/collapse all" on long outputs, per-row timestamps on hover, a jump-to-latest pill while scrolled up.
+- **Resizable panes**: sidebar width by drag on its edge, persisted; transcript area takes the rest; minimum widths so nothing collapses to zero.
+- **Native integrations**: directory/file pickers, open-in-editor (a row's path with the OS default handler), copy-to-clipboard with a toast, system notifications on turn end while the window is unfocused, drag-and-drop files onto the prompt box to attach.
+- **Self-update** through the Tauri updater on the desktop build; the web build shows its own version only.
+- **Never a silent failure**: every server error surfaces as a toast or an inline row (`Prompt not sent`, `Interrupt failed`), never only in the console.
+
+## Persistence
+
+| Key (settings or localStorage) | Holds |
+| --- | --- |
+| `opencode.window` | window size/position (shell side) |
+| `settings.tabs` | open views — session ids and the settings tab — in order, plus the active tab |
+| `settings.lastRoute` | where to land on next launch |
+| `settings.sidebar` | visible + width |
+| `settings.fonts` | interface face/size, code face/size (spec 030) |
+| `settings.recentDirectories` | the new-session chips |
+| `settings.pluginsEnabled`, `settings.plugins[]` | plugin master switch, per-plugin state + `data` (spec 040) |
+
+- Settings are one versioned blob with `dataVersion` and a forward-only migration registry: a newer build reads and migrates an older blob, never drops a field it does not know.
+- Nothing user-visible is stored per-window that a second window would need to duplicate (the plugin manager's state lives in the blob, not in a component).
+
+## Acceptance
+
+- Fresh install with a running server: launch lands on home, recents list matches `session.list` for root sessions, the picker creates a session in a chosen directory, and clicking a recent opens the session view.
+- Two sessions open: tabs switch with keyboard and mouse, a running turn in one tab is visible from the other, closing a tab does not kill the session.
+- Settings is reachable as a tab (gear, ⌘, or the palette), closes and reopens without losing its expanded sections, and a plugin-contributed section appears there (spec 040 acceptance).
+- Window size, sidebar width, tab set and font choice survive a restart.
+- A server that is down or a wrong target produces a named error state with the url it tried, not a blank page.
