@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { act, cleanup, render, screen } from "@testing-library/react";
+import { resetSettings } from "@/app/settings/store";
 import { resetTabs } from "@/app/tabs";
 import { NEW_SESSION_EVENT } from "@/constants/tabs";
 import { NewSessionFlow } from "@/pages/NewSessionFlow";
@@ -11,6 +12,7 @@ afterEach(cleanup);
 
 beforeEach(() => {
 	window.history.pushState(null, "", "/");
+	resetSettings();
 	resetTabs();
 });
 

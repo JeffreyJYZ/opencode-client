@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { setLastOpenedSession } from "@/app/lastOpened";
+import { updateSettings } from "@/app/settings/store";
+import { useSettings } from "@/app/settings/useSettings";
 import { activateTabAndGo } from "@/app/tabSync";
 import { openTab } from "@/app/tabs";
 import { NEW_SESSION_EVENT, TAB_KIND } from "@/constants/tabs";
@@ -32,12 +34,14 @@ export function useNewSessionFlow(options?: UseNewSessionFlowOptions): NewSessio
 	const pickerAvailable = options?.pickerAvailable ?? isNativeDirectoryPickerAvailable();
 	const picker = options?.picker ?? defaultDirectoryPicker;
 
-	const [recents, setRecents] = useState<string[]>([]);
-	const [lastUsed, setLastUsed] = useState<string | null>(null);
 	const [open, setOpen] = useState(false);
 	const [path, setPath] = useState("");
 	const [error, setError] = useState<string | null>(null);
 	const [busy, setBusy] = useState(false);
+	// The chips and the picker's pre-selection are settings, not component state:
+	// one writer, and a restart keeps them (spec 010 §Persistence, M1.5).
+	const recents = useSettings().settings.recentDirectories;
+	const lastUsed = recents[0] ?? null;
 
 	const openSession = useCallback((id: string) => {
 		setLastOpenedSession(id);
@@ -56,8 +60,7 @@ export function useNewSessionFlow(options?: UseNewSessionFlowOptions): NewSessio
 			try {
 				const input = { location: { directory: trimmed } } as unknown;
 				const session = (await client.session.create(input as never)) as { id: string };
-				setRecents((prev) => addRecentDirectory(prev, trimmed));
-				setLastUsed(trimmed);
+				updateSettings({ recentDirectories: addRecentDirectory(recents, trimmed) });
 				setOpen(false);
 				openSession(session.id);
 			} catch (caught) {
@@ -69,7 +72,7 @@ export function useNewSessionFlow(options?: UseNewSessionFlowOptions): NewSessio
 				setBusy(false);
 			}
 		},
-		[client, openSession],
+		[client, openSession, recents],
 	);
 
 	const start = useCallback(async () => {

@@ -113,3 +113,14 @@ export function navigate(route: Route): void {
 	window.history.pushState(null, "", path);
 	notify();
 }
+
+/**
+ * Land on a route without adding a history entry: the startup restore's own
+ * move (M1.5), so Back still leaves the app rather than returning to `/`.
+ */
+export function replaceRoute(route: Route): void {
+	const path = routeToPath(route);
+	if (path === currentPath()) return;
+	window.history.replaceState(null, "", path);
+	notify();
+}
