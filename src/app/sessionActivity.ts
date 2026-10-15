@@ -11,7 +11,9 @@ import type { OpenCodeClient } from "@/session/client";
  * state rather than blanking every dot; the offline banner owns the error.
  */
 
-let running: ReadonlySet<string> = new Set();
+const EMPTY_SET: ReadonlySet<string> = new Set();
+let running: ReadonlySet<string> = EMPTY_SET;
+let clientPresent = false;
 const listeners = new Set<() => void>();
 
 function publish(next: ReadonlySet<string>): void {
@@ -26,14 +28,23 @@ function subscribe(listener: () => void): () => void {
 	};
 }
 
-function readSnapshot(): ReadonlySet<string> {
+export function getActivitySnapshot(): ReadonlySet<string> {
 	return running;
+}
+
+function readSnapshot(): ReadonlySet<string> {
+	return clientPresent ? running : EMPTY_SET;
 }
 
 /** One read of `session.active()`; the ids present are running. */
 export async function refreshActivity(client: OpenCodeClient): Promise<void> {
 	const active = await client.session.active();
-	publish(new Set(Object.keys(active)));
+	const keys = Object.keys(active);
+	if (keys.length === running.size && keys.every((key) => running.has(key))) {
+		// Reuse the previous set so unchanged polls keep snapshot identity.
+		return;
+	}
+	publish(new Set(keys));
 }
 
 /**
@@ -60,7 +71,12 @@ export function startActivityPolling(client: OpenCodeClient): () => void {
 export function useSessionActivity(): ReadonlySet<string> {
 	const client = useClient();
 	useEffect(() => {
-		if (client === null) return;
+		if (client === null) {
+			clientPresent = false;
+			publish(EMPTY_SET);
+			return;
+		}
+		clientPresent = true;
 		return startActivityPolling(client);
 	}, [client]);
 	return useSyncExternalStore(subscribe, readSnapshot);
@@ -68,5 +84,6 @@ export function useSessionActivity(): ReadonlySet<string> {
 
 /** The tests' reset; production never calls it. */
 export function resetActivity(): void {
-	publish(new Set());
+	clientPresent = false;
+	publish(EMPTY_SET);
 }

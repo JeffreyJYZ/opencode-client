@@ -22,7 +22,14 @@ function hasCommandModifier(event: KeyboardEvent): boolean {
 	return event.metaKey || event.ctrlKey;
 }
 
-/** Whether the event names the binding's key, case-insensitively. */
+/**
+ * Whether the event names the binding's key, case-insensitively.
+ *
+ * The modifier is not re-checked here: this stays pure over the event's key,
+ * and callers (see `isTabKeyEvent`/`hasCommandModifier` in `handleTabKey`) are
+ * required to have verified the command modifier first — the binding itself
+ * carries its modifier in `src/constants/keys.ts` for the help table (M1.6).
+ */
 export function matchesShortcut(
 	event: { readonly key: string; readonly metaKey: boolean; readonly ctrlKey: boolean },
 	binding: { readonly key: string },

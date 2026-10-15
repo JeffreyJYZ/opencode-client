@@ -131,6 +131,7 @@ export function hydrateTabState(state: SerializedTabs): void {
 	tabs = [...state.tabs];
 	activeIndex =
 		tabs.length === 0 ? -1 : Math.max(0, Math.min(state.activeIndex, tabs.length - 1));
+	unread = new Set();
 	publish();
 }
 

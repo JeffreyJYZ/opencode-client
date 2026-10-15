@@ -105,6 +105,8 @@ export function registerTopnavBuiltins(): void {
 	if (installed !== null) return;
 	installed = [
 		register({ id: TOPNAV_ID.appMark, slot: TOPNAV_SLOT.appMark, component: AppMark }),
+		// The strip is homed in topnav.center — the region that takes the
+		// remaining width and flexes/scrolls (spec 010 §Top nav, M1.1b).
 		register({ id: TOPNAV_ID.strip, slot: TOPNAV_SLOT.strip, component: TabStrip }),
 		register({
 			id: TOPNAV_ID.newSession,

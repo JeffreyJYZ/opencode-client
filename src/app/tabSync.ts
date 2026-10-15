@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { navigate, type Route, sessionRoute, settingsRoute } from "@/app/router";
+import { sameTab } from "@/app/tabModel";
 import { activateTab, closeTab, getTabSnapshot, openTab, type Tab } from "@/app/tabs";
 import { useRoute } from "@/app/useRoute";
 import { ROUTE_KIND } from "@/constants/routes";
@@ -7,7 +8,7 @@ import { NEW_SESSION_EVENT, SESSION_PICKER_EVENT, TAB_KIND } from "@/constants/t
 
 /**
  * Where the router and the tab store meet (spec 010 §Routes, decided rule: the
- * settings view is a tab *while it is open*, and no settings tab sits in the
+ * settings view is a tab *while* it is open, and no settings tab sits in the
  * strip while it is closed).
  *
  * Sync runs route → tabs only. Tab clicks and closes navigate explicitly, so
@@ -48,7 +49,7 @@ export function activateTabAndGo(tab: Tab): void {
  */
 export function closeTabAndGo(tab: Tab): void {
 	const before = getTabSnapshot();
-	const wasActive = before.tabs[before.activeIndex] === tab;
+	const wasActive = before.activeIndex >= 0 && sameTab(before.tabs[before.activeIndex], tab);
 	closeTab(tab);
 	if (!wasActive) return;
 	const after = getTabSnapshot();

@@ -6,8 +6,6 @@
  * then the strip shows the id, truncated by CSS.
  */
 
-import type { SlotName } from "@/plugins/slots";
-
 /** What a tab holds. Mirrors the router's kinds without importing it. */
 export const TAB_KIND = {
 	session: "session",
@@ -53,21 +51,26 @@ export const SESSION_ACTIVE_POLL_MS = 5_000;
 export const NEW_SESSION_EVENT = "oc:new-session";
 export const SESSION_PICKER_EVENT = "oc:session-picker";
 
-/** The slot each built-in nav control registers into — through `register`. */
-export const TOPNAV_SLOT: Record<string, SlotName> = {
+/**
+ * The slot each built-in nav control registers into — through `register`.
+ * The tab strip's single home is `topnav.center` (spec 010 §Top nav: it takes
+ * the remaining width and flexes/scrolls; a contribution in `left` cannot
+ * disturb it). Tightened: a typo'd key is now a compile error.
+ */
+export const TOPNAV_SLOT = {
 	appMark: "topnav.left",
 	strip: "topnav.center",
 	newSession: "topnav.right",
 	picker: "topnav.right",
 	gear: "topnav.right",
-};
+} as const;
 
 /** The three regions the nav row renders, each a slot host. */
-export const TOPNAV_REGION: Record<string, SlotName> = {
+export const TOPNAV_REGION = {
 	left: "topnav.left",
 	center: "topnav.center",
 	right: "topnav.right",
-};
+} as const;
 
 /** The ids the built-ins register under; a plugin reusing one is refused. */
 export const TOPNAV_ID = {

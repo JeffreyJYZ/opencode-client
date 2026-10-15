@@ -5,6 +5,7 @@ import { activateTabAndGo, closeTabAndGo } from "@/app/tabSync";
 import { moveTab } from "@/app/tabs";
 import { useTabs } from "@/app/useTabs";
 import { Tab, tabTitle } from "@/components/Tab";
+import { useMenuDismiss } from "@/components/useMenuDismiss";
 import { OVERFLOW_LABEL, OVERFLOW_TITLE } from "@/constants/tabs";
 
 /**
@@ -77,6 +78,7 @@ export function TabStrip() {
 	const running = useSessionActivity();
 	const [menuOpen, setMenuOpen] = useState(false);
 	const stripRef = useRef<HTMLDivElement>(null);
+	const overflowRef = useRef<HTMLDivElement>(null);
 	const activeKey = activeIndex >= 0 ? tabKey(tabs[activeIndex]) : null;
 	useEffect(() => {
 		if (activeKey === null) return;
@@ -84,6 +86,7 @@ export function TabStrip() {
 			?.querySelector(`[data-tab="${activeKey}"]`)
 			?.scrollIntoView({ block: "nearest", inline: "nearest" });
 	}, [activeKey]);
+	useMenuDismiss(menuOpen, setMenuOpen, overflowRef);
 	if (tabs.length === 0) return null;
 	return (
 		<div style={{ display: "flex", minWidth: 0, flex: "1 1 auto" }}>
@@ -102,7 +105,7 @@ export function TabStrip() {
 					/>
 				))}
 			</div>
-			<div style={OVERFLOW_WRAP_STYLE}>
+			<div ref={overflowRef} style={OVERFLOW_WRAP_STYLE}>
 				<button
 					type="button"
 					title={OVERFLOW_TITLE}
