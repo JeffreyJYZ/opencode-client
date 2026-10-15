@@ -5,7 +5,7 @@ Last updated: 2026-10-15 · Current focus: **M0 — Foundations** (`M0.2` and `M
 | Milestone | Done / total | Gate |
 | --- | --- | --- |
 | M0 Foundations | 8 / 9 | `bun run verify` (now ending in `cargo check`) and `cargo test`; `bun tauri dev` opens a window with the target injected |
-| M1 Shell and home | 2 / 7 | home → session view end to end; restart restores tabs |
+| M1 Shell and home | 3 / 9 | home → session view end to end; restart restores tabs |
 | M2 Session view | 0 / 10 | a live session streams, interrupts, queues and replies from the keyboard |
 | M3 Type and theme | 0 / 5 | both faces change live and survive a restart; theme applies and clears |
 | M4 Plugin host 0.1 | 0 / 8 | four example plugins install, work and uninstall through the documented API |
@@ -27,6 +27,8 @@ Last updated: 2026-10-15 · Current focus: **M0 — Foundations** (`M0.2` and `M
 
 - [x] `M1.1` Top nav: tab strip (sessions, plus the settings view while it is open), status dot from `session.active()`, close/reorder/overflow, ⌘1…⌘9, ⌘W, ⌘T — **done** (`4870a17`, 13m11s on muse-spark), **reviewed** `accept with fixes` (no blocker; the fixes are `M1.1b`): 86→109 tests, browser proof re-run by the reviewer on its own port including 9 tabs at a 500px viewport
 - [x] `M1.1b` M1.1 review fixes — **done** (`926eda3`, `cat-jam-free`), controller-verified: 109→**126** tests, `closeTabAndGo` compares by `sameTab`, the poll reuses its set, `hydrateTabState` clears unread, dismissal extracted to `useMenuDismiss`, and the six test gaps closed (middle-click close, drag reorder, Escape/click-outside, poll identity, clamping, `sessionActivity`)
+- [x] `M1.2` Home: recents (root sessions, day-grouped by `time.updated`, location per row), empty state naming the server, and it owns the first `useSessions` — **done** (`f735885`, `cat-jam-free`), **reviewed** `accept with fixes` (no blocker; the fixes are `M1.2b`): 126→132 tests and an isolated-server proof that rendered seeded recents in order (the reviewer reproduced it and clicked a row through the tab store)
+- [ ] `M1.2b` M1.2 review fixes: the client is injected into `useSessions` (no more `mock.module`, which leaks process-wide and is why the required tests were dropped), the seven missing tests restored (root-only filter, empty state naming url+version, the failed state naming the target, row click through the store, the settings entry through the store, home slots, the hook's five states), `groupSessionsByDay` sorts its own copy, and the page splits at the cap — evidence: `bun test` (132→) with each new test mapped to its item
 - [ ] `M1.2` Home: recents (root sessions, day-grouped, location per row), empty state naming the server — evidence: list matches `session.list({ parentID: null })`
 - [ ] `M1.3` New session: directory picker + recent-dir chips → `session.create()` → open it — evidence: created in a picked dir, appears in recents
 - [ ] `M1.4` Session picker `⌕`: all root sessions, search, keyboard — evidence: opens a session older than the first page
