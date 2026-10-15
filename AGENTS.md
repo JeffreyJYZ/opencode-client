@@ -19,6 +19,8 @@ Live repo: the opencode **desktop client** (Tauri 2 + React). Abandoned sibling 
 - Tailwind 4 is configured through the Vite plugin, not a PostCSS file, and themes are CSS custom properties — a class string is not a design decision, a token is.
 - **Vite's `import.meta.env` define matches the expression textually**: behind a type cast (`(import.meta as X).env`) it stays undefined in dev, so a dev override read that way is silently absent — write the member expression directly. (`bun test`'s `import.meta.env` is a live view of `process.env`, so a dev-override reader *is* unit-testable by setting it.)
 
+- **House tools, restated here because the global config does not reliably reach a subagent**: `rg` — never `grep` or `find`; `fd` — never `find`; `sd` over `sed`. Absolute paths with `workdir`, never a chained `cd`. (A free-tier run has burned turns on `grep`/`find`.)
+
 ## Work conventions
 
 - **150-line cap on code and config files**, enforced by `scripts/check-file-length.ts` inside `bun run verify`. Over the cap means two responsibilities share one file: split along a seam, never truncate a function. Docs are exempt (a spec is split when it stops being skimmable, not at a line count). Excluded paths: build output, `node_modules`, the byte-identical vendored theme copies, and machine-generated artifacts — splitting those would break their diff or their generator.

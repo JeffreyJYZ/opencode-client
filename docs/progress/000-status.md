@@ -5,7 +5,7 @@ Last updated: 2026-10-15 · Current focus: **M0 — Foundations** (`M0.2` and `M
 | Milestone | Done / total | Gate |
 | --- | --- | --- |
 | M0 Foundations | 8 / 9 | `bun run verify` (now ending in `cargo check`) and `cargo test`; `bun tauri dev` opens a window with the target injected |
-| M1 Shell and home | 0 / 6 | home → session view end to end; restart restores tabs |
+| M1 Shell and home | 1 / 7 | home → session view end to end; restart restores tabs |
 | M2 Session view | 0 / 10 | a live session streams, interrupts, queues and replies from the keyboard |
 | M3 Type and theme | 0 / 5 | both faces change live and survive a restart; theme applies and clears |
 | M4 Plugin host 0.1 | 0 / 8 | four example plugins install, work and uninstall through the documented API |
@@ -25,11 +25,13 @@ Last updated: 2026-10-15 · Current focus: **M0 — Foundations** (`M0.2` and `M
 
 ## M1 — Shell and home
 
-- [ ] `M1.1` Top nav: tabs (sessions, plus the settings view while it is open), status dots, close/reorder/overflow, ⌘1…⌘9, ⌘W, ⌘T — evidence: two sessions + settings open, switch and close both ways
+- [x] `M1.1` Top nav: tab strip (sessions, plus the settings view while it is open), status dot from `session.active()`, close/reorder/overflow, ⌘1…⌘9, ⌘W, ⌘T — **done** (`4870a17`, 13m11s on muse-spark), **reviewed** `accept with fixes` (no blocker; the fixes are `M1.1b`): 86→109 tests, browser proof re-run by the reviewer on its own port including 9 tabs at a 500px viewport
+- [ ] `M1.1b` M1.1 review fixes: `closeTabAndGo` compares by `sameTab` (a constructed tab currently leaves a dangling URL), stale dots when the client is `null`, the 5 s poll re-rendering with nothing changed, `hydrateTabState` not clearing unread, the `⋯` menu having no dismissal, the loose slot-record types, and the test gaps the review listed — evidence: `bun test` (109→) + each new test mapped to its item
 - [ ] `M1.2` Home: recents (root sessions, day-grouped, location per row), empty state naming the server — evidence: list matches `session.list({ parentID: null })`
 - [ ] `M1.3` New session: directory picker + recent-dir chips → `session.create()` → open it — evidence: created in a picked dir, appears in recents
 - [ ] `M1.4` Session picker `⌕`: all root sessions, search, keyboard — evidence: opens a session older than the first page
 - [ ] `M1.5` Persistence: versioned settings blob + forward-only migrations (tabs incl. settings, last route, sidebar, fonts, recent dirs) — evidence: restart restores both
+- [ ] `M1.7` Connect flow: `settings.server` (url + password) with connect/disconnect states, so a build not served by its own server has somewhere to point; the "stored target" step of spec 050's order has no key without it — evidence: a wrong url shows the offline banner with a retry; a correct one connects; the target survives a restart
 - [ ] `M1.6` Command palette + keymap registry — evidence: ⌘K lists sessions, commands, settings sections and open tabs
 
 ## M2 — Session view

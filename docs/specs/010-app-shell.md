@@ -32,8 +32,8 @@ The sketch's "top nav contains sessions/tabs". One row, full width, always visib
 
 | Region | Contents |
 | --- | --- |
-| left | app mark (click → home), then the tab strip |
-| centre/left-flowing | **tabs**, one per open view: a **session** (status dot, title, close on hover) or the **settings view** while it is open (a labelled tab, closeable like any other). A tab is a view, not only a session |
+| left | the app mark (click → home), plus plugin contributions |
+| centre | **the tab strip** — the region that takes the remaining width, so it is the one that flexes and scrolls (M1.1 resolved an earlier "left-flowing" reading: a contribution into `left` must not be able to disturb the strip) — one tab per open view: a **session** (status dot, title, close on hover) or the **settings view** while it is open (a labelled tab, closeable like any other). A tab is a view, not only a session |
 | right | `+ New session`, session picker `⌕` (all root sessions, searchable), settings gear (a trigger for the settings tab, never a tab itself), overflow `⋯` (plugin-contributed nav items) |
 
 - Tab status dot comes from the session's execution state (`session.execution.*`), so a background tab shows that a turn is running. A tab that has produced output while unfocused gets a subtle unread mark until visited.
