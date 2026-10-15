@@ -1,10 +1,10 @@
 # Status board
 
-Last updated: 2026-10-15 · Current focus: **M0 — Foundations** (`M0.6` done, `M0.1` nearly — the `e2e` script waits on M2)
+Last updated: 2026-10-15 · Current focus: **M0 — Foundations** (`M0.2` and `M0.6` done, `M0.1` nearly — its `e2e` script waits on M2; `M0.2b` opened by M0.2's review)
 
 | Milestone | Done / total | Gate |
 | --- | --- | --- |
-| M0 Foundations | 1 / 6 | `bun run verify`; `bun tauri dev` opens a window naming the server |
+| M0 Foundations | 2 / 7 | `bun run verify`; `bun tauri dev` opens a window with the target injected |
 | M1 Shell and home | 0 / 6 | home → session view end to end; restart restores tabs |
 | M2 Session view | 0 / 9 | a live session streams, interrupts, queues and replies from the keyboard |
 | M3 Type and theme | 0 / 5 | both faces change live and survive a restart; theme applies and clears |
@@ -14,7 +14,8 @@ Last updated: 2026-10-15 · Current focus: **M0 — Foundations** (`M0.6` done, 
 ## M0 — Foundations
 
 - [ ] `M0.1` Repo hygiene: `verify`/`lint`/`fix`/`e2e` scripts, Biome config, ESLint removed, strict tsconfig + `@/*` alias — evidence: `bun run verify` green on the scaffold — **doing**: ESLint deps (5) and the `lint: eslint .` script removed, `@biomejs/biome` **2.5.15** installed as the only formatter/linter with `biome.json` (tabs, indentWidth 4, lineWidth 100), `strict` + `@/*` in both tsconfigs mirrored by the Vite alias, `bun run verify` exits 0 (`Checked 11 files`), the 150-line gate (`scripts/check-file-length.ts`) is wired into `verify`, and `.superpowers/` is ignored; remaining: the `e2e` script, which lands with M2's browser proof
-- [ ] `M0.2` Tauri 2 shell: Rust `setup` window + `initialization_script` injecting `__OC_TARGET__`, `bundle.targets: ["app"]`, window state — evidence: `bun tauri dev` window names the connected server
+- [x] `M0.2` Tauri 2 shell: Rust `setup` window + `initialization_script` injecting `__OC_TARGET__`, `bundle.targets: ["app"]`, window state — evidence: the window opened on probe port `:1420` (the main checkout holds `:5173`) and the page itself read the injected global (`?present&url=…&passwordLength=10`), with `[shell] target url=http://127.0.0.1:49374 password=<18 chars>` from the real service file; a quote-carrying password round-tripped intact and `?absent` when nothing was configured; the webview held an established connection to the dev server — **done** (`5601733`; gate fix `769e19d`)
+- [ ] `M0.2b` Target resolution completeness: honour `XDG_STATE_HOME` and the channel-suffixed `service-<channel>.json`; unit-tested with `cargo test` — evidence: a non-default `XDG_STATE_HOME` and a `service-local.json` both resolve, `cargo test` output quoted
 - [ ] `M0.3` Tokens + theme baseline: `tokens.css` three layers, vendored theme documents byte-identical, dark + light — evidence: diff against the mirror shows only the header comment
 - [ ] `M0.4` App skeleton: router (`home`, `session/:id`, `settings`), providers, slot registry + `<Slot>` — evidence: routes navigate; an empty slot renders nothing with no warning
 - [ ] `M0.5` opencode client provider + offline state — evidence: kill the server → banner with the url; restart → recovers
@@ -22,7 +23,7 @@ Last updated: 2026-10-15 · Current focus: **M0 — Foundations** (`M0.6` done, 
 
 ## M1 — Shell and home
 
-- [ ] `M1.1` Top nav: tabs (sessions + settings), status dots, close/reorder/overflow, ⌘1…⌘9, ⌘W, ⌘T — evidence: two sessions + settings open, switch and close both ways
+- [ ] `M1.1` Top nav: tabs (sessions, plus the settings view while it is open), status dots, close/reorder/overflow, ⌘1…⌘9, ⌘W, ⌘T — evidence: two sessions + settings open, switch and close both ways
 - [ ] `M1.2` Home: recents (root sessions, day-grouped, location per row), empty state naming the server — evidence: list matches `session.list({ parentID: null })`
 - [ ] `M1.3` New session: directory picker + recent-dir chips → `session.create()` → open it — evidence: created in a picked dir, appears in recents
 - [ ] `M1.4` Session picker `⌕`: all root sessions, search, keyboard — evidence: opens a session older than the first page
@@ -47,7 +48,7 @@ Last updated: 2026-10-15 · Current focus: **M0 — Foundations** (`M0.6` done, 
 - [ ] `M3.2` Font settings section (both roles, live sample, reset, persisted) — evidence: change both, restart, still applied
 - [ ] `M3.3` Face picker: bundled + machine families by resolved name + generics; misspelt refused — evidence: a misspelt family cannot be selected
 - [ ] `M3.4` Theme service: one `<style>` + `data-theme`, dark/light built-ins, plugin themes, fonts win — evidence: apply/clear a theme, fonts unchanged
-- [ ] `M3.5` Settings tab sections (Appearance, Typography, Server, Plugins) + plugin sections — evidence: every section keyboard reachable
+- [ ] `M3.5` Settings **surface**, a tab while it is open (sections: Appearance, Typography, Server, Plugins) + plugin sections, four entries in, no nav entry of its own — evidence: no settings tab in the strip while closed; every section keyboard reachable
 
 ## M4 — Plugin host `0.1`
 
@@ -74,7 +75,7 @@ Last updated: 2026-10-15 · Current focus: **M0 — Foundations** (`M0.6` done, 
 | --- | --- | --- |
 | 2026-10-15 | Interface font default is **Geist** (bundled, OFL); **code face default is `GeistMono Nerd Font`** — the brew cask `font-geist-mono-nerd-font` (3.5.1 here), offered by family name with bundled `Geist Mono` as the offline fallback | user instruction; the Nerd Font cut carries the box-drawing/icon glyphs the row vocabulary uses, and a distributed app cannot bundle it |
 | 2026-10-15 | **Plugins are a settings section**, not a route | the sketch's shell: settings is where configuration lives |
-| 2026-10-15 | **Settings is a tab** in the top nav (gear / ⌘, / palette), closeable and reopenable | user instruction; keeps one navigation model for views |
+| 2026-10-15 | **Settings renders as a tab while it is open** — no settings tab in the strip when it is closed, no entry of its own in the nav; four entries: nav gear, ⌘,, the home page button, the palette; closeable and reopenable | user instruction, refined the same day: "like a tab when opened but not only accessible through nav… no settings tab in nav when not opened" |
 | 2026-10-15 | **ESLint removed entirely; Biome 2.5.15 is the only formatter and linter** (`biome.json`: tabs, indentWidth 4, lineWidth 100, `ignoreUnknown`, vendored/generated paths excluded). `bun run verify` = `tsc -b && biome check .` | house rule (one tool); the scaffold's ESLint deps and `lint` script were template leftovers |
 | 2026-10-15 | **150-line cap on code and config files**, enforced by `scripts/check-file-length.ts` in `bun run verify`; docs exempt | user instruction; a file past the cap is two responsibilities in one file (and unreadable in one pass) |
 | 2026-10-15 | **Execution is subagent-driven** — one fresh implementer per plan task with a written brief, a spec+quality review after each, controller rules and keeps the ledger, no two writers on a file | user instruction; matches the plan's parallelism rules and keeps the controller's context for rulings |
@@ -83,6 +84,10 @@ Last updated: 2026-10-15 · Current focus: **M0 — Foundations** (`M0.6` done, 
 | 2026-10-15 | **Ordering: vertical slices, logic first inside each** — every milestone ships a surface *with* its real data; the two logic-only tasks are front-loaded (M0.5 client provider before any page, M2.1 event ingest before any transcript row); mock data only in unit fixtures and seeded browser proofs | confirmed by the user; a UI-first phase runs ahead of the transcript model and the layout then keeps being re-derived from a moving shape (the previous build's cost) |
 | 2026-10-15 | **No `effect`** in the plugin API — Promise + subscriptions + `AbortSignal` | `ai-client-oss`'s host ships no Effect runner and pushes that cost onto plugin authors |
 | 2026-10-15 | The previous build at `~/dev/apps/opencode-tauri-client-legacy` is abandoned: read for facts, never restore or copy code | user instruction; its specs describe a build that no longer exists |
+| 2026-10-15 | **The file-length gate skips machine-generated trees**: `src-tauri/gen/` (Tauri's capability schemas — 2358 lines each) joins `target/`, `dist/` and `node_modules/` in `SKIP_PREFIXES` | M0.2: as written, `bun run verify` could not pass once a Tauri build had run, so the gate would have been red for every task after M0.2 |
+| 2026-10-15 | **The shell's `OPENCODE_*` override is the shell's own, not an opencode interface**; the service file resolves under `$XDG_STATE_HOME` and may be channel-suffixed (`service-local.json`) | M0.2's review: none of those names appear upstream, and a non-default `XDG_STATE_HOME` or channel silently produced "no target" — the implementation followed spec 010, so 010 was the thing to fix |
+| 2026-10-15 | **The injected target is readable by any script in the page** — accepted | the plugin host is in-process and full-trust (only `plugin-data` is enforced), so this is the reach the app itself has, not a new boundary (spec 010 §Window) |
+| 2026-10-15 | **Dev-only: `beforeDevCommand` carries `--strictPort`** | without it a busy `:5173` makes Vite move to `:5174` while `devUrl` still points at `:5173`, so the window silently loads another checkout's app with no error anywhere |
 
 ## Blocked
 

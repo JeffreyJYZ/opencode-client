@@ -7,6 +7,7 @@ The sketch: "this should be built from the ground up to be modular and plugin co
 - **A plugin is one pre-built ES module plus a JSON manifest, loaded into the running app.** No sandbox, no separate process, no worker.
 - **Full trust, said plainly.** A plugin runs in the app's process with the app's privileges: it can read the opencode server's password, every session, `localStorage`, the app-data directory and the network. The installer says this in the UI, and the docs say it again.
 - **Off by default**: a master switch (`settings.pluginsEnabled`) gates *loading*. Nothing downstream limits an installed plugin.
+- **Full-trust, in-process.** A plugin runs in the app's own context with the app's own reach: the DOM, the client, and the injected server target (`window.__OC_TARGET__`, spec 010 §Window). The capability list is a consent *label*, not a boundary — only `plugin-data` is enforced, by path scoping in Rust `safe_id`. Never describe it as a sandbox.
 - **Capabilities are consent labels, not a boundary** (table below). Only the path-scoped data directory is enforced for real.
 - **The API is unstable at `0.1`** and may change between minor releases.
 - **Everything is a contribution.** The shell, home page, transcript renderers, sidebar panels and settings sections are registered through the same host API a plugin uses. Two areas are locked and cannot be disabled: the app substrate (`app.substrate`) and the plugin manager (`app.builtins`).

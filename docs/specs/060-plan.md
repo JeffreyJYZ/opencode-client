@@ -5,7 +5,7 @@ Build order for specs [000](000-overview.md)–[050](050-opencode-integration.md
 ## Ground rules
 
 - **bun only**, never npm/pnpm. **Biome** formats and lints; the scaffold's ESLint scripts are replaced, not kept alongside.
-- **`bun run verify` is the gate**: `tsc -b` (no emit) + `biome check .` + `bun test`. A layout- or text-affecting change additionally runs `bun run e2e`, which spawns its **own isolated server** with all four XDG dirs redirected — never the registered service.
+- **`bun run verify` is the gate**: `tsc -b` + `biome check .` + `scripts/check-file-length.ts`; `bun test` runs the unit suite. A layout- or text-affecting change additionally runs `bun run e2e` (landing with M2's browser proof), which spawns its **own isolated server** with all four XDG dirs redirected — never the registered service.
 - **One writer per file.** Parallel workstreams are split by file ownership; anything that runs `bun run verify` or `bun run e2e` is serialised, because the whole tree is the input.
 - **Every task is dispatched to a subagent** with a written brief and a report file, then reviewed per task (spec + quality) before the next dispatch — see `AGENTS.md` §Work conventions. The controller session rules on ambiguity, keeps the ledger, and does not write the code.
 - **No code or config file over 150 lines**; `scripts/check-file-length.ts` fails `bun run verify` past the cap. Biome formats every change.
@@ -41,8 +41,9 @@ Build order for specs [000](000-overview.md)–[050](050-opencode-integration.md
 
 | id | Task | Evidence |
 | --- | --- | --- |
-| M0.1 | Repo hygiene: `bun run verify` / `lint` / `fix` / `e2e` scripts; Biome config (tabs, indent 4); delete ESLint config and scripts; `.DS_Store` ignored; tsconfig `strict` + `@/*` path alias | `bun run verify` green on the scaffold |
-| M0.2 | Tauri 2 shell: window built in Rust `setup` with an `initialization_script` that injects `window.__OC_TARGET__` (env → `service.json`), `bundle.targets: ["app"]`, window state plugin | `bun tauri dev` opens a window that names the connected server |
+| M0.1 | Repo hygiene: the `verify` / `fix` scripts + Biome config (tabs, indent 4); ESLint deleted; `.DS_Store` ignored; tsconfig `strict` + `@/*` alias; the 150-line gate wired into `verify` | `bun run verify` green on the scaffold; the `e2e` script lands with M2 |
+| M0.2 | Tauri 2 shell: window built in Rust `setup` with an `initialization_script` that injects `window.__OC_TARGET__` (env → `service.json`), `bundle.targets: ["app"]`, window state plugin | the window opens and `window.__OC_TARGET__` carries the resolved url; **naming the server on screen is M0.5's job**, not this task's |
+| M0.2b | Target resolution completeness (opened by M0.2's review): honour `XDG_STATE_HOME`, and the channel-suffixed `service-<channel>.json` a non-release channel writes; the path logic unit-tested with `cargo test` | a non-default `XDG_STATE_HOME` and a `service-local.json` both resolve, with the `cargo test` output quoted |
 | M0.3 | Tokens + theme baseline: `src/theme/tokens.css` (primitive → semantic → component), vendored opencode theme documents copied byte-identical from the mirror, dark + light | token diff against the mirror shows only the header comment |
 | M0.4 | App skeleton: router (`home`, `session/:id`, `settings`), providers, slot registry + `<Slot>`, empty states | routes navigate; an empty slot renders nothing without warnings |
 | M0.5 | opencode client provider: `OpenCode.make`, target resolution, offline state + banner, `useSessions`/`useClient` | kill the server → banner with the url; restart → recovers |
@@ -52,7 +53,7 @@ Build order for specs [000](000-overview.md)–[050](050-opencode-integration.md
 
 | id | Task | Evidence |
 | --- | --- | --- |
-| M1.1 | Top nav: tab strip (open sessions), status dot from `session.execution.*`, close/reorder/overflow, ⌘1…⌘9, ⌘W, ⌘T | two sessions open, switch and close both ways |
+| M1.1 | Top nav: tab strip (open sessions, plus the settings view while it is open), status dot from `session.execution.*`, close/reorder/overflow, ⌘1…⌘9, ⌘W, ⌘T | two sessions open, switch and close both ways |
 | M1.2 | Home: recents (root sessions, day-grouped by `time.updated`, location per row), empty state naming the server | list matches `session.list({ parentID: null })` |
 | M1.3 | New session: native directory picker + recent-directory chips → `session.create()` → open the session view | create in a picked dir, session appears in recents |
 | M1.4 | Session picker `⌕`: all root sessions, search, keyboard driven | opens any recent session past the first page |
@@ -81,7 +82,7 @@ Build order for specs [000](000-overview.md)–[050](050-opencode-integration.md
 | M3.2 | Font settings section: interface face/size, code face/size, live sample, reset, persisted | change both faces, restart, still applied |
 | M3.3 | Face picker: bundled faces + machine families by resolved name (both Nerd Font cuts and `GeistMono Nerd Font Mono`, aliases matched) + CSS generics; misspelt families refused (measure the `"0"` advance) | a misspelt family cannot be selected; the Nerd Font families are offered by their canonical names |
 | M3.4 | Theme service: one `<style>` + `data-theme`, built-in dark/light in the registry, plugin themes; fonts win over a theme | apply/clear a theme; fonts unchanged |
-| M3.5 | Settings route: sections (Appearance, Typography, Server, Plugins), plugin-contributed sections render here | every section is keyboard reachable |
+| M3.5 | Settings **surface**: a view that renders as a tab *while it is open* — never an entry of its own in the nav — with sections from a registry: Appearance, Typography, Server, Plugins, plus plugin-contributed ones. Four entries: nav gear, ⌘,, the home page button, the palette. The Plugins section is registered here so M4.5 needs no settings change | the section registry exists, not a hardcoded list; **no settings tab is in the strip while it is closed**; every section keyboard reachable |
 
 ### M4 — Plugin host `0.1`
 

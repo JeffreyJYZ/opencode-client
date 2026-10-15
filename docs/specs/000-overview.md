@@ -76,6 +76,6 @@ src-tauri/                Tauri 2 shell
 ## Open questions
 
 1. ~~Interface face default~~ — **decided 2026-10-15: Geist**, bundled (OFL, already at `~/dev/fonts/geist`), with the system stack as fallback. Code face: **`GeistMono Nerd Font`** (the brew cask `font-geist-mono-nerd-font`), falling back to bundled `Geist Mono`. Both roles user-selectable (spec 030).
-2. ~~Settings surface~~ — **decided 2026-10-15: a tab in the top nav** (gear / ⌘, / palette), rendering in the strip like a session and closeable; plugins contribute sections inside it, never a route of their own.
+2. ~~Settings surface~~ — **decided 2026-10-15, refined the same day: it renders as a tab while it is open**, never an entry of its own in the nav (no tab in the strip when it is closed); four entries — the nav gear, ⌘,, the home page button, the palette — and it closes and reopens like a session tab. Plugins contribute sections inside it, never a surface of their own.
 3. Light mode: support it from the start (spec 030 says yes, because the vendored theme has a light variant) or ship dark-only first? Spec assumes both, dark first.
 4. Does the app need its own PTY surface early (the server exposes `pty.*` and persistent PTYs)? Assumed out of scope for v1.
