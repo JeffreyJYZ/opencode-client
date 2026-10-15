@@ -5,8 +5,8 @@
 	"identifier": "com.jyz.opencode.client",
 	"build": {
 		"frontendDist": "../dist",
-		"devUrl": "http://localhost:5173",
-		"beforeDevCommand": "bun run dev --port 5173 --strictPort",
+		"devUrl": "http://localhost:1420",
+		"beforeDevCommand": "bun run dev --port 1420 --strictPort",
 		"beforeBuildCommand": "bun run build"
 	},
 	"app": {

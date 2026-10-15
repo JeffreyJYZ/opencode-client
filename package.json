@@ -8,9 +8,8 @@
 		"build": "tsc -b && vite build",
 		"preview": "vite preview",
 		"tauri": "tauri",
-		"lint": "biome check .",
 		"fix": "biome check . --write",
-		"verify": "tsc -b && biome check . && bun scripts/check-file-length.ts"
+		"verify": "tsc -b && biome check . && bun scripts/check-file-length.ts && cargo check --manifest-path src-tauri/Cargo.toml"
 	},
 	"dependencies": {
 		"@opencode/client": "^2.0.29",

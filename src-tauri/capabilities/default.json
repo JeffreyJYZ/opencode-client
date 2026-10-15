@@ -1,7 +1,7 @@
 {
 	"$schema": "../gen/schemas/desktop-schema.json",
 	"identifier": "default",
-	"description": "The main window's permissions: the core set, plus the window-state plugin's commands for the persisted size and position.",
+	"description": "The main window's permissions: the core set only. The window-state plugin saves and restores Rust-side, so it needs no page-facing permission.",
 	"windows": ["main"],
-	"permissions": ["core:default", "window-state:default"]
+	"permissions": ["core:default"]
 }

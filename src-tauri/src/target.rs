@@ -9,16 +9,21 @@
 //!
 //! 1. the environment — `OPENCODE_SERVER_URL` plus `OPENCODE_PASSWORD` or
 //!    `OPENCODE_AUTH_TOKEN`: the dev and CI override;
-//! 2. the registered service file (default `~/.local/state/opencode/service.json`,
-//!    `OPENCODE_SERVICE_FILE` overrides the path) — **read only, never written**;
+//! 2. the registered service file — located by [`service`] under
+//!    `$XDG_STATE_HOME/opencode` (default `~/.local/state/opencode`),
+//!    **read only, never written**;
 //! 3. nothing — inject no global at all, so the page falls back to its own origin,
 //!    which is the web build's normal path.
 
 use std::env;
-use std::fs;
-use std::path::PathBuf;
+use std::fmt;
 
 use serde::Deserialize;
+
+mod service;
+
+#[cfg(test)]
+mod tests;
 
 /// Env var carrying the server url for the override.
 const ENV_URL: &str = "OPENCODE_SERVER_URL";
@@ -26,10 +31,6 @@ const ENV_URL: &str = "OPENCODE_SERVER_URL";
 const ENV_PASSWORD: &str = "OPENCODE_PASSWORD";
 /// Env var carrying a server auth token, used when no password is set.
 const ENV_AUTH_TOKEN: &str = "OPENCODE_AUTH_TOKEN";
-/// Env var overriding the registration file path.
-const ENV_SERVICE_FILE: &str = "OPENCODE_SERVICE_FILE";
-/// The registration file, relative to `$HOME`.
-const SERVICE_FILE: &str = ".local/state/opencode/service.json";
 /// The global the page reads. Spec 010 §Window; the shape is fixed.
 const GLOBAL_NAME: &str = "window.__OC_TARGET__";
 
@@ -37,12 +38,22 @@ const GLOBAL_NAME: &str = "window.__OC_TARGET__";
 ///
 /// Deserialised straight from the registration file, which also carries `id`,
 /// `version` and `pid`; only these two fields are used, the rest are ignored.
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+/// `Debug` is hand-written below: a derived one would print the password.
+#[derive(Deserialize)]
 pub struct Target {
     /// The server's base url.
     pub url: String,
     /// The password its HTTP basic auth expects (`opencode:<password>`).
     pub password: String,
+}
+
+impl fmt::Debug for Target {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Target")
+            .field("url", &self.url)
+            .field("password", &self.masked_password())
+            .finish()
+    }
 }
 
 impl Target {
@@ -60,17 +71,18 @@ impl Target {
     ///
     /// The password must never reach a log, a window title or the DOM.
     pub fn redacted(&self) -> String {
-        format!(
-            "url={} password=<{} chars>",
-            self.url,
-            self.password.chars().count()
-        )
+        format!("url={} password={}", self.url, self.masked_password())
+    }
+
+    /// The password's length — the most of it that may ever be printed.
+    fn masked_password(&self) -> String {
+        format!("<{} chars>", self.password.chars().count())
     }
 }
 
 /// The target for this launch, or `None` when nothing is configured.
 pub fn resolve() -> Option<Target> {
-    from_env().or_else(from_service_file)
+    from_env().or_else(service::from_service_file)
 }
 
 /// The env override: a url together with a credential.
@@ -78,22 +90,6 @@ fn from_env() -> Option<Target> {
     let url = set(env::var(ENV_URL))?;
     let password = set(env::var(ENV_PASSWORD)).or_else(|| set(env::var(ENV_AUTH_TOKEN)))?;
     Some(Target { url, password })
-}
-
-/// The registered service file. Missing, unreadable or malformed is `None`.
-fn from_service_file() -> Option<Target> {
-    let contents = fs::read_to_string(service_file_path()?).ok()?;
-    let target: Target = serde_json::from_str(&contents).ok()?;
-    // The password stays byte-exact: it is opaque data the server wrote.
-    (!target.url.trim().is_empty()).then_some(target)
-}
-
-/// `OPENCODE_SERVICE_FILE`, else `$HOME/.local/state/opencode/service.json`.
-fn service_file_path() -> Option<PathBuf> {
-    if let Some(path) = set(env::var(ENV_SERVICE_FILE)) {
-        return Some(PathBuf::from(path));
-    }
-    Some(PathBuf::from(set(env::var("HOME"))?).join(SERVICE_FILE))
 }
 
 /// `Some(value)` when the variable is set to something other than blank.
