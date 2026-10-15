@@ -68,11 +68,14 @@ Opens by default on launch when no tab is restored — the sketch's "homepage sh
 
 ## Persistence
 
-| Key (settings or localStorage) | Holds |
+Two stores, deliberately. The window state is the **shell's** (`opencode.window`); everything else is **one versioned blob under a single `settings` key**, whose `dataVersion` and forward-only migration registry the next line describes. So the `settings.*` names below are **field paths inside that one blob**, not separate keys — the table is a list of names, not of stores.
+
+| Stored name | Holds |
 | --- | --- |
 | `opencode.window` | window size/position (shell side) |
 | `settings.tabs` | open views — session ids, plus the settings view while it is open — in order, plus the active tab |
 | `settings.lastRoute` | where to land on next launch |
+| `settings.lastOpened` | the session the app was last in, so a relaunch can offer it (`src/app/lastOpened.ts` always named M1.5 as its hydration seam; added to the table when M1.5 landed) |
 | `settings.sidebar` | visible + width |
 | `settings.fonts` | interface face/size, code face/size (spec 030) |
 | `settings.recentDirectories` | the new-session chips |
