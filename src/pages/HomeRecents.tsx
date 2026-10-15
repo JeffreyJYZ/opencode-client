@@ -15,6 +15,7 @@ const PRIMARY_STYLE: CSSProperties = { ...BUTTON_STYLE, background: "var(--oc-ac
 
 export type HomeRecentsProps = {
 	readonly status: string;
+	readonly onSettings?: () => void;
 	readonly groups: readonly RecentGroup[];
 	readonly url: string;
 	readonly version: string | null;
@@ -24,6 +25,7 @@ export type HomeRecentsProps = {
 
 export function HomeRecentsSection({
 	status,
+	onSettings,
 	groups,
 	url,
 	version,
@@ -37,7 +39,7 @@ export function HomeRecentsSection({
 		color: "var(--oc-text)",
 	};
 	const dayStyle: CSSProperties = {
-		fontSize: "var(--oc-font-ui-size)",
+		fontSize: "var(--oc-font-size-meta)",
 		fontWeight: 500,
 		margin: 0,
 		color: "var(--oc-text-muted)",
@@ -54,7 +56,14 @@ export function HomeRecentsSection({
 	};
 	return (
 		<section style={{ display: "flex", flexDirection: "column", gap: "var(--oc-space-4)" }}>
-			<h2 style={headingStyle}>Recents</h2>
+			<div style={{ display: "flex", alignItems: "center", gap: "var(--oc-space-3)" }}>
+				<h2 style={headingStyle}>Recents</h2>
+				{onSettings !== undefined && (
+					<button type="button" style={BUTTON_STYLE} onClick={onSettings}>
+						Settings
+					</button>
+				)}
+			</div>
 			{status === SESSION_STATUS.loading && <p>Loading sessions…</p>}
 			{status === SESSION_STATUS.none && <p>No server connected.</p>}
 			{status === SESSION_STATUS.error && <p>Could not load sessions from {url}.</p>}
@@ -98,7 +107,6 @@ export function HomeRecentsSection({
 											width: "100%",
 											display: "flex",
 											alignItems: "center",
-											justifyContent: "space-between",
 											gap: "var(--oc-space-3)",
 											textAlign: "left",
 										}}

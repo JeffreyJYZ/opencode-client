@@ -31,7 +31,6 @@ const URL_STYLE: CSSProperties = {
 const RETRY_STYLE: CSSProperties = {
 	background: "var(--oc-surface-raised-high)",
 	color: "var(--oc-text)",
-	font: "inherit",
 	border: "1px solid var(--oc-border)",
 	borderRadius: "var(--oc-radius)",
 	padding: "var(--oc-space-1) var(--oc-space-3)",

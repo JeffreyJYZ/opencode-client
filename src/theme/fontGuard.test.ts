@@ -12,6 +12,13 @@ function walk(dir: string): string[] {
 	return out;
 }
 
+/** Strip the allowed `font: inherit` shorthand (optionally `!important`). */
+function stripInherit(text: string): string {
+	return text.replace(/font\s*:\s*["']?inherit["']?(?:\s*!important)?/gi, "");
+}
+
+const FONT_PATTERN = /fontFamily|font-family|\bfont\s*:/i;
+
 describe("font-family guard", () => {
 	test("no source file outside the theme layer declares a font family", () => {
 		const src = join(process.cwd(), "src");
@@ -22,8 +29,11 @@ describe("font-family guard", () => {
 			if (file.startsWith(theme)) continue;
 			if (!/\.(ts|tsx|css)$/.test(file)) continue;
 			const text = readFileSync(file, "utf8");
-			if (/fontFamily|font-family/i.test(text)) offenders.push(relative(src, file));
+			if (FONT_PATTERN.test(stripInherit(text))) offenders.push(relative(src, file));
 		}
+		const htmlPath = join(process.cwd(), "index.html");
+		const htmlText = readFileSync(htmlPath, "utf8");
+		if (FONT_PATTERN.test(stripInherit(htmlText))) offenders.push("index.html");
 		expect(offenders).toEqual([]);
 	});
 });

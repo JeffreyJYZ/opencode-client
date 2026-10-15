@@ -15,6 +15,7 @@ const NAV_STYLE: CSSProperties = {
 	display: "flex",
 	alignItems: "center",
 	gap: "var(--oc-space-2)",
+	height: "var(--oc-nav-height)",
 	background: "var(--oc-surface)",
 	borderBottom: "1px solid var(--oc-border)",
 	padding: "0 var(--oc-space-2)",

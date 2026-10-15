@@ -78,16 +78,6 @@ export function HomePage() {
 			}}
 		>
 			<Slot id="home.hero" />
-			<header
-				style={{
-					display: "flex",
-					justifyContent: "flex-end",
-				}}
-			>
-				<button type="button" style={BUTTON_STYLE} onClick={onSettings}>
-					Settings
-				</button>
-			</header>
 			{lastOpenedId !== null && (
 				<HomeContinueCard
 					id={lastOpenedId}
@@ -96,6 +86,7 @@ export function HomePage() {
 				/>
 			)}
 			<HomeRecentsSection
+				onSettings={onSettings}
 				status={status}
 				groups={groups}
 				url={url}

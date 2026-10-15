@@ -27,6 +27,9 @@ body {
 	line-height: var(--oc-leading);
 	background: var(--oc-surface);
 	color: var(--oc-text);
+}
+
+:root {
 	color-scheme: dark;
 }
 

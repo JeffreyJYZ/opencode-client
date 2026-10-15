@@ -10,7 +10,7 @@ export const TAB_STYLE: CSSProperties = {
 	color: "var(--oc-text-muted)",
 	border: "none",
 	borderBottom: "2px solid transparent",
-	padding: "var(--oc-space-2) var(--oc-space-2)",
+	padding: "0 var(--oc-space-2)",
 	cursor: "pointer",
 	maxWidth: "220px",
 	minWidth: "0",
@@ -42,5 +42,4 @@ export const TAB_CLOSE_STYLE: CSSProperties = {
 	borderRadius: "var(--oc-radius)",
 	padding: "0 var(--oc-space-1)",
 	cursor: "pointer",
-	font: "inherit",
 };
