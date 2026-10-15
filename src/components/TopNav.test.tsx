@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { Providers } from "@/app/providers";
 import { navigate, sessionRoute, settingsRoute } from "@/app/router";
 import { Shell } from "@/app/Shell";
@@ -93,11 +93,21 @@ describe("TopNav", () => {
 				<Shell />
 			</Providers>,
 		);
-		expect(screen.queryByText(SETTINGS_TAB_LABEL)).toBeNull();
+		expect(
+			within(screen.getByRole("navigation", { name: "Views" })).queryByText(
+				SETTINGS_TAB_LABEL,
+			),
+		).toBeNull();
 		act(() => navigate(settingsRoute()));
-		expect(screen.getByText(SETTINGS_TAB_LABEL)).toBeDefined();
+		expect(
+			within(screen.getByRole("navigation", { name: "Views" })).getByText(SETTINGS_TAB_LABEL),
+		).toBeDefined();
 		fireEvent.click(screen.getByLabelText(`Close ${SETTINGS_TAB_LABEL}`));
-		expect(screen.queryByText(SETTINGS_TAB_LABEL)).toBeNull();
+		expect(
+			within(screen.getByRole("navigation", { name: "Views" })).queryByText(
+				SETTINGS_TAB_LABEL,
+			),
+		).toBeNull();
 		expect(window.location.pathname).toBe(ROUTE_PATH.home);
 	});
 

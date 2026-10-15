@@ -23,17 +23,25 @@ describe("App", () => {
 				<App />
 			</Providers>,
 		);
-		expect(screen.getByText(ROUTE_KIND.home)).toBeDefined();
+		expect(screen.getByText("Recents")).toBeDefined();
 	});
 
 	test("navigates to the session page and shows the session id", () => {
-		render(<App />);
+		render(
+			<Providers>
+				<App />
+			</Providers>,
+		);
 		act(() => navigate(sessionRoute(SESSION_ID)));
 		expect(screen.getByText(new RegExp(SESSION_ID))).toBeDefined();
 	});
 
 	test("navigates to the settings page", () => {
-		render(<App />);
+		render(
+			<Providers>
+				<App />
+			</Providers>,
+		);
 		act(() => navigate(settingsRoute()));
 		expect(screen.getByText(ROUTE_KIND.settings)).toBeDefined();
 	});
@@ -45,11 +53,15 @@ describe("App", () => {
 			component: () => <p>plugin route</p>,
 		});
 		window.history.pushState(null, "", REGISTERED_PATH);
-		render(<App />);
+		render(
+			<Providers>
+				<App />
+			</Providers>,
+		);
 		expect(screen.getByText("plugin route")).toBeDefined();
 		// Disposing it leaves the path unknown, so the switch falls back to home.
 		act(() => disposable.dispose());
-		expect(screen.getByText(ROUTE_KIND.home)).toBeDefined();
+		expect(screen.getByText("Recents")).toBeDefined();
 	});
 });
 
