@@ -36,3 +36,14 @@ fn initialization_script_embeds_an_escaped_json_literal() {
     assert!(!script.contains('\n'), "{script}");
     assert!(script.contains(r#"pa\"ss\\wo\nrd"#), "{script}");
 }
+
+#[test]
+fn initialization_script_escapes_line_terminators() {
+    // U+2028/U+2029 are not escaped by serde_json; the literal must carry the
+    // escape sequences so it never depends on the engine's JS version.
+    let script = target("http://127.0.0.1:49374", "a\u{2028}b\u{2029}c").initialization_script();
+    assert!(script.contains(r"\u2028"), "{script}");
+    assert!(script.contains(r"\u2029"), "{script}");
+    assert!(!script.contains('\u{2028}'), "{script}");
+    assert!(!script.contains('\u{2029}'), "{script}");
+}

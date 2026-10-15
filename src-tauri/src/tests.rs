@@ -34,13 +34,36 @@ fn a_foreign_origin_is_refused() {
 }
 
 #[test]
+fn a_foreign_tauri_authority_is_refused() {
+    // `tauri://evil/...` is still served by this app's own asset handler, but
+    // it is a distinct origin and must not receive the injected target.
+    let evil = url("tauri://evil/index.html");
+    assert!(!is_allowed_navigation(&evil, false));
+    assert!(!is_allowed_navigation(&evil, true));
+}
+
+#[test]
+fn dev_url_and_dev_port_agree() {
+    // The config's devUrl and the shell's DEV_* must agree: a drift refuses the
+    // app's own document and leaves the window blank. Proves the coupling is
+    // real rather than a comment.
+    const CONF: &str = include_str!("../tauri.conf.json");
+    let conf: serde_json::Value = serde_json::from_str(CONF).expect("valid tauri.conf.json");
+    let dev_url = conf["build"]["devUrl"].as_str().expect("devUrl string");
+    let expected = format!(
+        "{}://{}:{}",
+        super::DEV_SCHEME,
+        super::DEV_HOST,
+        super::DEV_PORT
+    );
+    assert_eq!(dev_url, expected);
+}
+
+#[test]
 fn a_localhost_with_the_wrong_port_is_refused() {
     // The main checkout's Vite holds :5173; it is not this app's origin.
     assert!(!is_allowed_navigation(&url("http://localhost:5173/"), true));
-    assert!(!is_allowed_navigation(
-        &url("http://127.0.0.1:1420/"),
-        true
-    ));
+    assert!(!is_allowed_navigation(&url("http://127.0.0.1:1420/"), true));
 }
 
 #[test]

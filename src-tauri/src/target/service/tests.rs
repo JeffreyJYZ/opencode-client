@@ -46,7 +46,11 @@ fn a_channel_file_resolves_when_service_json_is_absent() {
 #[test]
 fn the_newest_channel_file_wins() {
     let scratch = Scratch::new("newest");
-    scratch.write_at("service-local.json", &registration("http://old.test"), 1_000);
+    scratch.write_at(
+        "service-local.json",
+        &registration("http://old.test"),
+        1_000,
+    );
     scratch.write_at("service-dev.json", &registration("http://new.test"), 2_000);
     let target = resolve_in(None, Some(scratch.path().to_owned())).expect("a target");
     assert_eq!(target.url, "http://new.test");
@@ -107,4 +111,27 @@ fn the_newest_channel_ignores_every_other_name() {
     assert!(is_channel_file("service-local.json"));
     assert!(!is_channel_file("service.json"));
     assert!(!is_channel_file("service-.json"));
+}
+
+#[test]
+fn the_newest_channel_keeps_the_last_entry_on_a_tie() {
+    // `max_by_key` returns the last entry on equal keys, i.e. directory order,
+    // which the code comment already claims. Pure edge; no code change.
+    let candidates = vec![
+        ("service-a.json".to_owned(), 1_000u64),
+        ("service-b.json".to_owned(), 1_000u64),
+    ];
+    assert_eq!(newest_channel(&candidates), Some("service-b.json"));
+}
+
+#[test]
+fn state_dir_empty_state_home_falls_back_to_home() {
+    assert_eq!(
+        state_dir(Some("".to_owned()), Some("/home/u".to_owned())),
+        Some(PathBuf::from("/home/u/.local/state/opencode"))
+    );
+    assert_eq!(
+        state_dir(Some("   ".to_owned()), Some("/home/u".to_owned())),
+        Some(PathBuf::from("/home/u/.local/state/opencode"))
+    );
 }

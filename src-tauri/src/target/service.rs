@@ -65,8 +65,15 @@ fn service_dir() -> Option<PathBuf> {
 }
 
 /// [`service_dir`]'s decision, pure over its two environment values.
+///
+/// A blank state-home value falls back to home, the hardening over upstream's
+/// `??` (an empty value is not a directory).
 fn state_dir(xdg_state_home: Option<String>, home: Option<String>) -> Option<PathBuf> {
-    Some(match xdg_state_home {
+    let state = xdg_state_home
+        .as_deref()
+        .map(str::trim)
+        .filter(|value| !value.is_empty());
+    Some(match state {
         Some(state) => PathBuf::from(state).join(STATE_DIR),
         None => PathBuf::from(home?).join(DEFAULT_STATE_DIR),
     })

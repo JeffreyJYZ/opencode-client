@@ -60,10 +60,17 @@ impl Target {
     /// The script the webview runs before the page's own scripts.
     ///
     /// The value is JSON-serialised and then embedded, never string-interpolated:
-    /// a password containing a quote, a backslash or a newline cannot break out of
-    /// the literal or inject code into the page.
+    /// a password containing a quote, a backslash, a newline, U+2028 or U+2029
+    /// cannot break out of the literal or inject code into the page. U+2028 and
+    /// U+2029 are escaped explicitly because `serde_json` does not escape them
+    /// (older JS parsers treat them as line terminators inside a string).
     pub fn initialization_script(&self) -> String {
-        let payload = serde_json::json!({ "url": self.url, "password": self.password });
+        let payload = serde_json::json!({ "url": self.url, "password": self.password }).to_string();
+        // serde_json does not escape U+2028/U+2029; escape them so correctness
+        // never depends on the engine's JS version.
+        let payload = payload
+            .replace('\u{2028}', "\\u2028")
+            .replace('\u{2029}', "\\u2029");
         format!("{GLOBAL_NAME} = {payload};")
     }
 

@@ -38,9 +38,21 @@ const DEV_PORT: u16 = 1420;
 /// redirect, `window.location = …` — is refused, so no foreign origin can
 /// receive `window.__OC_TARGET__`. External links opening in the OS browser is
 /// a separate task; a refusal here must simply leave the app where it is.
+///
+/// Dev-only residual risk: in a dev build whatever owns `localhost:1420` is
+/// trusted (`--strictPort` makes Vite fail on a busy port instead of
+/// substituting, and this arm is compiled out of a production build), so this
+/// cannot reach a released build.
 fn is_allowed_navigation(url: &Url, dev: bool) -> bool {
     match url.scheme() {
-        APP_SCHEME => true,
+        // The production arm checks the host deliberately. A foreign `tauri://`
+        // authority such as `tauri://evil/index.html` is still served by this
+        // app's own asset handler, so the document it would receive is our own
+        // bundle, which already holds the credential: there is no live leak
+        // here. The pin exists because the guard's contract is "this app's own
+        // origin", and requiring `localhost` is the one condition that makes it
+        // exact.
+        APP_SCHEME => url.host_str() == Some("localhost"),
         DEV_SCHEME => dev && url.host_str() == Some(DEV_HOST) && url.port() == Some(DEV_PORT),
         _ => false,
     }
@@ -66,6 +78,9 @@ pub fn run() {
             .inner_size(WINDOW_WIDTH, WINDOW_HEIGHT)
             .min_inner_size(WINDOW_MIN_WIDTH, WINDOW_MIN_HEIGHT)
             // The guard: the init script below re-runs on every main-frame load.
+            // Dev-only residual risk: whatever owns `localhost:1420` is trusted
+            // in a dev build; `--strictPort` refuses a substituted port and the
+            // dev arm is compiled out of production.
             .on_navigation(|url| is_allowed_navigation(url, cfg!(dev)));
 
             // The handover has to exist before the page's first script runs, which is
