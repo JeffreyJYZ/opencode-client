@@ -35,8 +35,9 @@ export function groupSessionsByDay(
 	sessions: readonly SessionRow[],
 	nowMs: number = Date.now(),
 ): RecentGroup[] {
+	const sorted = [...sessions].sort((a, b) => b.time.updated - a.time.updated);
 	const groups = new Map<string, SessionRow[]>();
-	for (const session of sessions) {
+	for (const session of sorted) {
 		const day = new Date(session.time.updated).toDateString();
 		const label = isToday(session.time.updated, nowMs) ? "Today" : day;
 		const bucket = groups.get(label);

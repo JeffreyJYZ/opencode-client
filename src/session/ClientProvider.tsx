@@ -66,12 +66,22 @@ export type ClientProviderProps = {
 	 * provider probes `server.info()` on the real client.
 	 */
 	readonly probe?: (client: OpenCodeClient) => Promise<void>;
+	/**
+	 * Override the client instance itself (test seam, beside `probe`). Production
+	 * passes nothing and the provider builds the client from the resolved target.
+	 */
+	readonly client?: OpenCodeClient | null;
 };
 
-export function ClientProvider({ children, probe }: ClientProviderProps) {
+export function ClientProvider({ children, probe, client: clientOverride }: ClientProviderProps) {
 	const [bundle] = useState<ClientContextValue>(() => {
 		const target = resolveStartupTarget();
-		const client = target === null ? null : createClient(target);
+		const client =
+			clientOverride === undefined
+				? target === null
+					? null
+					: createClient(target)
+				: clientOverride;
 		const connection = createConnectionStore({
 			target,
 			probe:

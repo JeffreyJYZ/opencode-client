@@ -14,6 +14,11 @@ export type SessionRow = Awaited<ReturnType<OpenCodeClient["session"]["list"]>>[
  * `status` keeps the no-target and failed cases honest: neither reads as "you
  * have no sessions". Refetch is explicit (`reload`); the event-driven refresh is
  * M2.1's seam and is intentionally not polled here.
+ *
+ * `useSessions()` is the context-backed wrapper; `useSessionsWithClient(client)` is
+ * the injectable core so tests (and any non-context caller) can drive every state
+ * without a module mock. Root-only filtering lives here regardless of what the
+ * server happens to echo back.
  */
 
 export type UseSessionsResult = {
@@ -22,8 +27,7 @@ export type UseSessionsResult = {
 	readonly reload: () => void;
 };
 
-export function useSessions(): UseSessionsResult {
-	const client = useClient();
+export function useSessionsWithClient(client: OpenCodeClient | null): UseSessionsResult {
 	const [sessions, setSessions] = useState<readonly SessionRow[]>([]);
 	const [status, setStatus] = useState<SessionStatus>(
 		client === null ? SESSION_STATUS.none : SESSION_STATUS.loading,
@@ -54,7 +58,7 @@ export function useSessions(): UseSessionsResult {
 				} as unknown;
 				const result = await target.session.list(input as never);
 				if (cancelled) return;
-				const rows = result?.data ?? [];
+				const rows = (result?.data ?? []).filter((row) => row.parentID == null);
 				setSessions(rows);
 				setStatus(rows.length === 0 ? SESSION_STATUS.empty : SESSION_STATUS.ready);
 			} catch {
@@ -70,4 +74,9 @@ export function useSessions(): UseSessionsResult {
 	}, [client, tick]);
 
 	return { sessions, status, reload };
+}
+
+export function useSessions(): UseSessionsResult {
+	const client = useClient();
+	return useSessionsWithClient(client);
 }

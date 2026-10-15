@@ -61,6 +61,15 @@ describe("homeModel", () => {
 		expect(seg.length).toBeLessThanOrEqual(24);
 	});
 
+	test("sorts an unsorted slice by time.updated descending", () => {
+		const now = Date.now();
+		const older = session("older", now - 2000);
+		const newer = session("newer", now - 1000);
+		const groups = groupSessionsByDay([older, newer] as never, now);
+		expect(groups[0].sessions[0].id).toBe("newer");
+		expect(groups[0].sessions[1].id).toBe("older");
+	});
+
 	test("day grouping root-only is consumer concern", () => {
 		// sanity: empty input yields no groups
 		expect(groupSessionsByDay([] as never)).toHaveLength(0);

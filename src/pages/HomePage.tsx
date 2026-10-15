@@ -1,22 +1,16 @@
 import type { CSSProperties } from "react";
 import { useEffect, useState } from "react";
 import { setLastOpenedSession, useLastOpenedSessionId } from "@/app/lastOpened";
-import { navigate, settingsRoute } from "@/app/router";
 import { activateTabAndGo, requestNewSession } from "@/app/tabSync";
 import { openTab } from "@/app/tabs";
 import { Slot } from "@/components/Slot";
 import { ROUTE_KIND } from "@/constants/routes";
-import { SESSION_STATUS } from "@/constants/sessions";
 import { TAB_KIND } from "@/constants/tabs";
-import {
-	agentModel,
-	groupSessionsByDay,
-	lastPathSegment,
-	relativeTime,
-	sessionTitle,
-} from "@/pages/homeModel";
+import { HomeContinueCard } from "@/pages/HomeContinueCard";
+import { HomeRecentsSection } from "@/pages/HomeRecents";
+import { groupSessionsByDay } from "@/pages/homeModel";
 import { useClient, useConnection, useTarget } from "@/session/ClientProvider";
-import { useSessions } from "@/session/useSessions";
+import { type SessionRow, useSessions } from "@/session/useSessions";
 
 const BUTTON_STYLE: CSSProperties = {
 	background: "var(--oc-surface-raised)",
@@ -27,7 +21,6 @@ const BUTTON_STYLE: CSSProperties = {
 	cursor: "pointer",
 	fontFamily: "var(--oc-font-ui)",
 };
-const PRIMARY_STYLE: CSSProperties = { ...BUTTON_STYLE, background: "var(--oc-accent)" };
 function openSession(id: string): void {
 	setLastOpenedSession(id);
 	const tab = { kind: TAB_KIND.session, id };
@@ -66,8 +59,12 @@ export function HomePage() {
 		requestNewSession();
 	};
 	const onSettings = (): void => {
-		navigate(settingsRoute());
+		const tab = { kind: TAB_KIND.settings };
+		openTab(tab);
+		activateTabAndGo(tab);
 	};
+	const lastOpenedSession: SessionRow | undefined =
+		lastOpenedId === null ? undefined : sessions.find((session) => session.id === lastOpenedId);
 	return (
 		<main data-route={ROUTE_KIND.home} style={{ padding: "var(--oc-space-4)" }}>
 			<Slot id="home.hero" />
@@ -83,62 +80,26 @@ export function HomePage() {
 				</button>
 			</div>
 			{lastOpenedId !== null && (
-				<section style={{ marginBottom: "var(--oc-space-4)" }}>
-					<h2>Continue where you left off</h2>
-					<button
-						type="button"
-						style={BUTTON_STYLE}
-						onClick={() => openSession(lastOpenedId)}
-					>
-						{lastOpenedId}
-					</button>
-				</section>
+				<HomeContinueCard
+					id={lastOpenedId}
+					session={lastOpenedSession}
+					onOpen={openSession}
+				/>
 			)}
-			<section>
-				<h2>Recents</h2>
-				{status === SESSION_STATUS.loading && <p>Loading sessions…</p>}
-				{status === SESSION_STATUS.none && <p>No server connected.</p>}
-				{status === SESSION_STATUS.error && <p>Could not load sessions.</p>}
-				{status === SESSION_STATUS.empty && (
-					<div>
-						<button type="button" style={PRIMARY_STYLE} onClick={onNew}>
-							New session
-						</button>
-						<p>
-							Connected to {url} {version !== null ? `(v${version})` : ""}
-						</p>
-					</div>
-				)}
-				{status === SESSION_STATUS.ready &&
-					groups.map((group) => (
-						<section key={group.label}>
-							<h3>{group.label}</h3>
-							<ul style={{ listStyle: "none", padding: 0 }}>
-								{group.sessions.map((session) => (
-									<li key={session.id}>
-										<button
-											type="button"
-											style={BUTTON_STYLE}
-											onClick={() => openSession(session.id)}
-										>
-											<span>{sessionTitle(session)}</span>
-											<span>
-												{" "}
-												{lastPathSegment(session.location.directory)}
-											</span>
-											<span> {relativeTime(session.time.updated)}</span>
-											{agentModel(session) !== null && (
-												<span> {agentModel(session)}</span>
-											)}
-										</button>
-									</li>
-								))}
-							</ul>
-						</section>
-					))}
-			</section>
+			<HomeRecentsSection
+				status={status}
+				groups={groups}
+				url={url}
+				version={version}
+				onNew={onNew}
+				openSession={openSession}
+			/>
 			<div style={{ marginTop: "var(--oc-space-4)" }}>
-				<button type="button" style={PRIMARY_STYLE} onClick={onNew}>
+				<button
+					type="button"
+					style={{ ...BUTTON_STYLE, background: "var(--oc-accent)" }}
+					onClick={onNew}
+				>
 					New session
 				</button>
 			</div>
