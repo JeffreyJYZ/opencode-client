@@ -57,7 +57,7 @@ Opens by default on launch when no tab is restored — the sketch's "homepage sh
 
 ## Desktop behaviours (the "UX like desktop" half)
 
-- **Command palette** (⌘K / ctrl+K): sessions, commands (server `command.list` + client commands + plugin commands), settings sections (including the Plugins section), theme switch, font size, and every open tab — Settings included — which it can focus. Fuzzy-filtered, keyboard driven.
+- **Command palette** (⌘K / ctrl+K): sessions, commands (server `command.list` + client commands + plugin commands), settings sections (including the Plugins section), theme switch, font size, and every open tab — Settings included — which it can focus. Keyboard driven, and **substring-filtered today, with fuzzy as the target for the rows that complete this list**: `M1.6b` lifts the session source's one-page limit (it silently omitted older roots), theme switch arrives with M3.4, font size with M3.2, and plugin commands with M4.4.
 - **Keyboard map** (single table in `src/constants/keys.ts`, rendered into the palette's help): ⌘K palette, ⌘T new session, ⌘W close tab, ⌘1…⌘9 tab switch, ⌘B toggle sidebar, ⌘, settings, ⌘R reload session, Esc interrupt a running turn, ⌘↩ send vs ↩ newline (configurable), ⌥↑/⌥↓ jump between prompts.
 - **Context menus** (right-click): tab (close, close others, rename, copy directory), recent row (open, copy path, delete session), transcript row (copy text, copy code, expand/collapse, open file at path), sidebar panel (collapse, detach later).
 - **Hover affordances** the TUI cannot have: copy buttons on code blocks and tool output, "expand/collapse all" on long outputs, per-row timestamps on hover, a jump-to-latest pill while scrolled up.
