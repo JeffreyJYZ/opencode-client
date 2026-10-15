@@ -1,10 +1,10 @@
 # Status board
 
-Last updated: 2026-10-15 · Current focus: **M0 — Foundations** (`M0.2` and `M0.2b` done and reviewed, `M0.6` done, `M0.1` nearly — its `e2e` script waits on M2; `M0.4` done and reviewed; `M0.5`, the client provider, is in flight)
+Last updated: 2026-10-15 · Current focus: **M0 — Foundations** (`M0.2` and `M0.2b` done and reviewed, `M0.6` done, `M0.1` nearly — its `e2e` script waits on M2; `M0` complete but for `M0.1`'s `e2e`, which is parked on M2; `M1.1`, the tab strip, is next)
 
 | Milestone | Done / total | Gate |
 | --- | --- | --- |
-| M0 Foundations | 6 / 9 | `bun run verify` (now ending in `cargo check`) and `cargo test`; `bun tauri dev` opens a window with the target injected |
+| M0 Foundations | 8 / 9 | `bun run verify` (now ending in `cargo check`) and `cargo test`; `bun tauri dev` opens a window with the target injected |
 | M1 Shell and home | 0 / 6 | home → session view end to end; restart restores tabs |
 | M2 Session view | 0 / 10 | a live session streams, interrupts, queues and replies from the keyboard |
 | M3 Type and theme | 0 / 5 | both faces change live and survive a restart; theme applies and clears |
@@ -19,8 +19,8 @@ Last updated: 2026-10-15 · Current focus: **M0 — Foundations** (`M0.2` and `M
 - [x] `M0.2c` M0.2b review fixes: production guard arm pins the host (`tauri://localhost`, with `tauri://evil/index.html` refused in both dev modes), a `devUrl`/`DEV_PORT` agreement test, an attack-string test for the injected literal, the uncovered pure edges (mtime tie, empty state home), the dev-only residual risk named — **done** (`1f6f913`), controller-verified: `cargo test` 20→25 and the drift assertion shown failing on a one-token config change, then passing
 - [x] `M0.3` Tokens + theme baseline: `tokens.css` three layers, the v2 opencode theme document vendored **byte-identical** (`packages/tui/src/theme/assets/v2/opencode.json`), dark + light — **done** (`0b135ed`), controller-verified: `cmp` silent and both sha256 `2673cbe2…`; the primitive scales are redefined per theme block, so light resolves surface `#ffffff` / text `#1a1a1a` and dark the inverse; all ten semantic tokens declared in both blocks
 - [x] `M0.4` App skeleton: router (`home`, `session/:id`, `settings`), providers, slot registry + `<Slot>` — **done** (`efbc3ce`), **reviewed** `accept` (no blockers, no majors; the reviewer replicated the browser proof on its own port): 33 `bun test` cases and `bun test` now ends the gate, the slot tuple matches spec 040 name-for-name, both component tests carry their own `afterEach(cleanup)`, and the empty slot is a fragment asserting `innerHTML === ""`
-- [ ] `M0.4b` Registry hardening from M0.4's review: a non-function component is refused as malformed; a registered route may not replace a built-in path; `homeRoute()`'s identity gets a comment — evidence: tests for both refusals, `bun test` output quoted
-- [ ] `M0.5` opencode client provider + offline state — evidence: kill the server → banner with the url; restart → recovers
+- [x] `M0.4b` Registry hardening from M0.4's review (**done** `e89bf6c`, controller-verified, `cat-jam-free`, ~4 min): a non-function component is refused as malformed; a registered route may not replace a built-in path; `homeRoute()`'s identity gets a comment — evidence: tests for both refusals, `bun test` output quoted
+- [x] `M0.5` opencode client provider + offline state — **done** (`9dba6ff`), **reviewed** `accept` (nothing blocks M1.1): 33→82 tests; the acceptance proven in a browser against **its own** isolated server (closed port → banner naming the url; up → online; killed → banner returns; restart + retry → recovered); `?auth_token=` stripped before first paint; the registered service untouched (74/609 sessions and `service.json`'s mtime identical)
 - [x] `M0.6` Repository under git: `git init`, `.gitignore` verified, one initial commit of the scaffold + docs — evidence: `ebf7280` on `main`, 26 files, `git status --short` empty — **done**
 
 ## M1 — Shell and home
@@ -101,6 +101,10 @@ Last updated: 2026-10-15 · Current focus: **M0 — Foundations** (`M0.2` and `M
 | 2026-10-15 | **A non-function component is a malformed entry**: refused, faulted, never rendered | spec 040 requires that a malformed entry never breaks the app, and a truthy non-component currently fails at render. Goes to `M0.4b` |
 | 2026-10-15 | **`src/plugins/registry.ts` must be split by M4.3**, not extended | it is at 144/150 lines; the next behaviour added to it would force a truncation rather than a seam, and validation vs storage is the natural split |
 | 2026-10-15 | **Spec 040 contradicted itself on the order key**: the `ui.register` row listed no `order` while §Slots grants one | M0.4's implementer found it; the table row is corrected, and `routes.register` now states the unknown-path rule there too |
+| 2026-10-15 | **The session list (`useSessions`) belongs to M1.2**, not M0.5 — a list needs a consumer; M0.5's row is amended and M1.2 owns the first hook | M0.5's review confirmed the row-vs-brief gap; a stub with no data path would have been theatre |
+| 2026-10-15 | **The opencode server CORS-reflects any `localhost`/`127.0.0.1` origin on any port** (and `tauri://localhost`), and omits the header for a non-local origin | measured by M0.5 with curl against its own server; it is why the browser proof needed no proxy, and `docs/opencode-api.md`'s note is being corrected to say so |
+| 2026-10-15 | **M0.5's liveness poll is a stand-in**: M2.1 deletes it and keeps the store (`check`/`reportFailure`) when the event stream brings its own idle watchdog | two detectors for one failure is how a reconnect loop is born; recorded on M2.1's row |
+| 2026-10-15 | **A connect flow is required and no row owned it** → new **M1.7**: `settings.server` (url + password) with connect/disconnect states | spec 050's resolution order includes "a stored target" but spec 010 §Persistence defines no key, so that step returned absent forever |
 
 ## Blocked
 

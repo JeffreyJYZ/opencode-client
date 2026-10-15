@@ -3,13 +3,13 @@
 Reference for the app's link to the local opencode server. Everything here was read out of the pinned
 artifacts, not recalled:
 
-- **Client**: `@opencode/client` **2.0.27**, promise entry — `dist/promise/client.d.ts` (method surface), `dist/promise/generated/types.d.ts` (payload types), `dist/promise/api.d.ts` (per-namespace aliases).
+- **Client**: `@opencode/client` **2.0.29** — the version this repo pins (`package.json` `^2.0.29`, `bun.lock`) — promise entry — `dist/promise/client.d.ts` (method surface), `dist/promise/generated/types.d.ts` (payload types), `dist/promise/api.d.ts` (per-namespace aliases).
 - **Routes**: `/Users/jyz/dev/monorepos/opencode/packages/protocol/src/groups/*.ts` (132 endpoints; each `HttpApiEndpoint.<verb>("<id>", "<path>")`).
 - **Events**: `packages/schema/src/event-manifest.ts` + the per-domain `*-event.ts` / `<domain>.ts` files, and the `V2Event` union in the generated types.
 - **Schemas**: `packages/schema/src/*.ts` in the same (read-only) mirror.
 
 Local service on this machine: **2.0.29** (`~/.local/state/opencode/service.json` → `version`, `url`,
-`password`). Pin and server drift (2.0.27 client vs 2.0.29 server) is fine until a payload changes shape.
+`password`). Pin and server drift is fine until a payload changes shape; the client moved to 2.0.29 with M0.5, so today there is none.
 
 ## 1. Getting a client
 
@@ -33,7 +33,7 @@ const endpoint = await Service.discover(); // { url, auth: { type: "basic", user
 
 Two host-specific traps, both measured on the previous build:
 
-- The server allowlists the Tauri webview origin (`tauri://localhost`) in CORS, but `baseUrl` must still be handed to the page — a webview cannot read `service.json`. The previous build resolved the target in Rust and injected `window.__OPENCODE_TARGET__ = { url, password }` before the app's scripts.
+- The server's CORS allowlist **reflects any `localhost`/`127.0.0.1` origin on any port** (and `tauri://localhost`), and omits the header for a non-local origin — measured with curl against an isolated server in M0.5, which is why a browser proof needs no proxy. `baseUrl` must still be handed to the page: a webview cannot read `service.json`. The shell resolves it in Rust and injects `window.__OC_TARGET__ = { url, password }` before the app's scripts (spec 010 §Window; M0.2).
 - The dev server runs under **Node**, not Bun: `bun:sqlite` does not exist inside Vite middleware; `node:sqlite` does.
 
 ## 2. The event stream
@@ -77,7 +77,7 @@ Event names by domain (manifest + `V2Event` union):
 | installation | `installation.updated`, `installation.update.available` |
 | tui (keyboard-dispatched, no web equivalent) | `tui.prompt.append`, `tui.command.execute`, `tui.toast.show`, `tui.session.select`, `tui.agent.cycle`, `tui.prompt.clear`, `tui.prompt.submit`, `tui.session.*` (new/list/compact/share/interrupt/background/first/last/page/half-page/line) |
 
-## 3. Client surface (promise API, 2.0.27)
+## 3. Client surface (promise API, 2.0.29)
 
 Every name below exists in `dist/promise/client.d.ts`. `input?` = optional argument; `→` is the resolved
 output type.
@@ -125,7 +125,7 @@ output type.
 
 ## 4. Payload shapes and traps
 
-Measured against 2.0.27/2.0.29; each one cost time the first time.
+Measured against client 2.0.29 / server 2.0.29; each one cost time the first time.
 
 - **`session.prompt` is flat**: `{ sessionID, text, files?, agents?, skills?, metadata?, delivery?, resume? }`. The generated `SessionPromptInput` is a codegen artifact — each field's type is expressed as `Payload["field"]` and a vestigial optional `id` rides along — so it does not typecheck cleanly as a literal. Pass the flat object and cast at one documented seam (the previous build's `src/session/actions.ts` did exactly that and the server accepted it).
 - **Seeding a session without a model**: `session.prompt({ text, resume: false })` durably enqueues a user input *without executing it* — no model turn — emits `session.inbox.enqueued`, and `message.list` stays empty until delivery. That is how a browser proof fills a transcript on a credential-less server.

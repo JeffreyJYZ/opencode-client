@@ -48,7 +48,7 @@ Build order for specs [000](000-overview.md)–[050](050-opencode-integration.md
 | M0.3 | Tokens + theme baseline: `src/theme/tokens.css` (primitive → semantic → component), the v2 opencode theme document vendored **byte-identical** into `src/theme/vendor/`, dark + light | `cmp`/`shasum` equal against `packages/tui/src/theme/assets/v2/opencode.json` (provenance in `src/theme/vendor/README.md` — JSON takes no comment, so the plan's "only the header comment" is settled that way); every semantic token defined in both variants |
 | M0.4 | App skeleton: router (`home`, `session/:id`, `settings`), providers, slot registry + `<Slot>`, empty states | routes navigate; an empty slot renders nothing without warnings |
 | M0.4b | Registry hardening from M0.4's review (micro, free model): (1) a **non-function component** is a malformed entry and must be refused + faulted — today a truthy non-component is accepted and fails at render, which spec 040 forbids ("never breaks the app"); (2) a registered route may **not replace a built-in path**; it serves unknown paths only, since `/settings` is the route to the plugin manager; (3) a comment pinning `homeRoute()`'s identity contract. The registry split is **not** here — that is M4.3's (the file is at 144/150) | tests for both refusals, `bun test` output quoted |
-| M0.5 | opencode client provider: `OpenCode.make`, target resolution, offline state + banner, `useSessions`/`useClient` | kill the server → banner with the url; restart → recovers |
+| M0.5 | opencode client provider: `OpenCode.make`, target resolution, offline state + banner, `useClient` (the session list lands in M1.2, where it has a consumer) | kill the server → banner with the url; restart → recovers |
 | M0.6 | The repository under git: `git init`, `.gitignore` verified (build output, scratch, `.DS_Store`), one initial commit of the scaffold + docs, and the SDD scratch dir ignored | `git log --oneline -1` exists and `git status --short` is clean |
 
 ### M1 — Shell and home
@@ -56,7 +56,7 @@ Build order for specs [000](000-overview.md)–[050](050-opencode-integration.md
 | id | Task | Evidence |
 | --- | --- | --- |
 | M1.1 | Top nav: tab strip (open sessions, plus the settings view while it is open), status dot from `session.execution.*`, close/reorder/overflow, ⌘1…⌘9, ⌘W, ⌘T | two sessions open, switch and close both ways |
-| M1.2 | Home: recents (root sessions, day-grouped by `time.updated`, location per row), empty state naming the server | list matches `session.list({ parentID: null })` |
+| M1.2 | Home: recents (root sessions, day-grouped by `time.updated`, location per row), empty state naming the server, and it owns the first `useSessions` | list matches `session.list({ parentID: null })` |
 | M1.3 | New session: native directory picker + recent-directory chips → `session.create()` → open the session view | create in a picked dir, session appears in recents |
 | M1.4 | Session picker `⌕`: all root sessions, search, keyboard driven | opens any recent session past the first page |
 | M1.5 | Persistence: `dataVersion` blob + forward-only migrations for tabs, last route, sidebar, fonts, recent dirs | restart restores the tab set and the route |
@@ -66,8 +66,9 @@ Build order for specs [000](000-overview.md)–[050](050-opencode-integration.md
 
 | id | Task | Evidence |
 | --- | --- | --- |
+| M1.7 | Connect flow: a stored server target in the settings blob (`settings.server`: url + password) with connect/disconnect states, so a build not served by its own server has somewhere to point — the "stored target" step of spec 050's resolution order has no key until this exists | a wrong url shows the offline banner with a retry; a correct one connects; the target survives a restart |
 | M2.0 | Content-Security-Policy on the webview: `default-src 'self'` for the bundled assets plus a `connect-src` limited to the resolved server origin — the target is resolved *before* the window is created, so the policy is assembled with it. Relax a directive only with the reason stated in the brief | a script injected into the page cannot reach a third-party origin, and the app's own calls to the server still work |
-| M2.1 | Event ingest: single subscription, `accept` filter, per-session reducer, offline/resync policy | two sessions stream at once; a killed server resumes without duplicates |
+| M2.1 | Event ingest: single subscription, `accept` filter, per-session reducer, offline/resync policy | two sessions stream at once; a killed server resumes without duplicates; it also **absorbs M0.5's liveness poll** (the stream's idle watchdog supersedes it — delete the poll, keep the store's `check`/`reportFailure`) |
 | M2.2 | Transcript rows: user band (queued/sent rail), prose, reasoning (expandable while streaming), tool, subagent, shell, error, per-prompt footer | each row renders from a seeded session |
 | M2.3 | Markdown + highlighting: marked + shiki + dompurify, position-keyed blocks, debounced memoised highlight, language cap, and **external links go through the OS handler — never a webview navigation** (the shell refuses those anyway, M0.2b) | a fence streamed in many deltas highlights once, and clicking a link does not change the page's origin |
 | M2.4 | Ingest + render caps and index-scan counting | a long tool output collapses with the right `(N more lines)` |
