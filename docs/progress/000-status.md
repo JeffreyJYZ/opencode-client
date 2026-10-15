@@ -5,7 +5,7 @@ Last updated: 2026-10-15 · Current focus: **M0 — Foundations** (`M0.2` and `M
 | Milestone | Done / total | Gate |
 | --- | --- | --- |
 | M0 Foundations | 8 / 9 | `bun run verify` (now ending in `cargo check`) and `cargo test`; `bun tauri dev` opens a window with the target injected |
-| M1 Shell and home | 5 / 9 | home → session view end to end; restart restores tabs |
+| M1 Shell and home | 5 / 10 | home → session view end to end; restart restores tabs |
 | M2 Session view | 0 / 10 | a live session streams, interrupts, queues and replies from the keyboard |
 | M3 Type and theme | 0 / 5 | both faces change live and survive a restart; theme applies and clears |
 | M4 Plugin host 0.1 | 0 / 8 | four example plugins install, work and uninstall through the documented API |
@@ -31,6 +31,7 @@ Last updated: 2026-10-15 · Current focus: **M0 — Foundations** (`M0.2` and `M
 - [ ] `M1.2b` M1.2 review fixes: the client is injected into `useSessions` (no more `mock.module`, which leaks process-wide and is why the required tests were dropped), the seven missing tests restored (root-only filter, empty state naming url+version, the failed state naming the target, row click through the store, the settings entry through the store, home slots, the hook's five states), `groupSessionsByDay` sorts its own copy, and the page splits at the cap — evidence: `bun test` (132→) with each new test mapped to its item
 - [ ] `M1.2` Home: recents (root sessions, day-grouped, location per row), empty state naming the server — evidence: list matches `session.list({ parentID: null })`
 - [ ] `M1.3` New session: directory picker + recent-dir chips → `session.create()` → open it — evidence: created in a picked dir, appears in recents
+- [ ] `M1.3b` M1.3 review fixes: the capability description no longer matches its own grant ("core set only" while `dialog:allow-open` is granted), M1.3's report corrects its `cargo test` excerpt and drops its unreproducible service-count claim, and the crate gets `cargo fmt` + a `cargo fmt --check` line in `verify` (a pre-existing one-space indent in `build.rs` fails a strict format gate today) as its own commit — evidence: `bun run verify` with the new step green, and the corrected quotes
 - [ ] `M1.4` Session picker `⌕`: all root sessions, search, keyboard — evidence: opens a session older than the first page
 - [ ] `M1.5` Persistence: versioned settings blob + forward-only migrations (tabs incl. settings, last route, sidebar, fonts, recent dirs) — evidence: restart restores both
 - [ ] `M1.7` Connect flow: `settings.server` (url + password) with connect/disconnect states, so a build not served by its own server has somewhere to point; the "stored target" step of spec 050's order has no key without it — evidence: a wrong url shows the offline banner with a retry; a correct one connects; the target survives a restart
