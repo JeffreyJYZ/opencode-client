@@ -1,0 +1,7 @@
+# bun test setup.
+#
+# `src/test/preload.ts` registers happy-dom's DOM globals. The preload runs once
+# per process, not once per test file, so every file in the run sees them — see
+# that file's comment before adding a test that needs the real cross-origin fetch.
+[test]
+preload = ["./src/test/preload.ts"]

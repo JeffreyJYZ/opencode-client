@@ -6,6 +6,19 @@
 		},
 		{
 			"path": "./tsconfig.node.json"
+		},
+		{
+			"path": "./tsconfig.test.json"
 		}
-	]
+	],
+	"compilerOptions": {
+		/* `bun test` resolves imports from THIS file — it does not follow a project
+		   reference — so the `@/*` alias is repeated here for the test run. Drift is
+		   loud rather than silent: a mismatch fails `bun test` with "Cannot find module
+		   '@/…'" while tsc and the Vite alias still resolve it. Keep synced with the
+		   `paths` block in tsconfig.app.json and the alias in vite.config.ts. */
+		"paths": {
+			"@/*": ["./src/*"]
+		}
+	}
 }

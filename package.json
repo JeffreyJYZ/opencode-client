@@ -9,7 +9,7 @@
 		"preview": "vite preview",
 		"tauri": "tauri",
 		"fix": "biome check . --write",
-		"verify": "tsc -b && biome check . && bun scripts/check-file-length.ts && cargo check --manifest-path src-tauri/Cargo.toml"
+		"verify": "tsc -b && biome check . && bun scripts/check-file-length.ts && cargo check --manifest-path src-tauri/Cargo.toml && bun test"
 	},
 	"dependencies": {
 		"@opencode/client": "^2.0.29",
@@ -20,8 +20,11 @@
 	"devDependencies": {
 		"@babel/core": "^7.29.7",
 		"@biomejs/biome": "^2.5.15",
+		"@happy-dom/global-registrator": "^21.0.1",
 		"@rolldown/plugin-babel": "^0.2.3",
 		"@tauri-apps/cli": "^2.12.3",
+		"@testing-library/dom": "^10.4.2",
+		"@testing-library/react": "^16.3.3",
 		"@types/babel__core": "^7.20.5",
 		"@types/bun": "^1.4.3",
 		"@types/node": "^26.6.5",
@@ -30,6 +33,7 @@
 		"@vitejs/plugin-react": "^6.1.1",
 		"babel-plugin-react-compiler": "^1.0.0",
 		"bun": "^1.4.3",
+		"happy-dom": "^21.0.1",
 		"typescript": "~6.0.2",
 		"vite": "^8.3.0"
 	}

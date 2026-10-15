@@ -1,0 +1,12 @@
+{
+	"extends": "./tsconfig.app.json",
+	"compilerOptions": {
+		"tsBuildInfoFile": "./node_modules/.tmp/tsconfig.test.tsbuildinfo",
+		/* `bun:test` and Bun's globals come from @types/bun, which the app project
+		   deliberately does not load: app code must not see a Bun global it cannot have. */
+		"types": ["vite/client", "bun"]
+	},
+	/* The app project excludes these, so the inherited exclusion has to be overridden. */
+	"exclude": [],
+	"include": ["src/**/*.test.ts", "src/**/*.test.tsx", "src/test"]
+}

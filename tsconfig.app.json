@@ -28,5 +28,8 @@
 		"erasableSyntaxOnly": true,
 		"noFallthroughCasesInSwitch": true
 	},
-	"include": ["src"]
+	"include": ["src"],
+	/* Tests and their DOM preload are tsconfig.test.json's: they need @types/bun, which
+	   app code must not see. */
+	"exclude": ["src/**/*.test.ts", "src/**/*.test.tsx", "src/test"]
 }
