@@ -7,7 +7,7 @@ Last updated: 2026-10-15 · Current focus: **M0 — Foundations** (`M0.2` and `M
 | M0 Foundations | 8 / 9 | `bun run verify` (now ending in `cargo check`) and `cargo test`; `bun tauri dev` opens a window with the target injected |
 | M1 Shell and home | 5 / 10 | home → session view end to end; restart restores tabs |
 | M2 Session view | 0 / 10 | a live session streams, interrupts, queues and replies from the keyboard |
-| M3 Type and theme | 0 / 5 | both faces change live and survive a restart; theme applies and clears |
+| M3 Type and theme | 0 / 6 | both faces change live and survive a restart; theme applies and clears |
 | M4 Plugin host 0.1 | 0 / 8 | four example plugins install, work and uninstall through the documented API |
 | M5 Desktop polish | 0 / 5 | packaged app, updater, `verify-release` exits 0 |
 
@@ -52,6 +52,7 @@ Last updated: 2026-10-15 · Current focus: **M0 — Foundations** (`M0.2` and `M
 
 ## M3 — Type and theme
 
+- [ ] `M3.0` Interface font at the root: one rule applying `--oc-font-ui`/size (headings currently render serif — the tokens are applied per component, 17 copies), the copies deleted, the code-face rule parked for M2.2, and a test that fails on a new inline font — evidence: computed `font-family` in a browser resolves to the interface stack for an `h2`, a day `h3`, a row and two controls, and zero inline font declarations remain
 - [ ] `M3.1` Bundle Geist + Geist Mono (OFL); code default `GeistMono Nerd Font` by family name (brew cask) with bundled `Geist Mono` as fallback; wire `--oc-font-ui` / `--oc-font-code` + sizes — evidence: fresh install renders UI in Geist and code in `GeistMono Nerd Font`; with the cask removed, code falls back to `Geist Mono`
 - [ ] `M3.2` Font settings section (both roles, live sample, reset, persisted) — evidence: change both, restart, still applied
 - [ ] `M3.3` Face picker: bundled + machine families by resolved name + generics; misspelt refused — evidence: a misspelt family cannot be selected

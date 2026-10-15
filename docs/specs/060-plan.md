@@ -82,6 +82,7 @@ Build order for specs [000](000-overview.md)–[050](050-opencode-integration.md
 
 | id | Task | Evidence |
 | --- | --- | --- |
+| M3.0 | Interface font at the root: one `src/theme/base.css` rule applying `--oc-font-ui`/size once (plus the code-face rule for M2.2), the 17 inline copies deleted, and a test that fails when a component declares a font family inline. Lands **before M1.4** on purpose: the running app renders serif headings today because the tokens are applied per component and headings inherit the browser default | computed `font-family` in a browser for an `h2`, a day `h3`, a row, and two controls resolves to the interface stack, not `Times`; zero inline font declarations remain outside the theme layer |
 | M3.1 | Bundle Geist + Geist Mono (OFL); default the code face to the installed **`GeistMono Nerd Font`** (brew cask, by family name) with bundled `Geist Mono` as the offline fallback; wire `--oc-font-ui` / `--oc-font-code` + sizes | fresh install renders UI in Geist and code in `GeistMono Nerd Font`; with the cask removed, code falls back to `Geist Mono` |
 | M3.2 | Font settings section: interface face/size, code face/size, live sample, reset, persisted | change both faces, restart, still applied |
 | M3.3 | Face picker: bundled faces + machine families by resolved name (both Nerd Font cuts and `GeistMono Nerd Font Mono`, aliases matched) + CSS generics; misspelt families refused (measure the `"0"` advance) | a misspelt family cannot be selected; the Nerd Font families are offered by their canonical names |
