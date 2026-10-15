@@ -1,4 +1,5 @@
 import { normalizeServer, type ServerTarget } from "@/app/settings/server";
+import { normalizeSidebar, type SidebarState } from "@/app/settings/sidebar";
 import { normalizeTabs } from "@/app/settings/tabState";
 import type { SerializedTabs } from "@/app/tabModel";
 import { RECENT_DIRECTORIES_LIMIT } from "@/constants/directories";
@@ -9,8 +10,6 @@ import {
 	SETTING_KEYS,
 	SETTINGS_DATA_VERSION,
 	type SETTINGS_NOTICE_KIND,
-	SIDEBAR_MAX_WIDTH,
-	SIDEBAR_MIN_WIDTH,
 } from "@/constants/settings";
 import {
 	clampFontSize,
@@ -28,11 +27,6 @@ import {
  * The `settings.tabs` cell lives next door in `tabState.ts`; the fonts' own
  * arithmetic lives with the theme (`theme/fonts.ts`).
  */
-
-export type SidebarState = {
-	readonly visible: boolean;
-	readonly width: number;
-};
 
 export type SettingsData = {
 	readonly tabs: SerializedTabs;
@@ -94,18 +88,6 @@ function normalizeLastRoute(raw: unknown): string {
 
 function normalizeLastOpened(raw: unknown): string | null {
 	return typeof raw === "string" && raw !== "" ? raw : null;
-}
-
-function normalizeSidebar(raw: unknown): SidebarState {
-	const record = isRecord(raw) ? raw : {};
-	const width = record.width;
-	return {
-		visible: typeof record.visible === "boolean" ? record.visible : DEFAULT_SIDEBAR.visible,
-		width:
-			typeof width === "number" && Number.isFinite(width)
-				? Math.min(SIDEBAR_MAX_WIDTH, Math.max(SIDEBAR_MIN_WIDTH, Math.round(width)))
-				: DEFAULT_SIDEBAR.width,
-	};
 }
 
 function normalizeFonts(raw: unknown): FontPreferences {

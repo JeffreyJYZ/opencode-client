@@ -20,6 +20,13 @@ body,
 	height: 100%;
 }
 
+/* The shell stacks its banner, nav, panes and statusline in one column; the
+   pane row is what grows, so the statusline stays pinned to the window bottom. */
+#root {
+	display: flex;
+	flex-direction: column;
+}
+
 body {
 	margin: 0;
 	font-family: var(--oc-font-ui);

@@ -5,16 +5,19 @@ import {
 	findChordConflict,
 	KEY_MODIFIER,
 	KEY_MODIFIER_GLYPH,
-	KEYBOARD_SHORTCUTS,
 	MAX_KEYBOARD_TAB,
 	MIN_KEYBOARD_TAB,
 	matchesBinding,
+	tabRangeLabel,
+} from "@/constants/chords";
+import {
+	KEYBOARD_SHORTCUTS,
 	SHORTCUT_CLOSE_TAB,
 	SHORTCUT_COMMAND_PALETTE,
 	SHORTCUT_NEW_SESSION,
 	SHORTCUT_SETTINGS,
 	SHORTCUT_SWITCH_TAB,
-	tabRangeLabel,
+	SHORTCUT_TOGGLE_SIDEBAR,
 } from "@/constants/keys";
 
 function event(key: string, held = true): KeyboardEvent {
@@ -27,6 +30,10 @@ describe("the keymap registry", () => {
 		// The check is real: a second binding on ⌘K is a conflict, not a warning.
 		const clash = findChordConflict([...KEYBOARD_SHORTCUTS, SHORTCUT_COMMAND_PALETTE]);
 		expect(clash).toBe(bindingChord(SHORTCUT_COMMAND_PALETTE));
+		// And a second binding on ⌘B now fails too, so it cannot shadow M2.7's.
+		expect(findChordConflict([...KEYBOARD_SHORTCUTS, SHORTCUT_TOGGLE_SIDEBAR])).toBe(
+			bindingChord(SHORTCUT_TOGGLE_SIDEBAR),
+		);
 	});
 
 	test("every chord the app owns is in the one table", () => {
@@ -38,6 +45,7 @@ describe("the keymap registry", () => {
 			SHORTCUT_CLOSE_TAB,
 			SHORTCUT_SWITCH_TAB,
 			SHORTCUT_SETTINGS,
+			SHORTCUT_TOGGLE_SIDEBAR,
 		]) {
 			expect(ids).toContain(binding.id);
 		}
