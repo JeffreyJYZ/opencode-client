@@ -1,16 +1,17 @@
 import type { TextRow } from "@/session/transcript";
-import { ROW_STYLE, rowIdentity, TEXT_STYLE } from "./rowStyles";
+import { Markdown } from "./Markdown";
+import { ROW_STYLE, rowIdentity } from "./rowStyles";
 
 /**
- * Assistant prose: the transcript's primary text, in the interface face at the
- * interface size, with the server's own whitespace kept.
+ * Assistant prose: the transcript's primary text, rendered from the server's
+ * markdown (M2.3) at the interface size.
  *
- * Nothing is parsed here — a fence is still plain text until M2.3 owns markdown.
+ * The parse, the sanitisation and the block layout live in `Markdown`.
  */
 export function ProseRow({ row }: { readonly row: TextRow }) {
 	return (
 		<article {...rowIdentity(row.id)} style={ROW_STYLE}>
-			<p style={TEXT_STYLE}>{row.text}</p>
+			<Markdown text={row.text} />
 		</article>
 	);
 }

@@ -58,6 +58,18 @@ code,
 	font-size: var(--oc-font-code-size);
 }
 
+/* A Shiki block (M2.3) colours its tokens with `--shiki-*` custom properties —
+   one pair per theme — so the element picks the pair its `data-theme` names. No
+   colour is written in a component; the surface stays --oc-surface-raised. */
+.shiki {
+	margin: 0;
+	color: var(--shiki-dark);
+}
+
+[data-theme="light"] .shiki {
+	color: var(--shiki-light);
+}
+
 .oc-app-mark {
 	font-family: var(--oc-font-mark);
 }

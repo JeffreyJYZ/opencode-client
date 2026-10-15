@@ -56,6 +56,14 @@ function textOf(row: TranscriptRow | undefined): string {
 	return row !== undefined && isTextRow(row) ? row.text : "";
 }
 
+/**
+ * The row's text as prose renders it (M2.3). This capture's only markdown is
+ * inline code, so the shown text is the source with its backticks removed.
+ */
+function shownText(row: TranscriptRow | undefined): string {
+	return textOf(row).replace(/`/g, "").trim();
+}
+
 describe("TranscriptView", () => {
 	test("a transcript with no rows says so rather than rendering nothing", () => {
 		render(<TranscriptView rows={[]} />);
@@ -91,14 +99,14 @@ describe("TranscriptView", () => {
 		const grown = delta.rows.find((row) => row.id === growing.id);
 		expect(grown).not.toBe(growing);
 		expect(nodeOf(container, growing.id)).toBe(node);
-		expect(node?.textContent).toBe(textOf(grown));
+		expect(node?.textContent?.trim()).toBe(shownText(grown));
 
 		// `.ended` replaces the text wholesale; the node must survive that too.
 		const ended = reduceTo(streamed.length);
 		rerender(<TranscriptView rows={ended.rows} />);
 		const final = ended.rows.find((row) => row.id === growing.id);
 		expect(nodeOf(container, growing.id)).toBe(node);
-		expect(node?.textContent).toBe(textOf(final));
+		expect(node?.textContent?.trim()).toBe(shownText(final));
 		expect(final !== undefined && isTextRow(final) && final.ended).toBe(true);
 	});
 
