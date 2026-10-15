@@ -1,9 +1,12 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { App } from "@/app/App";
 import { Providers } from "@/app/providers";
+import { Shell } from "@/app/Shell";
+import { registerTopnavBuiltins } from "@/app/topnavBuiltins";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import "./theme/tokens.css";
+
+registerTopnavBuiltins();
 
 const root = document.getElementById("root");
 if (!root) {
@@ -14,7 +17,7 @@ createRoot(root).render(
 	<StrictMode>
 		<Providers>
 			<OfflineBanner />
-			<App />
+			<Shell />
 		</Providers>
 	</StrictMode>,
 );
