@@ -1,0 +1,27 @@
+[package]
+name = "opencode-client"
+version = "0.1.0"
+description = "Desktop shell for the opencode client"
+authors = ["you"]
+license = ""
+repository = ""
+edition = "2024"
+rust-version = "1.90"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+name = "opencode_client_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.7.3", features = [] }
+
+[dependencies]
+# The shell's whole dependency set: the runtime, the window-state plugin (size and
+# position persistence), and `serde`/`serde_json` to read the service registration
+# file and JSON-serialise the injected target. No updater, no deep links.
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tauri = { version = "2.12.4", features = [] }
+tauri-plugin-window-state = "2"
