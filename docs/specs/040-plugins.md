@@ -53,7 +53,7 @@ Registries register **synchronously** and return a `Disposable`; services return
 
 | `host.` | Adds | Kind |
 | --- | --- | --- |
-| `ui.register({ id, slot, component })` | a component into a named slot | registry |
+| `ui.register({ id, slot, component, order? })` | a component into a named slot, in registration order; an explicit `order` breaks ties, lower first, and equal orders keep registration order | registry |
 | `ui.kit` | the app's primitives (`Button`, `Panel`, `Section`, `FieldRow`, `Menu`, `Markdown`, `cls` and the class constants) so plugin UI matches a built-in's without copying Tailwind strings | object |
 | `commands.register({ id, title, run, keybinding? })` | a palette command, optionally keybound | registry |
 | `panels.register({ id, title, component })` | a sidebar panel (`session.sidebar.panels`) | registry |
