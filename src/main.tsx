@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "@/app/App";
 import { Providers } from "@/app/providers";
+import { OfflineBanner } from "@/components/OfflineBanner";
 import "./theme/tokens.css";
 
 const root = document.getElementById("root");
@@ -12,6 +13,7 @@ if (!root) {
 createRoot(root).render(
 	<StrictMode>
 		<Providers>
+			<OfflineBanner />
 			<App />
 		</Providers>
 	</StrictMode>,
