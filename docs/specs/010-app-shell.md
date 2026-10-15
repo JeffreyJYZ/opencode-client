@@ -10,6 +10,7 @@
   3. nothing — **no global at all**, so the web build falls back to its own origin or a stored target. That is a normal state, not an error.
 - The global carries **no username**: the client's HTTP basic auth is `opencode:<password>`, with the username a constant in the client (`auth: { type: "basic", username, password }`).
 - The password is readable by any script running in the page. The plugin host is in-process and full-trust (spec 040), so this is not a boundary a plugin could cross *later* — it is the same reach the app itself has.
+- **The init script re-runs on every main-frame navigation** (wry registers it at document start, main frame), so the shell **allows only its own origin and refuses every other navigation**; an external link opens in the OS browser (M5.2) instead of navigating the webview. Without that guard a link in rendered markdown would hand a foreign origin the credential. A CSP (M2.0) is the second shell-side defence, and the two are the reason the credential in page scope stays acceptable.
 - No custom title bar in v1; the window title is `<session title> — opencode` on a session route, `opencode` elsewhere. The macOS traffic lights stay where they are.
 - Menu: `File` (New session…, Close tab, Quit), `View` (Toggle sidebar, Command palette, Reload), `Help` (Docs, Report issue). Everything in the menu also has a keybinding and a palette entry; the menu bar is a convenience, never the only path.
 
