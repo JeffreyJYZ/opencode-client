@@ -1,3 +1,4 @@
+import { normalizeServer, type ServerTarget } from "@/app/settings/server";
 import { normalizeTabs } from "@/app/settings/tabState";
 import type { SerializedTabs } from "@/app/tabModel";
 import { RECENT_DIRECTORIES_LIMIT } from "@/constants/directories";
@@ -41,6 +42,8 @@ export type SettingsData = {
 	readonly sidebar: SidebarState;
 	readonly fonts: FontPreferences;
 	readonly recentDirectories: readonly string[];
+	/** The connect flow's stored target, or `null` before one is stored. */
+	readonly server: ServerTarget | null;
 };
 
 /**
@@ -61,6 +64,7 @@ export const DEFAULT_SETTINGS: SettingsData = {
 	sidebar: { ...DEFAULT_SIDEBAR },
 	fonts: DEFAULT_FONTS,
 	recentDirectories: [],
+	server: null,
 };
 
 /** A document holding the defaults at the current version. */
@@ -80,6 +84,7 @@ export function settingsFromDocument(document: SettingsDocument): SettingsData {
 		sidebar: normalizeSidebar(document[SETTING_KEYS.sidebar]),
 		fonts: normalizeFonts(document[SETTING_KEYS.fonts]),
 		recentDirectories: normalizeDirectories(document[SETTING_KEYS.recentDirectories]),
+		server: normalizeServer(document[SETTING_KEYS.server]),
 	};
 }
 

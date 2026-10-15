@@ -8,7 +8,7 @@ import {
 	SETTINGS_DATA_VERSION,
 	SETTINGS_MIGRATION_LIMIT,
 } from "@/constants/settings";
-import { V0_DOCUMENT_JSON } from "@/test/settings";
+import { V0_DOCUMENT_JSON, V1_DOCUMENT_JSON } from "@/test/settings";
 
 /** Parse a fixture the way `storage.ts` does, so the test starts from raw text. */
 function fixture(json: string): SettingsDocument {
@@ -43,6 +43,34 @@ describe("migrateDocument — the version-0 path", () => {
 		const outcome = migrateDocument({ tabs: "ses_broken", [LEGACY_ACTIVE_TAB_KEY]: 4 });
 		if (outcome.kind !== "ok") throw new Error("expected a migrated document");
 		expect(outcome.document[SETTING_KEYS.tabs]).toEqual({ tabs: [], activeIndex: 4 });
+	});
+});
+
+describe("migrateDocument — the version-1 path, from the captured blob", () => {
+	// The fixture is `V1_DOCUMENT_JSON`: captured verbatim from the M1.5 app's
+	// `localStorage` (see `src/test/settings.ts`), never transcribed. The standing
+	// rule: from v1 onward every migration fixture is a real captured payload.
+	test("the captured v1 blob gains the server field and keeps every other field", () => {
+		const captured = fixture(V1_DOCUMENT_JSON);
+		expect(captured[SETTING_KEYS.dataVersion]).toBe(SETTINGS_BASE_VERSION + 1);
+		const outcome = migrateDocument(captured);
+		if (outcome.kind !== "ok") throw new Error("expected a migrated document");
+		expect(outcome.document[SETTING_KEYS.dataVersion]).toBe(SETTINGS_DATA_VERSION);
+		expect(outcome.document[SETTING_KEYS.server]).toBeNull();
+		expect(outcome.document[SETTING_KEYS.tabs]).toEqual(captured[SETTING_KEYS.tabs]);
+		expect(outcome.document[SETTING_KEYS.lastOpened]).toBe(captured[SETTING_KEYS.lastOpened]);
+		expect(outcome.document[SETTING_KEYS.fonts]).toEqual(captured[SETTING_KEYS.fonts]);
+		expect(outcome.document[SETTING_KEYS.sidebar]).toEqual(captured[SETTING_KEYS.sidebar]);
+	});
+
+	test("a v1 blob already carrying a server field is not clobbered by the step", () => {
+		const stored = { url: "http://kept:1", password: "pw" };
+		const outcome = migrateDocument({
+			[SETTING_KEYS.dataVersion]: SETTINGS_BASE_VERSION + 1,
+			[SETTING_KEYS.server]: stored,
+		});
+		if (outcome.kind !== "ok") throw new Error("expected a migrated document");
+		expect(outcome.document[SETTING_KEYS.server]).toEqual(stored);
 	});
 });
 

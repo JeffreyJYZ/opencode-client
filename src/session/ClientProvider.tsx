@@ -1,28 +1,34 @@
 import {
 	createContext,
 	type ReactNode,
+	useCallback,
 	useContext,
 	useEffect,
+	useMemo,
 	useState,
 	useSyncExternalStore,
 } from "react";
-import { createClient, type OpenCodeClient, probeConnection } from "@/session/client";
-import { type ConnectionStore, createConnectionStore } from "@/session/connection";
+import type { ServerTarget } from "@/app/settings/server";
+import { updateSettings } from "@/app/settings/store";
+import { buildBundle, type ClientBundle, type ProbeOverride } from "@/session/bundle";
+import type { OpenCodeClient } from "@/session/client";
 import type { ConnectionState } from "@/session/connectionState";
-import { resolveStartupTarget } from "@/session/environment";
+import { readAndStripAuthToken, resolveTargets } from "@/session/environment";
 import type { ResolvedTarget } from "@/session/target";
 
 /**
  * The one client and its connection state, through a context (spec 050 §Target
- * and auth). Built once from the resolved target — never per render, never per
- * call — so plugins can later reach the same instance as `host.opencode.client`
- * (spec 040) rather than through a mutable singleton.
+ * and auth). Rebuilt only when the target actually changes — `connect` and
+ * `disconnect` are the only writers — never per render, never per call, so
+ * plugins can later reach the same instance as `host.opencode.client` (spec 040)
+ * rather than through a mutable singleton.
  */
 
-type ClientContextValue = {
-	readonly client: OpenCodeClient | null;
-	readonly target: ResolvedTarget | null;
-	readonly connection: ConnectionStore;
+type ClientContextValue = ClientBundle & {
+	/** Store the target and connect to it (spec 050 §Target and auth). */
+	readonly connect: (server: ServerTarget) => void;
+	/** Drop the live connection. The blob keeps the target, so a relaunch reconnects. */
+	readonly disconnect: () => void;
 };
 
 const ClientContext = createContext<ClientContextValue | null>(null);
@@ -59,38 +65,33 @@ export function useRetryConnection(): () => void {
 	};
 }
 
+/** The connect action the settings section submits with. */
+export function useConnect(): (server: ServerTarget) => void {
+	return useClientContext().connect;
+}
+
+/** The disconnect action the settings section offers beside it. */
+export function useDisconnect(): () => void {
+	return useClientContext().disconnect;
+}
+
 export type ClientProviderProps = {
 	readonly children: ReactNode;
-	/**
-	 * Override the liveness probe. A test seam: production passes nothing and the
-	 * provider probes `server.info()` on the real client.
-	 */
-	readonly probe?: (client: OpenCodeClient) => Promise<void>;
-	/**
-	 * Override the client instance itself (test seam, beside `probe`). Production
-	 * passes nothing and the provider builds the client from the resolved target.
-	 */
+	/** Override the liveness probe (test seam); production probes `server.info()`. */
+	readonly probe?: ProbeOverride;
+	/** Override the client instance itself (test seam, beside `probe`). */
 	readonly client?: OpenCodeClient | null;
 };
 
 export function ClientProvider({ children, probe, client: clientOverride }: ClientProviderProps) {
-	const [bundle] = useState<ClientContextValue>(() => {
-		const target = resolveStartupTarget();
-		const client =
-			clientOverride === undefined
-				? target === null
-					? null
-					: createClient(target)
-				: clientOverride;
-		const connection = createConnectionStore({
-			target,
-			probe:
-				client === null
-					? () => Promise.resolve()
-					: () => (probe ?? probeConnection)(client),
-		});
-		return { client, target, connection };
-	});
+	// The `auth_token` is consumed (and stripped from the address bar) exactly once,
+	// before the first paint; every later resolution reuses the password it yielded.
+	const [authTokenPassword] = useState(() => readAndStripAuthToken());
+	const build = useCallback(
+		(target: ResolvedTarget | null) => buildBundle(target, probe, clientOverride),
+		[probe, clientOverride],
+	);
+	const [bundle, setBundle] = useState(() => build(resolveTargets(authTokenPassword)));
 
 	useEffect(() => {
 		void bundle.connection.check();
@@ -101,5 +102,20 @@ export function ClientProvider({ children, probe, client: clientOverride }: Clie
 		};
 	}, [bundle]);
 
-	return <ClientContext.Provider value={bundle}>{children}</ClientContext.Provider>;
+	const connect = useCallback(
+		(server: ServerTarget) => {
+			updateSettings({ server });
+			setBundle(build(resolveTargets(authTokenPassword)));
+		},
+		[build, authTokenPassword],
+	);
+	const disconnect = useCallback(() => {
+		setBundle(build(null));
+	}, [build]);
+	const value = useMemo<ClientContextValue>(
+		() => ({ ...bundle, connect, disconnect }),
+		[bundle, connect, disconnect],
+	);
+
+	return <ClientContext.Provider value={value}>{children}</ClientContext.Provider>;
 }

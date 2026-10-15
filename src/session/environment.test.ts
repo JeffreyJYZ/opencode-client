@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { resetSettings } from "@/app/settings/store";
 import { ROUTE_PATH } from "@/constants/routes";
 import { ENV_PASSWORD, ENV_SERVER_URL, TARGET_GLOBAL } from "@/constants/server";
 import {
@@ -6,7 +7,6 @@ import {
 	readDevTarget,
 	readInjectedTarget,
 	readOriginTarget,
-	readStoredTarget,
 	resolveStartupTarget,
 } from "@/session/environment";
 import { TARGET_SOURCE } from "@/session/target";
@@ -24,6 +24,7 @@ afterEach(() => {
 	delete (globalThis as Record<string, unknown>)[TARGET_GLOBAL];
 	delete process.env[ENV_SERVER_URL];
 	delete process.env[ENV_PASSWORD];
+	resetSettings();
 });
 
 describe("readInjectedTarget", () => {
@@ -66,10 +67,6 @@ describe("the other sources", () => {
 		process.env[ENV_SERVER_URL] = "http://127.0.0.1:5211";
 		process.env[ENV_PASSWORD] = "";
 		expect(readDevTarget()?.password).toBeUndefined();
-	});
-
-	test("the stored target is the named seam, absent until M1.5 defines the key", () => {
-		expect(readStoredTarget()).toBeUndefined();
 	});
 
 	test("the page's origin is absent in a dev build, so a dev run needs the override", () => {

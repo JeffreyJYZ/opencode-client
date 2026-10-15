@@ -1,3 +1,4 @@
+import { getSettings } from "@/app/settings/store";
 import { ENV_PASSWORD, ENV_SERVER_URL, TARGET_GLOBAL } from "@/constants/server";
 import { consumeAuthToken } from "@/session/credentials";
 import {
@@ -49,14 +50,15 @@ export function readDevTarget(): TargetCandidate | undefined {
 }
 
 /**
- * The stored target from the connect flow — **the named seam, not a key**.
- *
- * Spec 010 §Persistence lists the settings blob's keys and none of them holds a
- * server target, so this resolves as "absent" until M1.5 defines the key; a
- * guessed key here would be a second truth for the connect flow to contradict.
+ * The stored target from the connect flow (spec 050's second source): the
+ * `settings.server` cell of the persisted blob, read through the settings store
+ * so there is one truth for it. `null` (nothing stored) is absent; a blank
+ * password is no password, so the client sends no `Authorization` header.
  */
 export function readStoredTarget(): TargetCandidate | undefined {
-	return undefined;
+	const server = getSettings().server;
+	if (server === null) return undefined;
+	return { url: server.url, password: server.password === "" ? undefined : server.password };
 }
 
 /** The page's own origin, when a server serves this bundle (spec 050). */
@@ -79,9 +81,13 @@ export function readAndStripAuthToken(): string | undefined {
 	return password;
 }
 
-/** Resolve once, at startup: consume the token, then pick the first present source. */
-export function resolveStartupTarget(): ResolvedTarget | null {
-	const authTokenPassword = readAndStripAuthToken();
+/**
+ * Pick the first present source in spec 050's order. Re-runnable: the
+ * `auth_token` is consumed once at startup (`readAndStripAuthToken`) and its
+ * password is passed back in, so a re-resolution after a connect reads the
+ * stored target the form just wrote without touching the address bar again.
+ */
+export function resolveTargets(authTokenPassword: string | undefined): ResolvedTarget | null {
 	return resolveTarget({
 		injected: readInjectedTarget(),
 		stored: readStoredTarget(),
@@ -89,4 +95,9 @@ export function resolveStartupTarget(): ResolvedTarget | null {
 		origin: readOriginTarget(),
 		authTokenPassword,
 	});
+}
+
+/** Resolve once, at startup: consume the token, then pick the first present source. */
+export function resolveStartupTarget(): ResolvedTarget | null {
+	return resolveTargets(readAndStripAuthToken());
 }

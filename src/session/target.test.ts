@@ -32,6 +32,13 @@ describe("resolveTarget", () => {
 		expect(target?.url).toBe(INJECTED.url);
 	});
 
+	test("a stored target present beneath an injected global never wins", () => {
+		const target = resolveTarget(candidates({ injected: INJECTED, stored: STORED }));
+		expect(target?.source).toBe(TARGET_SOURCE.injected);
+		expect(target?.url).toBe(INJECTED.url);
+		expect(target?.password).toBe(INJECTED.password);
+	});
+
 	test("the stored target wins once the global is absent", () => {
 		const target = resolveTarget(candidates({ stored: STORED, dev: DEV, origin: ORIGIN }));
 		expect(target?.source).toBe(TARGET_SOURCE.stored);

@@ -4,7 +4,8 @@ import { App } from "@/app/App";
 import { Providers } from "@/app/providers";
 import { registerRoute } from "@/app/routeRegistry";
 import { navigate, sessionRoute, settingsRoute } from "@/app/router";
-import { ROUTE_KIND, ROUTE_PATH } from "@/constants/routes";
+import { CONNECT_TITLE } from "@/constants/connect";
+import { ROUTE_PATH } from "@/constants/routes";
 
 const SESSION_ID = "ses_m04_app";
 const REGISTERED_PATH = "/m04-app-route";
@@ -43,7 +44,7 @@ describe("App", () => {
 			</Providers>,
 		);
 		act(() => navigate(settingsRoute()));
-		expect(screen.getByText(ROUTE_KIND.settings)).toBeDefined();
+		expect(screen.getByRole("heading", { name: CONNECT_TITLE })).toBeDefined();
 	});
 
 	test("a registered route wins over the built-in switch", () => {

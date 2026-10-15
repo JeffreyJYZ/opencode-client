@@ -22,10 +22,23 @@ describe("settingsFromDocument — hostile or missing fields", () => {
 			lastOpened: ["ses_a"],
 			lastRoute: 42,
 			recentDirectories: "one",
+			server: 7,
 			sidebar: "wide",
 			tabs: "ses_broken",
 		});
 		expect(settings).toEqual(DEFAULT_SETTINGS);
+	});
+
+	test("the stored server normalizes, and a url-less blob is no server", () => {
+		expect(
+			settingsFromDocument({
+				[SETTING_KEYS.server]: { url: "  http://x:1 ", password: "pw" },
+			}).server,
+		).toEqual({ url: "http://x:1", password: "pw" });
+		expect(
+			settingsFromDocument({ [SETTING_KEYS.server]: { password: "pw" } }).server,
+		).toBeNull();
+		expect(DEFAULT_SETTINGS.server).toBeNull();
 	});
 
 	test("a font size outside the role's range is clamped, and a blank face is the default", () => {

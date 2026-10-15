@@ -3,6 +3,7 @@ import { DEFAULT_SETTINGS, freshDocument, settingsFromDocument } from "@/app/set
 import { readStoredSettings, writeStoredSettings } from "@/app/settings/storage";
 import { SETTING_KEYS, SETTINGS_DATA_VERSION, SETTINGS_STORAGE_KEY } from "@/constants/settings";
 import {
+	blobDocument,
 	CORRUPT_DOCUMENT_JSON,
 	fakeStorage,
 	TOO_NEW_DOCUMENT_JSON,
@@ -19,9 +20,21 @@ describe("readStoredSettings", () => {
 	});
 
 	test("a blob this build wrote loads as it stands", () => {
-		const load = readStoredSettings(fakeStorage({ [SETTINGS_STORAGE_KEY]: V1_DOCUMENT_JSON }));
+		const document = blobDocument({ lastRoute: "/settings" });
+		const load = readStoredSettings(fakeStorage({ [SETTINGS_STORAGE_KEY]: document }));
 		expect(load.notice).toBeNull();
 		expect(settingsFromDocument(load.document).lastRoute).toBe("/settings");
+	});
+
+	test("the captured version-1 blob is migrated on read, and nothing is written back", () => {
+		const storage = fakeStorage({ [SETTINGS_STORAGE_KEY]: V1_DOCUMENT_JSON });
+		const load = readStoredSettings(storage);
+		expect(load.notice).toBeNull();
+		expect(load.document[SETTING_KEYS.dataVersion]).toBe(SETTINGS_DATA_VERSION);
+		expect(settingsFromDocument(load.document).server).toBeNull();
+		expect(settingsFromDocument(load.document).lastRoute).toBe("/settings");
+		// A read is a read: the disk keeps the payload it had until a change is made.
+		expect(storage.entries()[SETTINGS_STORAGE_KEY]).toBe(V1_DOCUMENT_JSON);
 	});
 
 	test("the version-0 layout is migrated on read, and nothing is written back yet", () => {
@@ -71,10 +84,11 @@ describe("readStoredSettings", () => {
 		expect(settingsFromDocument(load.document)).toEqual(DEFAULT_SETTINGS);
 	});
 
-	test("the captured fixture is still the shape the writer produces", () => {
+	test("the captured fixture, migrated, is still the shape the writer produces", () => {
 		// The M1.4 lesson: a fixture that models a shape the code cannot produce
 		// proves nothing. This fails the moment the writer's fields drift.
-		expect(Object.keys(JSON.parse(V1_DOCUMENT_JSON))).toEqual(Object.keys(freshDocument()));
+		const load = readStoredSettings(fakeStorage({ [SETTINGS_STORAGE_KEY]: V1_DOCUMENT_JSON }));
+		expect(Object.keys(load.document)).toEqual(Object.keys(freshDocument()));
 	});
 });
 

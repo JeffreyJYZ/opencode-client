@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { resetSettings } from "@/app/settings/store";
 import {
 	OFFLINE_BANNER_RETRY,
 	OFFLINE_BANNER_TEXT,
@@ -27,6 +28,7 @@ beforeEach(() => {
 
 afterEach(() => {
 	delete (globalThis as Record<string, unknown>)[TARGET_GLOBAL];
+	resetSettings();
 });
 
 function Status() {

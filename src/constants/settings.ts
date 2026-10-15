@@ -14,8 +14,8 @@ import { ROUTE_PATH } from "@/constants/routes";
 /** The one storage key the blob lives under. */
 export const SETTINGS_STORAGE_KEY = "settings";
 
-/** The version this build writes. */
-export const SETTINGS_DATA_VERSION = 1;
+/** The version this build writes (v2 added `settings.server`; spec 050 §Target and auth). */
+export const SETTINGS_DATA_VERSION = 2;
 
 /**
  * The version a blob with no version field is read as: the pre-versioning shape,
@@ -35,6 +35,7 @@ export const SETTING_KEYS = {
 	sidebar: "sidebar",
 	fonts: "fonts",
 	recentDirectories: "recentDirectories",
+	server: "server",
 } as const;
 
 /** The key the version-0 blob held the active tab under (v1 nests it in `tabs`). */

@@ -44,9 +44,23 @@ function v0ToV1(document: SettingsDocument): SettingsDocument {
 	};
 }
 
+/**
+ * The version-1 blob. Nothing in v1 carried a server target — spec 010's table
+ * had no key for it — so the step introduces `settings.server` as explicitly
+ * absent rather than leaving the field's meaning to "whatever a reader defaults
+ * to". Everything the blob carried is copied through untouched.
+ */
+function v1ToV2(document: SettingsDocument): SettingsDocument {
+	// Never clobber a field already present: spec 010 requires a step not to drop
+	// what it does not know, and v1 has no server field by definition.
+	if (SETTING_KEYS.server in document) return document;
+	return { ...document, [SETTING_KEYS.server]: null };
+}
+
 /** Registry keyed by source version: `MIGRATIONS[from]` produces `from + 1`. */
 export const SETTINGS_MIGRATIONS: Readonly<Record<number, SettingsMigration>> = {
 	[SETTINGS_BASE_VERSION]: v0ToV1,
+	[SETTINGS_BASE_VERSION + 1]: v1ToV2,
 };
 
 export type MigrationOutcome =
