@@ -59,7 +59,7 @@ Build order for specs [000](000-overview.md)–[050](050-opencode-integration.md
 | M1.2 | Home: recents (root sessions, day-grouped by `time.updated`, location per row), empty state naming the server, and it owns the first `useSessions` | list matches `session.list({ parentID: null })` |
 | M1.3 | New session: native directory picker + recent-directory chips → `session.create()` → open the session view | create in a picked dir, session appears in recents |
 | M1.4 | Session picker `⌕`: all root sessions, search, keyboard driven | opens any recent session past the first page |
-| M1.5 | Persistence: `dataVersion` blob + forward-only migrations for tabs, last route, sidebar, fonts, recent dirs | restart restores the tab set and the route |
+| M1.5 | Persistence: `dataVersion` blob + forward-only migrations for tabs (M1.1 already shipped `serializeTabState`/`hydrateTabState` shaped for the `settings.tabs` cell), last route, sidebar, fonts, recent dirs | restart restores the tab set and the route |
 | M1.6 | Command palette + keymap registry, one constants table | ⌘K lists sessions, commands and settings sections |
 
 ### M2 — Session view
