@@ -5,7 +5,7 @@ Build order for specs [000](000-overview.md)–[050](050-opencode-integration.md
 ## Ground rules
 
 - **bun only**, never npm/pnpm. **Biome** formats and lints; the scaffold's ESLint scripts are replaced, not kept alongside.
-- **`bun run verify` is the gate**: `tsc -b` + `biome check .` + `scripts/check-file-length.ts`; `bun test` runs the unit suite. A layout- or text-affecting change additionally runs `bun run e2e` (landing with M2's browser proof), which spawns its **own isolated server** with all four XDG dirs redirected — never the registered service.
+- **`bun run verify` is the gate**: `tsc -b` + `biome check .` + `scripts/check-file-length.ts` + `cargo check --manifest-path src-tauri/Cargo.toml` + `bun test` (the last two arrive with M0.2b and M0.4). A layout- or text-affecting change additionally runs `bun run e2e` (landing with M2's browser proof), which spawns its **own isolated server** with all four XDG dirs redirected — never the registered service.
 - **One writer per file.** Parallel workstreams are split by file ownership; anything that runs `bun run verify` or `bun run e2e` is serialised, because the whole tree is the input.
 - **Every task is dispatched to a subagent** with a written brief and a report file, then reviewed per task (spec + quality) before the next dispatch — see `AGENTS.md` §Work conventions. The controller session rules on ambiguity, keeps the ledger, and does not write the code.
 - **No code or config file over 150 lines**; `scripts/check-file-length.ts` fails `bun run verify` past the cap. Biome formats every change.

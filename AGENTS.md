@@ -14,7 +14,7 @@ Live repo: the opencode **desktop client** (Tauri 2 + React). Abandoned sibling 
 
 - **bun only**, never npm/pnpm. React 19 + Vite 8 + TS 6 + Tailwind 4 + zod + `marked`/`shiki`/`dompurify`; `@opencode/client` is the server seam.
 - **Biome** is the formatter and linter; the scaffold's ESLint deps and `lint` script are gone and must not come back in any form. Config `biome.json`: tabs, indentWidth 4, lineWidth 100, `ignoreUnknown`, vendored/generated paths excluded. `biome check` is a **writer** (`--write`): scope it to paths when another writer is in the tree.
-- `bun run verify` = `tsc -b` + `biome check .` + `bun test`. `bun run e2e` = the scripted browser proof. A gate that prints then proceeds anyway is not a gate; never put a measured number in a commit message.
+- `bun run verify` = `tsc -b` + `biome check .` + `scripts/check-file-length.ts` + `cargo check --manifest-path src-tauri/Cargo.toml` + `bun test`. `bun run e2e` = the scripted browser proof, landing with M2. A gate that prints then proceeds anyway is not a gate; never put a measured number in a commit message.
 - DOM-less tests run **without** the happy-dom preload; happy-dom's `fetch` is same-origin, so a real cross-origin call dies `NetworkError`. A component test that is not the suite's first RTL importer needs its own `afterEach(cleanup)`.
 - Tailwind 4 is configured through the Vite plugin, not a PostCSS file, and themes are CSS custom properties — a class string is not a design decision, a token is.
 
