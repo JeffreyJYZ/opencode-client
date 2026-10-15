@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { requestCommandPalette } from "@/app/tabSync";
 import { CommandPalette } from "@/components/CommandPalette";
+import { SESSION_PAGE_LIMIT } from "@/constants/sessions";
 import { ClientProvider } from "@/session/ClientProvider";
 import type { OpenCodeClient } from "@/session/client";
 import type { PickerPage } from "@/test/picker";
@@ -28,13 +29,13 @@ export function paletteClient(
 }
 
 /** Render the palette behind its real opener, and return the opener. */
-export function renderPalette(client: OpenCodeClient): HTMLElement {
+export function renderPalette(client: OpenCodeClient, pageSize = SESSION_PAGE_LIMIT): HTMLElement {
 	render(
 		<ClientProvider client={client} probe={() => Promise.resolve()}>
 			<button type="button" onClick={requestCommandPalette}>
 				{PALETTE_OPEN_LABEL}
 			</button>
-			<CommandPalette />
+			<CommandPalette pageSize={pageSize} />
 		</ClientProvider>,
 	);
 	return screen.getByText(PALETTE_OPEN_LABEL);

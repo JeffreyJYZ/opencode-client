@@ -1,18 +1,17 @@
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useSettingsSections } from "@/app/settings/sections";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { tabKey } from "@/app/tabModel";
 import { activateTabAndGo, openSessionAndGo, openSettingsAndGo } from "@/app/tabSync";
 import { getTabSnapshot } from "@/app/tabs";
-import { useTabs } from "@/app/useTabs";
 import { CommandPaletteDialog } from "@/components/CommandPaletteDialog";
-import { buildEntries, filterEntries, type PaletteEntry } from "@/components/paletteModel";
+import { filterEntries, type PaletteEntry } from "@/components/paletteModel";
 import { useFocusTrap } from "@/components/useFocusTrap";
 import { useMenuDismiss } from "@/components/useMenuDismiss";
+import { usePaletteData } from "@/components/usePaletteData";
 import { COMMAND_RUN_EVENT, PALETTE_KIND } from "@/constants/palette";
+import { PICKER_SEARCH_DEBOUNCE_MS } from "@/constants/picker";
+import { SESSION_PAGE_LIMIT } from "@/constants/sessions";
 import { COMMAND_PALETTE_EVENT, NEW_SESSION_EVENT, SESSION_PICKER_EVENT } from "@/constants/tabs";
-import { useCommands } from "@/session/useCommands";
-import { useSessions } from "@/session/useSessions";
 
 /**
  * The command palette (spec 010 §Desktop behaviours): ⌘K opens a list of the four
@@ -20,17 +19,19 @@ import { useSessions } from "@/session/useSessions";
  * you type, ↑/↓ with no wrap, Enter activates and closes, Escape and a click
  * outside close, and focus returns to the opener.
  *
- * One overlay *at a time* with the picker and the new-session flow: each opens by
- * a window signal and closes on the others', so two dialogs never own `Escape`
- * together. The overlay, the focus trap and the dismissal are M1.4's, reused.
+ * One overlay at a time with the picker and the new-session flow (named window
+ * signals), so two dialogs never own `Escape`. Its data path is `usePaletteData`,
+ * which fetches only while the palette is open.
  */
 
-export function CommandPalette() {
-	const tabs = useTabs();
-	const { sessions, reload: reloadSessions } = useSessions();
-	const { commands, reload: reloadCommands } = useCommands();
-	const sections = useSettingsSections();
+export type CommandPaletteProps = {
+	/** The session page size; production leaves it at the default. */
+	readonly pageSize?: number;
+};
+
+export function CommandPalette({ pageSize = SESSION_PAGE_LIMIT }: CommandPaletteProps) {
 	const [open, setOpen] = useState(false);
+	const { entries, canLoadMore, loadMore } = usePaletteData(open, pageSize);
 	const [query, setQuery] = useState("");
 	const [active, setActive] = useState(0);
 	const dialogRef = useRef<HTMLDivElement | null>(null);
@@ -40,23 +41,15 @@ export function CommandPalette() {
 	useFocusTrap(dialogRef, open);
 	useMenuDismiss(open, setOpen, dialogRef);
 
-	const entries = useMemo(
-		() => buildEntries({ tabs: tabs.tabs, sessions, commands, sections }),
-		[tabs, sessions, commands, sections],
-	);
 	const matches = filterEntries(entries, query);
 
 	const openPalette = useCallback(() => {
 		const opener = document.activeElement;
 		openerRef.current = opener instanceof HTMLElement ? opener : null;
-		// Refetch on open: a session or command created since the last open would
-		// otherwise stay invisible, and `command.list` loads asynchronously.
-		reloadSessions();
-		reloadCommands();
 		setQuery("");
 		setActive(0);
 		setOpen(true);
-	}, [reloadSessions, reloadCommands]);
+	}, []);
 
 	// Its own signal toggles; the other two overlays' signals dismiss it.
 	useEffect(() => {
@@ -88,6 +81,14 @@ export function CommandPalette() {
 	useEffect(() => {
 		setActive((index) => Math.max(0, Math.min(index, matches.length - 1)));
 	}, [matches.length]);
+
+	// A query with no match in the loaded page pulls the next one, until a match
+	// appears or the list ends — the picker's own gesture (spec 050 §Sessions).
+	useEffect(() => {
+		if (!open || query.trim() === "" || matches.length > 0 || !canLoadMore) return;
+		const timer = window.setTimeout(loadMore, PICKER_SEARCH_DEBOUNCE_MS);
+		return () => window.clearTimeout(timer);
+	}, [open, query, matches.length, canLoadMore, loadMore]);
 
 	const run = useCallback((entry: PaletteEntry) => {
 		if (entry.kind === PALETTE_KIND.tab) {
