@@ -1,10 +1,10 @@
 # Status board
 
-Last updated: 2026-10-15 · Current focus: **M0 — Foundations (not started)**
+Last updated: 2026-10-15 · Current focus: **M0 — Foundations** (`M0.6` done, `M0.1` nearly — the `e2e` script waits on M2)
 
 | Milestone | Done / total | Gate |
 | --- | --- | --- |
-| M0 Foundations | 0 / 6 | `bun run verify`; `bun tauri dev` opens a window naming the server |
+| M0 Foundations | 1 / 6 | `bun run verify`; `bun tauri dev` opens a window naming the server |
 | M1 Shell and home | 0 / 6 | home → session view end to end; restart restores tabs |
 | M2 Session view | 0 / 9 | a live session streams, interrupts, queues and replies from the keyboard |
 | M3 Type and theme | 0 / 5 | both faces change live and survive a restart; theme applies and clears |
@@ -18,7 +18,7 @@ Last updated: 2026-10-15 · Current focus: **M0 — Foundations (not started)**
 - [ ] `M0.3` Tokens + theme baseline: `tokens.css` three layers, vendored theme documents byte-identical, dark + light — evidence: diff against the mirror shows only the header comment
 - [ ] `M0.4` App skeleton: router (`home`, `session/:id`, `settings`), providers, slot registry + `<Slot>` — evidence: routes navigate; an empty slot renders nothing with no warning
 - [ ] `M0.5` opencode client provider + offline state — evidence: kill the server → banner with the url; restart → recovers
-- [ ] `M0.6` Repository under git: `git init`, `.gitignore` verified, one initial commit of the scaffold + docs — evidence: `git log --oneline -1` exists and `git status --short` is clean
+- [x] `M0.6` Repository under git: `git init`, `.gitignore` verified, one initial commit of the scaffold + docs — evidence: `ebf7280` on `main`, 26 files, `git status --short` empty — **done**
 
 ## M1 — Shell and home
 
