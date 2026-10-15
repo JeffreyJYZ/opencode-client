@@ -17,6 +17,7 @@ function spy(): KeymapActions & { calls: string[] } {
 		calls,
 		onCommandPalette: () => calls.push("palette"),
 		onSettings: () => calls.push("settings"),
+		onToggleSidebar: () => calls.push("sidebar"),
 	};
 }
 
@@ -31,6 +32,18 @@ describe("keymap", () => {
 		const actions = spy();
 		expect(handleAppKey(keydown(","), actions)).toBe(true);
 		expect(actions.calls).toEqual(["settings"]);
+	});
+
+	test("⌘B toggles the sidebar and is consumed", () => {
+		const actions = spy();
+		expect(handleAppKey(keydown("b"), actions)).toBe(true);
+		expect(actions.calls).toEqual(["sidebar"]);
+	});
+
+	test("⌘B is suppressed behind an overlay, like ⌘,", () => {
+		const actions = spy();
+		expect(handleAppKey(keydown("b"), actions, true)).toBe(false);
+		expect(actions.calls).toEqual([]);
 	});
 
 	test("⌘, is inert while an overlay is open, but ⌘K still toggles its own", () => {

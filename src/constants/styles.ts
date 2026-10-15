@@ -23,3 +23,32 @@ export const SESSION_PAGE_STYLE: CSSProperties = {
 	color: "var(--oc-text)",
 	padding: 0,
 };
+
+/**
+ * The shell's frame (M2.7/M2.8): a column whose pane row grows, so the sidebar
+ * sits beside the transcript and the statusline spans the window below both.
+ * `flex: 1 1 0%` makes the row take exactly the space the nav and statusline
+ * leave, so the nav never shrinks.
+ */
+export const SHELL_BODY_STYLE: CSSProperties = {
+	display: "flex",
+	flexDirection: "column",
+	flex: "1 1 0%",
+	minHeight: 0,
+};
+
+export const SHELL_ROW_STYLE: CSSProperties = {
+	display: "flex",
+	flex: "1 1 0%",
+	minHeight: 0,
+	minWidth: 0,
+};
+
+/** The transcript column: the row's growing cell, the sidebar its fixed one. */
+export const SHELL_MAIN_STYLE: CSSProperties = {
+	display: "flex",
+	flexDirection: "column",
+	flex: "1 1 0%",
+	minWidth: 0,
+	minHeight: 0,
+};

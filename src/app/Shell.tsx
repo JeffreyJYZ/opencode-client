@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { App } from "@/app/App";
 import { installAppKeys } from "@/app/keymap";
+import { toggleSidebar } from "@/app/settings/sidebarActions";
 import { installTabKeyboard } from "@/app/tabKeys";
 import {
 	closeActiveTabAndGo,
@@ -13,15 +14,21 @@ import {
 import { getTabSnapshot } from "@/app/tabs";
 import { CommandPalette } from "@/components/CommandPalette";
 import { SessionPicker } from "@/components/SessionPicker";
+import { Sidebar } from "@/components/sidebar/Sidebar";
+import { Statusline } from "@/components/statusline/Statusline";
 import { TopNav } from "@/components/TopNav";
+import { SHELL_BODY_STYLE, SHELL_MAIN_STYLE, SHELL_ROW_STYLE } from "@/constants/styles";
 import { NewSessionFlow } from "@/pages/NewSessionFlow";
 
 /**
- * The shell: the top nav above the route switch (spec 010 §Top nav, §Routes).
+ * The shell: the top nav above the route switch, with the session view's two
+ * pieces of chrome around it — the sidebar (right) and the statusline (below) —
+ * all inside one column whose pane row grows (spec 020 §Regions).
  *
  * Owns the subscriptions the switch itself must not know: route → tabs, the
- * strip's keys (`tabKeys.ts`) and the map's window chords — ⌘K and ⌘, — which
- * `keymap.ts` matches from the registry.
+ * strip's keys (`tabKeys.ts`) and the map's window chords — ⌘K, ⌘, and ⌘B — which
+ * `keymap.ts` matches from the registry. ⌘B's action is the store's own toggle,
+ * so the chord, a menu item and a palette entry would all flip the same state.
  *
  * The three built-in overlays — the new-session flow, the session picker `⌕`
  * (M1.4) and the command palette (M1.6) — mount here rather than in a slot: they
@@ -43,12 +50,21 @@ export function Shell() {
 		return installAppKeys({
 			onCommandPalette: requestCommandPalette,
 			onSettings: openSettingsAndGo,
+			onToggleSidebar: toggleSidebar,
 		});
 	}, []);
 	return (
 		<>
 			<TopNav />
-			<App />
+			<div style={SHELL_BODY_STYLE}>
+				<div style={SHELL_ROW_STYLE}>
+					<div style={SHELL_MAIN_STYLE}>
+						<App />
+					</div>
+					<Sidebar />
+				</div>
+				<Statusline />
+			</div>
 			<NewSessionFlow />
 			<SessionPicker />
 			<CommandPalette />

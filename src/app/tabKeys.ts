@@ -1,9 +1,5 @@
-import {
-	MAX_KEYBOARD_TAB,
-	MIN_KEYBOARD_TAB,
-	SHORTCUT_CLOSE_TAB,
-	SHORTCUT_NEW_SESSION,
-} from "@/constants/keys";
+import { MAX_KEYBOARD_TAB, MIN_KEYBOARD_TAB } from "@/constants/chords";
+import { SHORTCUT_CLOSE_TAB, SHORTCUT_NEW_SESSION } from "@/constants/keys";
 
 /**
  * The tab strip's keys (spec 010 §Desktop behaviours): ⌘T, ⌘1…⌘9, ⌘W.
