@@ -1,10 +1,16 @@
 import { useEffect } from "react";
+import { setLastOpenedSession } from "@/app/lastOpened";
 import { navigate, type Route, sessionRoute, settingsRoute } from "@/app/router";
 import { sameTab } from "@/app/tabModel";
 import { activateTab, closeTab, getTabSnapshot, openTab, type Tab } from "@/app/tabs";
 import { useRoute } from "@/app/useRoute";
 import { ROUTE_KIND } from "@/constants/routes";
-import { NEW_SESSION_EVENT, SESSION_PICKER_EVENT, TAB_KIND } from "@/constants/tabs";
+import {
+	COMMAND_PALETTE_EVENT,
+	NEW_SESSION_EVENT,
+	SESSION_PICKER_EVENT,
+	TAB_KIND,
+} from "@/constants/tabs";
 
 /**
  * Where the router and the tab store meet (spec 010 §Routes, decided rule: the
@@ -41,6 +47,25 @@ export function useTabRouteSync(): void {
 export function activateTabAndGo(tab: Tab): void {
 	activateTab(tab);
 	navigate(tabToRoute(tab));
+}
+
+/**
+ * Open a session view through the store and land on it. One path for every
+ * opener — a recents row, the picker and the palette all go through here, so a
+ * new opener cannot forget the "continue where you left off" bookkeeping.
+ */
+export function openSessionAndGo(id: string): void {
+	setLastOpenedSession(id);
+	const tab: Tab = { kind: TAB_KIND.session, id };
+	openTab(tab);
+	activateTabAndGo(tab);
+}
+
+/** Open the settings view as a tab and land on it (spec 010 §Routes). */
+export function openSettingsAndGo(): void {
+	const tab: Tab = { kind: TAB_KIND.settings };
+	openTab(tab);
+	activateTabAndGo(tab);
 }
 
 /**
@@ -81,4 +106,9 @@ export function requestNewSession(): void {
 /** The `⌕` button's signal; M1.4's picker listens for it. */
 export function requestSessionPicker(): void {
 	window.dispatchEvent(new CustomEvent(SESSION_PICKER_EVENT));
+}
+
+/** The ⌘K palette's signal; the palette toggles on it and closes the other overlays. */
+export function requestCommandPalette(): void {
+	window.dispatchEvent(new CustomEvent(COMMAND_PALETTE_EVENT));
 }

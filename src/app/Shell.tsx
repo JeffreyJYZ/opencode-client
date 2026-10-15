@@ -1,13 +1,17 @@
 import { useEffect } from "react";
 import { App } from "@/app/App";
+import { installAppKeys } from "@/app/keymap";
 import { installTabKeyboard } from "@/app/tabKeys";
 import {
 	closeActiveTabAndGo,
+	openSettingsAndGo,
+	requestCommandPalette,
 	requestNewSession,
 	switchTabAndGo,
 	useTabRouteSync,
 } from "@/app/tabSync";
 import { getTabSnapshot } from "@/app/tabs";
+import { CommandPalette } from "@/components/CommandPalette";
 import { SessionPicker } from "@/components/SessionPicker";
 import { TopNav } from "@/components/TopNav";
 import { NewSessionFlow } from "@/pages/NewSessionFlow";
@@ -15,14 +19,15 @@ import { NewSessionFlow } from "@/pages/NewSessionFlow";
 /**
  * The shell: the top nav above the route switch (spec 010 §Top nav, §Routes).
  *
- * Owns the two subscriptions the switch itself must not know: route → tabs,
- * and the strip's keys. Tab clicks and closes navigate where they act, so the
- * sync never loops against history.
+ * Owns the subscriptions the switch itself must not know: route → tabs, the
+ * strip's keys (`tabKeys.ts`) and the map's window chords — ⌘K and ⌘, — which
+ * `keymap.ts` matches from the registry.
  *
- * The two built-in overlays — the new-session flow and the session picker `⌕`
- * (M1.4) — mount here rather than in a slot: they are core nav behaviour that
- * must exist with every plugin disabled, and the picker owns a window-level
- * focus trap, not a plugin's contribution lifetime (spec 040 §Slots).
+ * The three built-in overlays — the new-session flow, the session picker `⌕`
+ * (M1.4) and the command palette (M1.6) — mount here rather than in a slot: they
+ * are core nav behaviour that must exist with every plugin disabled, and each
+ * owns a window-level focus trap, not a plugin's contribution lifetime (spec 040
+ * §Slots).
  */
 
 export function Shell() {
@@ -34,12 +39,19 @@ export function Shell() {
 			onSwitchTab: switchTabAndGo,
 		});
 	}, []);
+	useEffect(() => {
+		return installAppKeys({
+			onCommandPalette: requestCommandPalette,
+			onSettings: openSettingsAndGo,
+		});
+	}, []);
 	return (
 		<>
 			<TopNav />
 			<App />
 			<NewSessionFlow />
 			<SessionPicker />
+			<CommandPalette />
 		</>
 	);
 }

@@ -1,11 +1,9 @@
 import type { CSSProperties } from "react";
 import { useEffect, useState } from "react";
-import { setLastOpenedSession, useLastOpenedSessionId } from "@/app/lastOpened";
-import { activateTabAndGo, requestNewSession } from "@/app/tabSync";
-import { openTab } from "@/app/tabs";
+import { useLastOpenedSessionId } from "@/app/lastOpened";
+import { openSessionAndGo, openSettingsAndGo, requestNewSession } from "@/app/tabSync";
 import { Slot } from "@/components/Slot";
 import { ROUTE_KIND } from "@/constants/routes";
-import { TAB_KIND } from "@/constants/tabs";
 import { HomeContinueCard } from "@/pages/HomeContinueCard";
 import { HomeRecentsSection } from "@/pages/HomeRecents";
 import { groupSessionsByDay } from "@/pages/homeModel";
@@ -20,12 +18,6 @@ const BUTTON_STYLE: CSSProperties = {
 	padding: "var(--oc-space-2) var(--oc-space-3)",
 	cursor: "pointer",
 };
-function openSession(id: string): void {
-	setLastOpenedSession(id);
-	const tab = { kind: TAB_KIND.session, id };
-	openTab(tab);
-	activateTabAndGo(tab);
-}
 export function HomePage() {
 	const client = useClient();
 	const target = useTarget();
@@ -57,11 +49,6 @@ export function HomePage() {
 	const onNew = (): void => {
 		requestNewSession();
 	};
-	const onSettings = (): void => {
-		const tab = { kind: TAB_KIND.settings };
-		openTab(tab);
-		activateTabAndGo(tab);
-	};
 	const lastOpenedSession: SessionRow | undefined =
 		lastOpenedId === null ? undefined : sessions.find((session) => session.id === lastOpenedId);
 	return (
@@ -82,17 +69,17 @@ export function HomePage() {
 				<HomeContinueCard
 					id={lastOpenedId}
 					session={lastOpenedSession}
-					onOpen={openSession}
+					onOpen={openSessionAndGo}
 				/>
 			)}
 			<HomeRecentsSection
-				onSettings={onSettings}
+				onSettings={openSettingsAndGo}
 				status={status}
 				groups={groups}
 				url={url}
 				version={version}
 				onNew={onNew}
-				openSession={openSession}
+				openSession={openSessionAndGo}
 			/>
 			<div style={{ marginTop: "var(--oc-space-4)" }}>
 				<button

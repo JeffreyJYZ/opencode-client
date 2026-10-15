@@ -1,7 +1,7 @@
 import { type CSSProperties, useEffect } from "react";
 import { CANCEL_LABEL, CREATE_SESSION_LABEL, DIRECTORY_INPUT_LABEL } from "@/constants/directories";
 import { LAYER } from "@/constants/layers";
-import { SESSION_PICKER_EVENT } from "@/constants/tabs";
+import { COMMAND_PALETTE_EVENT, SESSION_PICKER_EVENT } from "@/constants/tabs";
 import type { DirectoryPicker } from "@/native/pickDirectory";
 import { useNewSessionFlow } from "@/session/useNewSessionFlow";
 
@@ -23,10 +23,15 @@ export type NewSessionFlowProps = {
 export function NewSessionFlow({ picker, pickerAvailable }: NewSessionFlowProps) {
 	const flow = useNewSessionFlow({ picker, pickerAvailable });
 	const { cancel } = flow;
-	// The `⌕` picker opening dismisses this flow, so the two overlays never stack.
+	// The `⌕` picker and the ⌘K palette opening dismiss this flow, so no two
+	// overlays ever stack on one `Escape`.
 	useEffect(() => {
 		window.addEventListener(SESSION_PICKER_EVENT, cancel);
-		return () => window.removeEventListener(SESSION_PICKER_EVENT, cancel);
+		window.addEventListener(COMMAND_PALETTE_EVENT, cancel);
+		return () => {
+			window.removeEventListener(SESSION_PICKER_EVENT, cancel);
+			window.removeEventListener(COMMAND_PALETTE_EVENT, cancel);
+		};
 	}, [cancel]);
 	if (!flow.open) return null;
 	return (

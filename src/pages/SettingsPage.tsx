@@ -1,16 +1,19 @@
-import { ConnectSection } from "@/components/ConnectSection";
+import { useSettingsSections } from "@/app/settings/sections";
 import { ROUTE_KIND } from "@/constants/routes";
 import { PLACEHOLDER_STYLE } from "@/constants/styles";
 
 /**
- * The settings surface. M3.5 owns its sections and hierarchy; M1.7 contributes
- * the one section it needs — the connect flow — and nothing more (spec 010
- * §Routes, spec 050 §Target and auth).
+ * The settings surface (spec 010 §Routes). M3.5 owns its hierarchy; M1.6 makes it
+ * render **from the section registry** so this view and the command palette read
+ * one list — a section registered for the surface is listed by the palette too.
  */
 export function SettingsPage() {
+	const sections = useSettingsSections();
 	return (
 		<main data-route={ROUTE_KIND.settings} style={PLACEHOLDER_STYLE}>
-			<ConnectSection />
+			{sections.map(({ id, component: Section }) => (
+				<Section key={id} />
+			))}
 		</main>
 	);
 }

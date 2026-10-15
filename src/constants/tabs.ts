@@ -46,10 +46,12 @@ export const SESSION_ACTIVE_POLL_MS = 5_000;
 /**
  * The window events the `+` button, the picker button and ⌘T dispatch. M1.3
  * listens for the first, M1.4 for the second; until then they are affordances
- * with a named signal, not faked sessions.
+ * with a named signal, not faked sessions. The palette's signal (M1.6) joins
+ * them: whichever overlay opens closes the other, so two never share `Escape`.
  */
 export const NEW_SESSION_EVENT = "oc:new-session";
 export const SESSION_PICKER_EVENT = "oc:session-picker";
+export const COMMAND_PALETTE_EVENT = "oc:command-palette";
 
 /**
  * The slot each built-in nav control registers into — through `register`.

@@ -1,15 +1,13 @@
 import type { KeyboardEvent } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { setLastOpenedSession } from "@/app/lastOpened";
-import { activateTabAndGo } from "@/app/tabSync";
-import { openTab } from "@/app/tabs";
+import { openSessionAndGo } from "@/app/tabSync";
 import { filterSessions } from "@/components/pickerModel";
 import { SessionPickerDialog } from "@/components/SessionPickerDialog";
 import { useFocusTrap } from "@/components/useFocusTrap";
 import { useMenuDismiss } from "@/components/useMenuDismiss";
 import { PICKER_SEARCH_DEBOUNCE_MS } from "@/constants/picker";
 import { SESSION_PAGE_LIMIT } from "@/constants/sessions";
-import { NEW_SESSION_EVENT, SESSION_PICKER_EVENT, TAB_KIND } from "@/constants/tabs";
+import { COMMAND_PALETTE_EVENT, NEW_SESSION_EVENT, SESSION_PICKER_EVENT } from "@/constants/tabs";
 import { useClient } from "@/session/ClientProvider";
 import { useSessionPages } from "@/session/useSessionPages";
 
@@ -59,22 +57,21 @@ export function SessionPicker({ pageSize = SESSION_PAGE_LIMIT }: SessionPickerPr
 	}, [pages.reload]);
 
 	const pick = useCallback((id: string) => {
-		setLastOpenedSession(id);
-		const tab = { kind: TAB_KIND.session, id };
-		openTab(tab);
-		activateTabAndGo(tab);
+		openSessionAndGo(id);
 		setOpen(false);
 	}, []);
 
-	// The `⌕` control's signal opens the picker; the `+` flow's signal closes it,
-	// so the two overlays never stack.
+	// The `⌕` control's signal opens the picker; the `+` flow's and the palette's
+	// signals close it, so the overlays never stack (one owns Escape at a time).
 	useEffect(() => {
 		const close = () => setOpen(false);
 		window.addEventListener(SESSION_PICKER_EVENT, openPicker);
 		window.addEventListener(NEW_SESSION_EVENT, close);
+		window.addEventListener(COMMAND_PALETTE_EVENT, close);
 		return () => {
 			window.removeEventListener(SESSION_PICKER_EVENT, openPicker);
 			window.removeEventListener(NEW_SESSION_EVENT, close);
+			window.removeEventListener(COMMAND_PALETTE_EVENT, close);
 		};
 	}, [openPicker]);
 

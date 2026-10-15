@@ -44,6 +44,15 @@ export const LEGACY_ACTIVE_TAB_KEY = "activeIndex";
 /** Where the app lands when the restore had nothing to land on (spec 010 §Home). */
 export const DEFAULT_LAST_ROUTE = ROUTE_PATH.home;
 
+/**
+ * The settings sections a built-in registers (spec 010 §Routes). The registry is
+ * `src/app/settings/sections.ts`; M3.5 adds Appearance/Typography/Plugins there
+ * and the command palette lists them without a change.
+ */
+export const SETTINGS_SECTION_ID = {
+	connect: "connect",
+} as const;
+
 /** Sidebar defaults — spec 010 §Persistence's "visible + width"; M2.7 owns its UI. */
 export const DEFAULT_SIDEBAR = { visible: true, width: 260 } as const;
 export const SIDEBAR_MIN_WIDTH = 180;
