@@ -10,7 +10,6 @@ const BUTTON_STYLE: CSSProperties = {
 	borderRadius: "var(--oc-radius)",
 	padding: "var(--oc-space-2) var(--oc-space-3)",
 	cursor: "pointer",
-	fontFamily: "var(--oc-font-ui)",
 };
 const PRIMARY_STYLE: CSSProperties = { ...BUTTON_STYLE, background: "var(--oc-accent)" };
 
@@ -31,14 +30,36 @@ export function HomeRecentsSection({
 	onNew,
 	openSession,
 }: HomeRecentsProps) {
+	const headingStyle: CSSProperties = {
+		fontSize: "var(--oc-font-size-heading)",
+		fontWeight: 600,
+		margin: 0,
+		color: "var(--oc-text)",
+	};
+	const dayStyle: CSSProperties = {
+		fontSize: "var(--oc-font-ui-size)",
+		fontWeight: 500,
+		margin: 0,
+		color: "var(--oc-text-muted)",
+	};
+	const titleStyle: CSSProperties = {
+		fontSize: "var(--oc-font-ui-size)",
+		fontWeight: 500,
+		color: "var(--oc-text)",
+	};
+	const metaStyle: CSSProperties = {
+		fontSize: "var(--oc-font-size-meta)",
+		color: "var(--oc-text-muted)",
+		whiteSpace: "nowrap",
+	};
 	return (
-		<section>
-			<h2>Recents</h2>
+		<section style={{ display: "flex", flexDirection: "column", gap: "var(--oc-space-4)" }}>
+			<h2 style={headingStyle}>Recents</h2>
 			{status === SESSION_STATUS.loading && <p>Loading sessions…</p>}
 			{status === SESSION_STATUS.none && <p>No server connected.</p>}
 			{status === SESSION_STATUS.error && <p>Could not load sessions from {url}.</p>}
 			{status === SESSION_STATUS.empty && (
-				<div>
+				<div style={{ display: "flex", flexDirection: "column", gap: "var(--oc-space-2)" }}>
 					<button type="button" style={PRIMARY_STYLE} onClick={onNew}>
 						New session
 					</button>
@@ -49,22 +70,48 @@ export function HomeRecentsSection({
 			)}
 			{status === SESSION_STATUS.ready &&
 				groups.map((group) => (
-					<section key={group.label}>
-						<h3>{group.label}</h3>
-						<ul style={{ listStyle: "none", padding: 0 }}>
+					<section
+						key={group.label}
+						style={{
+							display: "flex",
+							flexDirection: "column",
+							gap: "var(--oc-space-2)",
+						}}
+					>
+						<h3 style={dayStyle}>{group.label}</h3>
+						<ul
+							style={{
+								listStyle: "none",
+								padding: 0,
+								margin: 0,
+								display: "flex",
+								flexDirection: "column",
+								gap: "var(--oc-space-2)",
+							}}
+						>
 							{group.sessions.map((session) => (
 								<li key={session.id}>
 									<button
 										type="button"
-										style={BUTTON_STYLE}
+										className="oc-row"
+										style={{
+											width: "100%",
+											display: "flex",
+											alignItems: "center",
+											justifyContent: "space-between",
+											gap: "var(--oc-space-3)",
+											textAlign: "left",
+										}}
 										onClick={() => openSession(session.id)}
 									>
-										<span>{sessionTitle(session)}</span>
-										<span> {lastPathSegment(session.location.directory)}</span>
-										<span> {relativeTime(session.time.updated)}</span>
-										{agentModel(session) !== null && (
-											<span> {agentModel(session)}</span>
-										)}
+										<span style={titleStyle}>{sessionTitle(session)}</span>
+										<span style={metaStyle}>
+											{lastPathSegment(session.location.directory)} ·{" "}
+											{relativeTime(session.time.updated)}
+											{agentModel(session) !== null
+												? ` · ${agentModel(session)}`
+												: ""}
+										</span>
 									</button>
 								</li>
 							))}

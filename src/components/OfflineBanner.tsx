@@ -20,8 +20,6 @@ const BANNER_STYLE: CSSProperties = {
 	padding: "var(--oc-space-2) var(--oc-space-4)",
 	background: "var(--oc-surface-raised)",
 	color: "var(--oc-text)",
-	fontFamily: "var(--oc-font-ui)",
-	fontSize: "var(--oc-font-ui-size)",
 	borderBottom: "1px solid var(--oc-warn)",
 };
 

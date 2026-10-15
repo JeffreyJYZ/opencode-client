@@ -18,7 +18,6 @@ const NAV_STYLE: CSSProperties = {
 	background: "var(--oc-surface)",
 	borderBottom: "1px solid var(--oc-border)",
 	padding: "0 var(--oc-space-2)",
-	fontFamily: "var(--oc-font-ui)",
 	minWidth: 0,
 };
 

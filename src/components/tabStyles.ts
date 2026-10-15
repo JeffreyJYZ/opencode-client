@@ -8,8 +8,6 @@ export const TAB_STYLE: CSSProperties = {
 	gap: "var(--oc-space-2)",
 	background: "transparent",
 	color: "var(--oc-text-muted)",
-	fontFamily: "var(--oc-font-ui)",
-	fontSize: "var(--oc-font-ui-size)",
 	border: "none",
 	borderBottom: "2px solid transparent",
 	padding: "var(--oc-space-2) var(--oc-space-2)",

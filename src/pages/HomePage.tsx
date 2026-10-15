@@ -19,7 +19,6 @@ const BUTTON_STYLE: CSSProperties = {
 	borderRadius: "var(--oc-radius)",
 	padding: "var(--oc-space-2) var(--oc-space-3)",
 	cursor: "pointer",
-	fontFamily: "var(--oc-font-ui)",
 };
 function openSession(id: string): void {
 	setLastOpenedSession(id);
@@ -66,19 +65,29 @@ export function HomePage() {
 	const lastOpenedSession: SessionRow | undefined =
 		lastOpenedId === null ? undefined : sessions.find((session) => session.id === lastOpenedId);
 	return (
-		<main data-route={ROUTE_KIND.home} style={{ padding: "var(--oc-space-4)" }}>
+		<main
+			data-route={ROUTE_KIND.home}
+			style={{
+				width: "100%",
+				maxWidth: "var(--oc-content-max-width)",
+				margin: "0 auto",
+				padding: "var(--oc-space-6)",
+				display: "flex",
+				flexDirection: "column",
+				gap: "var(--oc-space-6)",
+			}}
+		>
 			<Slot id="home.hero" />
-			<div
+			<header
 				style={{
 					display: "flex",
 					justifyContent: "flex-end",
-					marginBottom: "var(--oc-space-3)",
 				}}
 			>
 				<button type="button" style={BUTTON_STYLE} onClick={onSettings}>
 					Settings
 				</button>
-			</div>
+			</header>
 			{lastOpenedId !== null && (
 				<HomeContinueCard
 					id={lastOpenedId}

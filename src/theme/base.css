@@ -1,0 +1,80 @@
+/* Root reset + theme. Imported from tokens.css, which main.tsx imports. */
+
+@font-face {
+	font-family: "OpenCode Mark";
+	src: url("../assets/fonts/opencode.otf") format("opentype");
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
+}
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+	height: 100%;
+}
+
+body {
+	margin: 0;
+	font-family: var(--oc-font-ui);
+	font-size: var(--oc-font-ui-size);
+	line-height: var(--oc-leading);
+	background: var(--oc-surface);
+	color: var(--oc-text);
+	color-scheme: dark;
+}
+
+button,
+input,
+select,
+textarea {
+	font: inherit;
+}
+
+[data-theme="light"] {
+	color-scheme: light;
+}
+
+h1,
+h2,
+h3,
+h4 {
+	margin: var(--oc-space-4) 0 var(--oc-space-2);
+}
+
+pre,
+code,
+.oc-code {
+	font-family: var(--oc-font-code);
+	font-size: var(--oc-font-code-size);
+}
+
+.oc-app-mark {
+	font-family: var(--oc-font-mark);
+}
+
+.oc-row {
+	background: transparent;
+	color: var(--oc-text);
+	border: 1px solid transparent;
+	border-radius: var(--oc-radius);
+	padding: var(--oc-space-2) var(--oc-space-3);
+	cursor: pointer;
+	transition: background var(--oc-motion);
+}
+
+.oc-row:hover {
+	background: var(--oc-surface-raised);
+}
+
+.oc-row:focus-visible {
+	outline: 2px solid var(--oc-focus);
+	outline-offset: -2px;
+	background: var(--oc-surface-raised);
+}

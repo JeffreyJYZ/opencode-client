@@ -43,8 +43,6 @@ const MENU_STYLE: CSSProperties = {
 const MENU_ITEM_STYLE: CSSProperties = {
 	background: "transparent",
 	color: "var(--oc-text)",
-	fontFamily: "var(--oc-font-ui)",
-	fontSize: "var(--oc-font-ui-size)",
 	border: "none",
 	borderRadius: "var(--oc-radius)",
 	padding: "var(--oc-space-1) var(--oc-space-2)",
@@ -65,8 +63,6 @@ const OVERFLOW_WRAP_STYLE: CSSProperties = {
 const OVERFLOW_BUTTON_STYLE: CSSProperties = {
 	background: "transparent",
 	color: "var(--oc-text-muted)",
-	fontFamily: "var(--oc-font-ui)",
-	fontSize: "var(--oc-font-ui-size)",
 	border: "none",
 	borderRadius: "var(--oc-radius)",
 	padding: "var(--oc-space-1) var(--oc-space-2)",

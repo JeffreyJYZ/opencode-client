@@ -17,6 +17,10 @@
 	--oc-font-ui: Geist, system-ui, -apple-system, "Segoe UI", sans-serif;
 	--oc-font-code:
 		"GeistMono Nerd Font", "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+	--oc-font-mark: "OpenCode Mark", var(--oc-font-ui);
+	--oc-content-max-width: 720px;
+	--oc-font-size-heading: 18px;
+	--oc-font-size-meta: 13px;
 	--oc-font-ui-size: 15px;
 	--oc-font-code-size: 13px;
 }

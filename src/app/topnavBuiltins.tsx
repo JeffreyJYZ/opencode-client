@@ -30,8 +30,6 @@ import { register } from "@/plugins/registry";
 const BUTTON_STYLE: CSSProperties = {
 	background: "transparent",
 	color: "var(--oc-text-muted)",
-	fontFamily: "var(--oc-font-ui)",
-	fontSize: "var(--oc-font-ui-size)",
 	border: "none",
 	borderRadius: "var(--oc-radius)",
 	padding: "var(--oc-space-1) var(--oc-space-2)",
@@ -42,6 +40,7 @@ const BUTTON_STYLE: CSSProperties = {
 const MARK_STYLE: CSSProperties = {
 	...BUTTON_STYLE,
 	color: "var(--oc-text)",
+	fontSize: "var(--oc-font-ui-size)",
 	fontWeight: 600,
 };
 
@@ -49,6 +48,7 @@ export function AppMark() {
 	return (
 		<button
 			type="button"
+			className="oc-app-mark"
 			aria-label={APP_MARK_TITLE}
 			title={APP_MARK_TITLE}
 			style={MARK_STYLE}

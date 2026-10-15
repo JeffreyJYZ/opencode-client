@@ -9,7 +9,6 @@ const BUTTON_STYLE: CSSProperties = {
 	borderRadius: "var(--oc-radius)",
 	padding: "var(--oc-space-2) var(--oc-space-3)",
 	cursor: "pointer",
-	fontFamily: "var(--oc-font-ui)",
 };
 
 export type HomeContinueCardProps = {

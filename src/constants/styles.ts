@@ -8,7 +8,5 @@ import type { CSSProperties } from "react";
  */
 export const PLACEHOLDER_STYLE: CSSProperties = {
 	color: "var(--oc-text)",
-	fontFamily: "var(--oc-font-ui)",
-	fontSize: "var(--oc-font-ui-size)",
 	padding: "var(--oc-space-4)",
 };
