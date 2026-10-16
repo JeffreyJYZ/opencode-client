@@ -57,7 +57,8 @@ export function PromptBox({ sessionID, running }: PromptBoxProps) {
 			onKeyDown={menu.onKeyDown}
 			identity={{
 				agent: identity.agent,
-				model: identity.model?.id ?? null,
+				// The whole ref, not just its id: the picker keys and values by the pair.
+				model: identity.model,
 				variant: identity.model?.variant ?? null,
 				agents: data.agents,
 				models: data.models,

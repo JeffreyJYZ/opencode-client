@@ -44,6 +44,20 @@ export async function readModels(client: OpenCodeClient): Promise<readonly Model
 	return read(async () => (await client.model.list()).data, []);
 }
 
+/**
+ * The identity of one model entry: **`providerID` and `id` together**, never `id`
+ * alone. The server's snapshot is `Map<providerID, Map<modelID, Info>>` and its editor
+ * sets `model.id = modelID`, so an `id` is unique **within one provider only** — two
+ * providers offering the same model id answer two entries whose `id` is equal and whose
+ * `providerID` differs. `Model.Info` carries both fields, and `ModelRef` (what a model
+ * switch sends) is exactly this pair; this is the `providerID/id` form the schema's own
+ * `Model.Ref.parse` reads. A `<select>` keyed by `id` alone therefore logs a duplicate
+ * key and cannot tell the two apart.
+ */
+export function modelOptionKey(model: Pick<ModelRef, "providerID" | "id">): string {
+	return `${model.providerID}/${model.id}`;
+}
+
 export async function readSkills(client: OpenCodeClient): Promise<readonly SkillInfo[]> {
 	return read(async () => (await client.skill.list()).data, []);
 }
