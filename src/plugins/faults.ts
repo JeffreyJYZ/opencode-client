@@ -12,6 +12,8 @@ export const FAULT_REASONS = {
 	duplicateId: "duplicate-id",
 	duplicatePath: "duplicate-path",
 	malformedEntry: "malformed-entry",
+	/** A `keybinding` that is not a chord label, or one an app or plugin chord already claims (M4.19). */
+	chordConflict: "chord-conflict",
 	/** A theme a caller offered that is not a theme (M3.4), or an id nobody registered. */
 	invalidTheme: "invalid-theme",
 	/** A theme claiming one of the `--oc-font*` variables; the user's typography wins. */

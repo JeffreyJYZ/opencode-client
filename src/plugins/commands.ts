@@ -1,4 +1,5 @@
 import { createCollection } from "@/plugins/collection";
+import { keybindingChord, keybindingConflict } from "@/plugins/commandChord";
 import { type Disposable, REFUSED } from "@/plugins/disposable";
 import { FAULT_AREAS, FAULT_REASONS, type FaultReason, recordFault } from "@/plugins/faults";
 
@@ -9,8 +10,13 @@ import { FAULT_AREAS, FAULT_REASONS, type FaultReason, recordFault } from "@/plu
  *
  * The palette reads this list through `listCommands`/`subscribeToCommands`
  * (M4.11: `usePaletteData` subscribes and `CommandPalette` runs a row through
- * `runCommand`), beside the server's own `command.list`; a command's `keybinding`
- * is the seam the keymap fills, not a binding this registry installs.
+ * `runCommand`), beside the server's own `command.list`; the keymap reads it too,
+ * **live** (M4.19), so a `keybinding` here is a chord that actually fires.
+ *
+ * A `keybinding` is the chord **label** (`⌘K`, `⌘⌥W`, `⇧F10`, `Esc`); the parse and
+ * the collision check live in `commandChord.ts`. An unparseable one, or one an app
+ * or plugin chord already claims, is refused at registration — so the palette never
+ * shows a chord nothing can deliver, and a plugin can never shadow the app's own.
  */
 
 export type CommandContribution = {
@@ -65,6 +71,27 @@ export function registerCommand(contribution: CommandContribution): Disposable {
 			contribution.id,
 			`the command id "${contribution.id}" is already registered`,
 		);
+	}
+	const chord = keybindingChord(contribution.keybinding);
+	if (contribution.keybinding !== undefined && chord === null) {
+		return refuse(
+			FAULT_REASONS.malformedEntry,
+			contribution.id,
+			`the command "${contribution.id}" has a keybinding "${contribution.keybinding}" that is not a chord`,
+		);
+	}
+	if (chord !== null) {
+		const clash = keybindingConflict(
+			chord,
+			commands.list().map((command) => command.keybinding),
+		);
+		if (clash !== null) {
+			return refuse(
+				FAULT_REASONS.chordConflict,
+				contribution.id,
+				`the command "${contribution.id}" binds "${contribution.keybinding}", already bound by "${clash}"`,
+			);
+		}
 	}
 	return commands.set(contribution);
 }

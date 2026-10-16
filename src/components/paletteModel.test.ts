@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import type { SettingsSection } from "@/app/settings/sections";
 import { sessionTab, settingsTab } from "@/app/tabModel";
 import { buildEntries, entryMatches, filterEntries } from "@/components/paletteModel";
+import { chordLabel } from "@/constants/chords";
 import { SHORTCUT_SETTINGS } from "@/constants/keys";
 import { PALETTE_KIND, PALETTE_KIND_LABEL } from "@/constants/palette";
 import { SETTINGS_TAB_LABEL } from "@/constants/tabs";
@@ -65,7 +66,8 @@ describe("the palette model", () => {
 					id: "session-export.export",
 					title: "Session: export transcript",
 					run: () => {},
-					keybinding: "mod+shift+e",
+					// A real chord label, the one wire format `parseChordLabel` reads.
+					keybinding: chordLabel("E"),
 				},
 			],
 		});
@@ -73,7 +75,7 @@ describe("the palette model", () => {
 			kind: PALETTE_KIND.command,
 			label: "Session: export transcript",
 			detail: PALETTE_KIND_LABEL.command,
-			chord: "mod+shift+e",
+			chord: chordLabel("E"),
 			ref: "session-export.export",
 		});
 		// The server's own command is a second row, not replaced by the plugin's.
