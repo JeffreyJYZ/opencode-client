@@ -32,3 +32,16 @@ export const SLOT = {
 	settingsSections: "settings.sections",
 	overlays: "overlays",
 } as const satisfies Record<string, SlotName>;
+
+/**
+ * The locked areas themselves (spec 040 §Model), by name (M4.17): the shell's
+ * place and the built-ins' grouping. Deliberately **outside** `SLOT` — that map
+ * is the host list the coverage test checks, and these two have no `<Slot>`
+ * mount there; `app.substrate` is hosted once at the root (`main.tsx`) and
+ * `app.builtins` is hosted nowhere, because its members render where they
+ * already do.
+ */
+export const SLOT_LOCKED = {
+	substrate: "app.substrate",
+	builtins: "app.builtins",
+} as const satisfies Record<string, SlotName>;

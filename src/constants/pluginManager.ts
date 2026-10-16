@@ -18,6 +18,23 @@ export const PLUGINS_LOCKED_NOTE =
 	"The plugin manager is a locked built-in area (spec 040 §Model): it is always present and cannot be disabled.";
 
 /**
+ * The locked areas as the section lists them (M4.17): one row each, labelled
+ * built-in, with the one sentence that says what a disable click does — it is
+ * refused and recorded, never acted on, because without the substrate there is
+ * no shell to come back to.
+ */
+export const PLUGINS_BUILTIN_AREAS_LABEL = "Built-in areas";
+export const PLUGINS_BUILTIN_ROW = "built-in";
+export const PLUGINS_BUILTIN_AREA_NOTE =
+	"A locked area of the app's own registry (spec 040 §Model): it cannot be disabled; a disable attempt is refused and recorded, never acted on.";
+/**
+ * The row's disable control's **accessible name**, which names the area: the
+ * visible label stays `PLUGINS_ACTION.disable`, and two buttons that read
+ * "Disable" would be indistinguishable by role.
+ */
+export const PLUGINS_BUILTIN_AREA_DISABLE = (area: string): string => `Disable ${area}`;
+
+/**
  * The master switch (M4.10, spec 040 §Model): the persisted `settings.pluginsEnabled`
  * field, **off by default**. The label and the sentence beside it say what it does —
  * gates *loading*, nothing more.
