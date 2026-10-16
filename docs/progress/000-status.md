@@ -1,10 +1,10 @@
 # Status board
 
-Last updated: 2026-10-15 · Current focus: **M3 — Type and theme** (`M3.0`, the root theme and the home hierarchy, is done at `c5f7b9f` and under review; `M0` is complete but for `M0.1`'s `e2e`, parked on M2; `M1` is 6/10 with `M1.4`, the session picker, next)
+Last updated: 2026-10-16 · Current focus: **M3 — Type and theme** (`M3.0`, the root theme and the home hierarchy, is done at `c5f7b9f` and under review; `M0` is complete but for `M0.1`'s `e2e`, parked on M2; `M1` is 6/10 with `M1.4`, the session picker, next)
 
 | Milestone | Done / total | Gate |
 | --- | --- | --- |
-| M0 Foundations | 11 / 12 | `bun run verify` (now ending in `cargo check`) and `cargo test`; `bun tauri dev` opens a window with the target injected |
+| M0 Foundations | 12 / 12 | `bun run verify` (now ending in `cargo check`) and `cargo test`; `bun tauri dev` opens a window with the target injected |
 | M1 Shell and home | 17 / 17 | home → session view end to end; restart restores tabs |
 | M2 Session view | 14 / 17 | a live session streams, interrupts, queues and replies from the keyboard |
 | M3 Type and theme | 8 / 8 | both faces change live and survive a restart; theme applies and clears |
@@ -24,7 +24,7 @@ Last updated: 2026-10-15 · Current focus: **M3 — Type and theme** (`M3.0`, th
 - [x] `M0.6` Repository under git: `git init`, `.gitignore` verified, one initial commit of the scaffold + docs — evidence: `ebf7280` on `main`, 26 files, `git status --short` empty — **done**
 
 - [x] `M0.10` **The gate tests Rust too** — `verify` wraps `cargo check` but **not** `cargo test`, so the 74 Rust tests run in no gate and a Rust-only change is green by default; add the test half and keep it bounded — evidence: `bun run verify` fails on a deliberately broken Rust test and passes once it is fixed
-- [ ] `M0.11` **The gate scripts are type-checked by nothing** — no `tsc` project includes `scripts/`, so `check-file-length.ts`, `e2e.ts` and `verify-release.ts` run as transpiled JS with no check at all; the gate script that *runs* while checking the wrong thing is the same defect class as `slots.test.ts` own name-list check, one layer up — found by the session own review, not by an independent one — evidence: a project covering `scripts/**` that `tsc -b` reaches, proven by breaking one and watching the gate fail
+- [x] `M0.11` **The gate scripts are type-checked by nothing** — no `tsc` project includes `scripts/`, so `check-file-length.ts`, `e2e.ts` and `verify-release.ts` run as transpiled JS with no check at all; the gate script that *runs* while checking the wrong thing is the same defect class as `slots.test.ts` own name-list check, one layer up — found by the session own review, not by an independent one — evidence: a project covering `scripts/**` that `tsc -b` reaches, proven by breaking one and watching the gate fail — **done**: `tsconfig.scripts.json` (`include: ["scripts"]`, extending the app project for `@/*` + the DOM lib, `types` widened to `vite/client`+`bun`+`node`) is referenced from `tsconfig.json`, so `tsc -b` now builds `scripts/**`; a deliberate `TS2322` in `scripts/verify-release.ts` (and in `scripts/check-file-length.ts`) makes `tsc -b` exit **2**, while the same break at base exits **0** — the failure comes through `tsc -b` itself and was absent before. It found **two real errors, both in `scripts/build-plugins.ts`** (not in the three named scripts): the deprecated `esbuild.jsx` option is now Vite's own `oxc.jsx`, the exact object Vite's `convertEsbuildConfigToOxcConfig` derives from it, because the `esbuild` package (an optional peer, never installed here) is where that option's types live; and `build()`'s `RolldownOutput | RolldownWatcher` union is narrowed with an `in` guard instead of a cast. The four built plugin entries are **byte-identical** before and after (`shasum -a 256` lists diffed silent), so no script measures or prints differently
 - [x] `M0.12` **A dead skip exempts a directory that does not exist** — `check-file-length.ts:37` and `biome.json:11` skip `src/theme/themes/`, which is not in the tree; a leftover entry that would silently exempt a future source directory of that name — found by the shell review — evidence: the skip list matches the tree it walks
 
 ## M1 — Shell and home

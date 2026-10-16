@@ -1,0 +1,16 @@
+{
+	"extends": "./tsconfig.app.json",
+	"compilerOptions": {
+		"tsBuildInfoFile": "./node_modules/.tmp/tsconfig.scripts.tsbuildinfo",
+		/* Gate scripts run under Bun and touch `node:*`, `bun` and `vite` — none of
+		   which app code may see (tsconfig.app.json loads only `vite/client`), so the
+		   types are widened here rather than in the app project. `@/*` and the DOM lib
+		   come from tsconfig.app.json, which the scripts need to reach `src/constants`
+		   and to type React in build-plugins.ts. */
+		"types": ["vite/client", "bun", "node"]
+	},
+	/* The scripts are not part of any other project, so `tsc -b` reaches them here
+	   and a gate script that runs while checking the wrong thing can no longer stay
+	   green — a type error in it fails the gate. */
+	"include": ["scripts"]
+}

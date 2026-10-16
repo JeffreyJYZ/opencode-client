@@ -12,6 +12,9 @@
 		},
 		{
 			"path": "./tsconfig.plugins.json"
+		},
+		{
+			"path": "./tsconfig.scripts.json"
 		}
 	],
 	"compilerOptions": {
