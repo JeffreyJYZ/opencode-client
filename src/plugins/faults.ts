@@ -12,6 +12,10 @@ export const FAULT_REASONS = {
 	duplicateId: "duplicate-id",
 	duplicatePath: "duplicate-path",
 	malformedEntry: "malformed-entry",
+	/** A theme a caller offered that is not a theme (M3.4), or an id nobody registered. */
+	invalidTheme: "invalid-theme",
+	/** A theme claiming one of the `--oc-font*` variables; the user's typography wins. */
+	protectedVariable: "protected-variable",
 } as const;
 
 export type FaultReason = (typeof FAULT_REASONS)[keyof typeof FAULT_REASONS];
@@ -20,6 +24,7 @@ export type FaultReason = (typeof FAULT_REASONS)[keyof typeof FAULT_REASONS];
 export const FAULT_AREAS = {
 	slots: "slots",
 	routes: "routes",
+	themes: "themes",
 } as const;
 
 export type FaultArea = (typeof FAULT_AREAS)[keyof typeof FAULT_AREAS];

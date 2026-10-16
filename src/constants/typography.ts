@@ -29,6 +29,30 @@ export const TYPOGRAPHY_FIELD_ID = {
 /** The size control's unit and its readout suffix, named rather than repeated. */
 export const PX_UNIT = "px";
 
+/**
+ * The `<datalist>` id per role: the picker's options live in the DOM under it,
+ * one list per role, so the control can name the list it offers (M3.3).
+ */
+export const FACE_DATALIST_ID = {
+	[FONT_ROLE.ui]: "typography-ui-faces",
+	[FONT_ROLE.code]: "typography-code-faces",
+} as const;
+
+/** The refusal notice's element id per role, the field's `aria-describedby`. */
+export const FACE_REFUSAL_ID = {
+	[FONT_ROLE.ui]: "typography-ui-face-refusal",
+	[FONT_ROLE.code]: "typography-code-face-refusal",
+} as const;
+
+/**
+ * What the picker says when a typed family cannot be resolved (M3.3). The value
+ * was **not** stored, so the message names it rather than implying a fallback:
+ * a face the app cannot resolve is refused, never applied as written.
+ */
+export function FACE_REFUSED_TEXT(family: string): string {
+	return `"${family}" is not a face this app can resolve, so it was not applied.`;
+}
+
 /** What each live sample is, so the two samples are told apart on screen. */
 export const TYPOGRAPHY_SAMPLE_LABEL = {
 	[FONT_ROLE.ui]: "Interface sample",

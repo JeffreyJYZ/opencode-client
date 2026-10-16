@@ -1,4 +1,5 @@
 import { hydrateLastOpenedSession } from "@/app/lastOpened";
+import { freshDocument } from "@/app/settings/model";
 import type { SettingsStorage } from "@/app/settings/storage";
 import { resetSettings } from "@/app/settings/store";
 import type { Tab } from "@/app/tabModel";
@@ -32,6 +33,20 @@ export const CORRUPT_DOCUMENT_JSON = '{"tabs": ["ses_a",';
 
 /** A blob a newer build wrote: preserved, never migrated down, never overwritten. */
 export const TOO_NEW_DOCUMENT_JSON = '{"dataVersion":99,"tabs":{"tabs":[],"activeIndex":-1}}';
+
+/**
+ * A version-3 blob — **derived, not captured**: the current writer's fields minus
+ * `settings.theme` (which v3 had no notion of), restamped to 3. The captured v1
+ * blob above is the migration path's real fixture; this one exists so the v3 → v4
+ * step has a shape to walk, and it says so here rather than passing for a payload
+ * some release wrote.
+ */
+export const V3_DOCUMENT_JSON: string = JSON.stringify({
+	...Object.fromEntries(
+		Object.entries(freshDocument()).filter(([key]) => key !== SETTING_KEYS.theme),
+	),
+	[SETTING_KEYS.dataVersion]: SETTINGS_DATA_VERSION - 1,
+});
 
 /** A map-backed storage, so a test never touches the run's real `localStorage`. */
 export function fakeStorage(

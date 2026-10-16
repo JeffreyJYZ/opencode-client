@@ -4,6 +4,7 @@ import {
 	subscribeLastOpened,
 } from "@/app/lastOpened";
 import { currentRoute, routeToPath, subscribeToRoute } from "@/app/router";
+import { applyAppearance } from "@/app/settings/appearance";
 import { restoreLandingRoute } from "@/app/settings/landing";
 import {
 	DEFAULT_SETTINGS,
@@ -24,7 +25,6 @@ import { sameTabs } from "@/app/settings/tabState";
 import { tabKey } from "@/app/tabModel";
 import { hydrateTabState, serializeTabState, subscribeToTabs } from "@/app/tabs";
 import { SETTING_KEYS, SETTINGS_DATA_VERSION, SETTINGS_STORAGE_KEY } from "@/constants/settings";
-import { applyFonts, sameFontPreferences } from "@/theme/fonts";
 
 /**
  * The settings store: one in-memory document, one write path, one restore. No
@@ -70,11 +70,11 @@ function publish(settings: SettingsData): void {
 /** The one write path: fold fields into the document, then persist. */
 function apply(fields: Partial<SettingsData>): void {
 	document = { ...document, ...fields, [SETTING_KEYS.dataVersion]: SETTINGS_DATA_VERSION };
+	const previous = snapshot.settings;
 	const settings = settingsFromDocument(document);
-	// A font change is applied live (M3.2), before the frame renders; other fields leave the root alone.
-	const fontsChanged = !sameFontPreferences(settings.fonts, snapshot.settings.fonts);
 	publish(settings);
-	if (fontsChanged) applyFonts(settings.fonts);
+	// An appearance change is applied live (M3.2 fonts, M3.4 theme); nothing else touches the root.
+	applyAppearance(settings, previous);
 	if (storage !== null && !suspended) writeStoredSettings(storage, document);
 }
 
@@ -130,7 +130,7 @@ export function restoreSettings(store: SettingsStorage | null = browserStorage()
 	document = load.document;
 	suspended = load.readOnly;
 	snapshot = { settings: settingsFromDocument(document), notice: load.notice };
-	applyFonts(snapshot.settings.fonts);
+	applyAppearance(snapshot.settings);
 	hydrateTabState(snapshot.settings.tabs);
 	hydrateLastOpenedSession(snapshot.settings.lastOpened);
 	restoreLandingRoute(snapshot.settings.lastRoute, snapshot.settings.tabs);
