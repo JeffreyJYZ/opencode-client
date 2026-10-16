@@ -8,7 +8,7 @@ Last updated: 2026-10-15 · Current focus: **M3 — Type and theme** (`M3.0`, th
 | M1 Shell and home | 15 / 16 | home → session view end to end; restart restores tabs |
 | M2 Session view | 11 / 11 | a live session streams, interrupts, queues and replies from the keyboard |
 | M3 Type and theme | 8 / 8 | both faces change live and survive a restart; theme applies and clears |
-| M4 Plugin host 0.1 | 6 / 9 | four example plugins install, work and uninstall through the documented API |
+| M4 Plugin host 0.1 | 8 / 11 | four example plugins install, work and uninstall through the documented API |
 | M5 Desktop polish | 3 / 5 | packaged app, updater, `verify-release` exits 0 |
 
 ## M0 — Foundations
@@ -75,10 +75,12 @@ Last updated: 2026-10-15 · Current focus: **M3 — Type and theme** (`M3.0`, th
 - [x] `M4.4` Services: `opencode.*`, `transcript.snapshot`, `storage` (capped), `native` (path-scoped), `notify`, `log`, `signal`, `version` — evidence: a plugin reaches only its own data dir
 - [x] `M4.5` Plugin manager as a settings section (enable/disable/reload/uninstall, capabilities, faults, log) — evidence: the section is always present, never disableable
 - [x] `M4.6` `scripts/build-plugins.ts` → `public/plugins/<id>/main.js`, bare-specifier check — evidence: build fails on a surviving bare import
-- [ ] `M4.7` Example plugins: `hello-world`, `theme-gruvbox`, `session-export`, `context-meter` — evidence: each installs, works, uninstalls cleanly
-- [ ] `M4.8` Generated in-app API reference from the SDK types + slot table — evidence: the page lists every registry and slot in code
+- [x] `M4.7` Example plugins: `hello-world`, `theme-gruvbox`, `session-export`, `context-meter` — **done** (`5346252`); controller-verified: my own gate exits 0, **756 pass / 0 fail**, 470 files ≤150, `e2e: PASS`, `cargo test` 65/0 — evidence: each installs, works, uninstalls cleanly. **Stated caveat, from the row itself**: only `hello-world` (slot + lifecycle) and `theme-gruvbox` (theme, section, typography precedence both ways) are *visible* in the shipped app; `session-export` and `context-meter` prove their service paths in tests and in a browser, not on screen
+- [x] `M4.8` Generated in-app API reference from the SDK types + slot table — **done** (`5346252`); `scripts/generate-reference.ts` (146 lines) reads the `Host` type through the TS checker plus the code own tables and writes `src/docs/reference.generated.ts` (253 lines, exempt by name from Biome and the length check); it renders as a settings section — 7 registries, 9 services, 19 slots, 2 locked, 6 capability labels — and says it is not a sandbox. **Drift proven, not asserted**: renaming a slot without regenerating gives `0 pass / 2 fail`, regenerating adds the new name, and reverting leaves the file byte-identical — evidence: the page lists every registry and slot in code
 
 - [ ] `M4.9` Lock the built-in settings sections against plugin replacement — the registry reserves every built-in id, and a contribution naming one is refused **inert** with `FAULT_REASONS.lockedArea` — evidence: a plugin contributing `{ id: "plugins" }` leaves the manager on screen and the fault names the reserved id
+- [ ] `M4.10` **The host is live in the app** — hydrate the installed-plugins store on boot (today it is written and never read, so a reload loses every installed plugin) and give `createLoader` its real **ports** (today it gets `isEnabled`/`react`/`jsx`/`appVersion` and no more, so every plugin `opencode.*`, event source, `transcript`, `native` and `notify` is inert) — evidence: after a real reload the manager still lists the installed plugin, and a plugin `opencode.*` call reaches the server
+- [ ] `M4.11` **Contributions actually render** — the palette consumes `commands.register` (today nothing outside tests reads it, while `commands.ts` claims the palette does), a component hosts `session.sidebar.panels` (today it is a slot name and a doc comment), and a settings section registered title is rendered (`SettingsPage` ignores it) — evidence: a plugin command appears in the palette, a panel renders in the sidebar, a plugin section shows its own title
 
 ## M5 — Desktop polish
 

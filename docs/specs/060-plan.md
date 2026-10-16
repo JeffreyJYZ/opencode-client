@@ -102,6 +102,9 @@ Build order for specs [000](000-overview.md)–[050](050-opencode-integration.md
 | M4.6 | `scripts/build-plugins.ts` → `public/plugins/<id>/main.js`, bare-specifier check, react rewritten to globals | the build fails on a surviving bare import |
 | M4.7 | Four example plugins: `hello-world`, `theme-gruvbox`, `session-export`, `context-meter` | each installs, works, and uninstalls cleanly |
 | M4.8 | In-app API reference generated from the SDK types + slot table | the reference lists every registry and slot in code |
+| M4.9 | Lock the built-in settings sections: the registry reserves every built-in id and a contribution naming one is refused inert with `FAULT_REASONS.lockedArea` | a plugin contributing `{ id: "plugins" }` leaves the manager on screen and the fault names the reserved id |
+| M4.10 | **The host is live in the app**: hydrate the installed-plugins store on boot (it is written today and never read) and give `createLoader` its real **ports**, so `opencode.*`, the event source, `transcript`, `native` and `notify` are not inert | after a real reload the manager still lists the installed plugin, and a plugin `opencode.*` call reaches the server |
+| M4.11 | **Contributions actually render**: the palette consumes `commands.register` (it reads only the server `command.list` today), a component hosts `session.sidebar.panels`, and a settings section registered title is rendered (`SettingsPage` ignores it today) | a plugin command appears in the palette, a panel renders in the sidebar, and a plugin section shows its own title |
 
 ### M5 — Desktop polish
 

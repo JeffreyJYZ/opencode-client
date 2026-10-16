@@ -58,7 +58,7 @@ Registries register **synchronously** and return a `Disposable`; services return
 | `commands.register({ id, title, run, keybinding? })` | a palette command, optionally keybound | registry |
 | `panels.register({ id, title, component })` | a sidebar panel (`session.sidebar.panels`) | registry |
 | `routes.register({ id, path, component })` | a route the router serves | registry |
-| `settings.registerSection({ id, label, component, order? })` | a section on `/settings` — **always expanded**: folding is a non-goal until a row owns it, and a contribution naming no `order` sorts **last**, never above the built-ins | registry |
+| `settings.registerSection({ id, title, component, order? })` (the **plugin-facing** name is `title`; the app registry stores it as `label`, and a plugin passing `label` is refused as malformed) | a section on `/settings` — **always expanded**: folding is a non-goal until a row owns it, and a contribution naming no `order` sorts **last**, never above the built-ins | registry |
 | `renderers.register({ id, kind, component })` | override a transcript renderer: `message`, `markdown`, `reasoning`, `tool`, `marker` | registry |
 | `themes.register(theme)` / `apply(id)` / `clear()` / `active()` | a theme in the app's one theme service (spec 030) | registry + service |
 | `opencode.client` | the raw `@opencode/client` instance (full server API, `docs/opencode-api.md`) | service |
@@ -66,7 +66,7 @@ Registries register **synchronously** and return a `Disposable`; services return
 | `transcript.snapshot()` | the open session's rows, synchronously (what is rendered now) | service |
 | `storage.get/set/delete/keys` | your own key-value store, **capped and namespace-scoped per plugin id** (`src/plugins/services/storage.ts`; the cap is `PLUGIN_DATA_MAX_BYTES`) | service |
 | `native` | `pickDirectory`, `pickFiles`, `openExternal`, and path-scoped `read`/`write`/`list`/`remove`/`dataDir` under `plugin-data/<id>/`; `null` on web | service |
-| `native.http` | an unrestricted request through the shell's `http_request`; rides `net` | service |
+| `native.http` | **not built** — named here, implemented nowhere — an unrestricted request through the shell's `http_request`; rides `net` | service |
 | `notify.toast/banner/modal/confirm` | host-rendered notices | service |
 | `on(event, handler)` | app events: `turn-start`, `turn-end`, `chunk`, `session-changed`, `settings-changed`, `plugin-loaded`, `plugin-unloaded`, `theme-changed` | service |
 | `log.info/warn/error/debug` | the scoped logger, shown in the manager's log panel | service |
@@ -112,7 +112,7 @@ Never describe these as a sandbox.
 
 | Plugin | Proves |
 | --- | --- |
-| `hello-world` | a slot contribution, the kit, the lifecycle (marker set in `setup`, cleared in `dispose`) |
+| `hello-world` | a slot contribution, the lifecycle (**not** `host.ui.kit` — that seam is deliberately empty) (marker set in `setup`, cleared in `dispose`) |
 | `theme-gruvbox` | `themes.register` + `apply`, a settings section, `storage` persistence |
 | `session-export` | `commands.register` + `transcript.snapshot()` + `native.write` into the plugin's data dir |
 | `context-meter` | a sidebar panel (`panels.register`) driven by `opencode.on("session.usage.updated")` |
