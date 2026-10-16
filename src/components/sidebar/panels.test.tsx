@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import type { McpServer, SessionInfo, SessionStatsInfo } from "@opencode/client";
+import type { McpServer, SessionInfo } from "@opencode/client";
 import { cleanup, render, screen } from "@testing-library/react";
 import { ContextPanel } from "@/components/sidebar/ContextPanel";
 import { FilesPanel } from "@/components/sidebar/FilesPanel";
@@ -7,12 +7,17 @@ import { McpPanel } from "@/components/sidebar/McpPanel";
 import { SessionPanel } from "@/components/sidebar/SessionPanel";
 import { SubagentsPanel } from "@/components/sidebar/SubagentsPanel";
 import { SIDEBAR_EMPTY } from "@/constants/sidebar";
+import { formatSpend, formatTokens } from "@/session/amounts";
 import type { SessionRow } from "@/session/useSessions";
 
 /**
  * One test per panel family (M2.7): each panel is a pure function of its props,
  * so the assertion is that the figure it was handed is the figure it renders —
  * and that a panel with no data shows the empty state rather than a blank region.
+ *
+ * The Context panel's props are **this session's own** figures (M2.15), so the
+ * assertions read them off `SESSION` — the same `SessionInfo` the statusline
+ * shows — and never a `session.stats` aggregate.
  */
 
 afterEach(cleanup);
@@ -21,27 +26,12 @@ const SESSION: SessionInfo = {
 	id: "ses_root",
 	projectID: "proj",
 	cost: 3.32,
-	tokens: { input: 1, output: 1, reasoning: 0, cache: { read: 0, write: 0 } },
+	tokens: { input: 111, output: 22, reasoning: 0, cache: { read: 1_111, write: 0 } },
 	time: { created: 1, updated: Date.now() },
 	title: "Chrome work",
 	agent: "build",
 	model: { id: "gpt-x", providerID: "openai" },
 	location: { directory: "/tmp/m2728-project" },
-};
-
-const STATS: SessionStatsInfo = {
-	range: { from: 0, to: 1 },
-	sessions: 11,
-	subagents: 3,
-	prompts: 7,
-	steps: 13,
-	tokens: { input: 111, output: 22, reasoning: 0, cache: { read: 1_111, write: 0 } },
-	cost: 3.32,
-	tools: { mode: "none" },
-	activeDays: 1,
-	streak: 1,
-	activity: [],
-	models: [],
 };
 
 const CHILD = {
@@ -65,16 +55,20 @@ describe("the sidebar panels", () => {
 		expect(screen.getByText(SIDEBAR_EMPTY)).toBeDefined();
 	});
 
-	test("Context shows session.stats' own figures, and the context length", () => {
-		render(<ContextPanel data={{ stats: STATS, contextCount: 2 }} />);
+	test("Context shows this session's own figures, and the context length", () => {
+		render(
+			<ContextPanel data={{ tokens: SESSION.tokens, cost: SESSION.cost, contextCount: 2 }} />,
+		);
 		expect(screen.getByText("In context")).toBeDefined();
 		expect(screen.getByText("2")).toBeDefined();
-		expect(screen.getByText(String(STATS.prompts))).toBeDefined();
-		expect(screen.getByText(String(STATS.steps))).toBeDefined();
-		expect(screen.getByText(String(STATS.sessions))).toBeDefined();
-		expect(screen.getByText("111")).toBeDefined();
-		expect(screen.getByText("1.1k")).toBeDefined();
-		expect(screen.getByText("$3.3200")).toBeDefined();
+		expect(screen.getByText(formatTokens(SESSION.tokens.input))).toBeDefined();
+		expect(screen.getByText(formatTokens(SESSION.tokens.cache.read))).toBeDefined();
+		expect(screen.getByText(formatSpend(SESSION.cost))).toBeDefined();
+	});
+
+	test("Context shows the empty state before its read answers", () => {
+		render(<ContextPanel data={{ tokens: null, cost: null, contextCount: 0 }} />);
+		expect(screen.getAllByText(SIDEBAR_EMPTY).length).toBeGreaterThanOrEqual(4);
 	});
 
 	test("Subagents lists the children and says an unfinished row is running", () => {

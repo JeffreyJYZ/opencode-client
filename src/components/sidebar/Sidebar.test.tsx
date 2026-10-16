@@ -32,7 +32,6 @@ function fixtureClient(info: SessionInfo = SESSION): OpenCodeClient {
 	return {
 		session: {
 			get: () => Promise.resolve(info),
-			stats: () => Promise.reject(new Error("not needed")),
 			context: () => Promise.resolve([]),
 			list: () => Promise.resolve({ data: [], cursor: {} }),
 		},
