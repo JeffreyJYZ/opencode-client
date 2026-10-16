@@ -1,5 +1,6 @@
 import { MAX_KEYBOARD_TAB, MIN_KEYBOARD_TAB, matchesBinding } from "@/constants/chords";
 import { SHORTCUT_CLOSE_OTHERS, SHORTCUT_CLOSE_TAB, SHORTCUT_NEW_SESSION } from "@/constants/keys";
+import { overlayOpen } from "@/constants/overlay";
 
 /**
  * The tab strip's keys (spec 010 §Desktop behaviours): ⌘T, ⌘1…⌘9, ⌘W, ⌘⌥W.
@@ -14,9 +15,6 @@ export type TabKeyActions = {
 	readonly onCloseOthers: () => void;
 	readonly onSwitchTab: (index: number) => void;
 };
-
-/** Any open overlay dialog: the strip's keys must not act through a modal. */
-const MODAL_SELECTOR = '[role="dialog"]';
 
 function hasCommandModifier(event: KeyboardEvent): boolean {
 	return event.metaKey || event.ctrlKey;
@@ -99,7 +97,7 @@ export function handleTabKey(
  */
 export function installTabKeyboard(readCount: () => number, actions: TabKeyActions): () => void {
 	const onKeyDown = (event: KeyboardEvent) => {
-		handleTabKey(event, readCount(), actions, document.querySelector(MODAL_SELECTOR) !== null);
+		handleTabKey(event, readCount(), actions, overlayOpen());
 	};
 	window.addEventListener("keydown", onKeyDown);
 	return () => {

@@ -9,6 +9,9 @@ export const KEY_MODIFIER = {
 	command: "command",
 	/** `⌘⌥`: a command chord that also holds Option (M5.1's close-other-tabs). */
 	commandAlt: "command-alt",
+	/** `⌥` **alone**: Option without Command (M2.23's band navigation) — its own
+	 * modifier, never `command-alt`, so the two cannot shadow each other. */
+	alt: "alt",
 	/** `⇧`: a shift chord (M5.1's `⇧F10` context menu — the platform's own menu key). */
 	shift: "shift",
 	/** No modifier: a bare key such as `Escape` (M2.5's interrupt). */
@@ -19,8 +22,9 @@ export type KeyModifier = (typeof KEY_MODIFIER)[keyof typeof KEY_MODIFIER];
 
 /** The glyph the help UI shows for the modifier. */
 export const KEY_MODIFIER_GLYPH = "⌘";
-/** The Option and Shift glyphs, for the two composite chords above. */
+/** The Option glyph, shared by the `⌘⌥` composite and the Option-only chords (`⌥↑`). */
 export const KEY_MODIFIER_ALT_GLYPH = "⌥";
+/** The Shift glyph, for the `⇧` composite chord. */
 export const KEY_MODIFIER_SHIFT_GLYPH = "⇧";
 
 /** The labelless keys the map names, so no surface types their word. */
@@ -59,6 +63,11 @@ export function chordLabel(key: string): string {
 /** `⌘⌥<key>`: a command+option chord's label (M5.1's close-other-tabs). */
 export function commandAltChordLabel(key: string): string {
 	return `${KEY_MODIFIER_GLYPH}${KEY_MODIFIER_ALT_GLYPH}${key.toUpperCase()}`;
+}
+
+/** `⌥<key>`: an **Option-only** chord's label (M2.23's band navigation). */
+export function altChordLabel(key: string): string {
+	return `${KEY_MODIFIER_ALT_GLYPH}${key.toUpperCase()}`;
 }
 
 /** `⇧<key>`: a shift chord's label (M5.1's `⇧F10`). */
@@ -108,8 +117,10 @@ export type KeyEventLike = {
 /**
  * Whether an event names the binding's chord. The modifier is checked here, and
  * exactly: `⌘W` does not match a `⌘⌥W` press and vice versa, so two rows of the
- * map can never shadow each other. `none` tolerates Shift, because `⇧Esc` is the
- * same interrupt as `Esc` (M2.5) and nothing binds a bare shifted key.
+ * map can never shadow each other. `alt` is Option **without** Command, so `⌘⌥W`
+ * and `⌥↑` cannot shadow each other either. `none` tolerates Shift, because `⇧Esc`
+ * is the same interrupt as `Esc` (M2.5) and nothing binds a bare shifted key;
+ * `alt` tolerates Shift for the same reason `command` does (no row binds one).
  */
 export function matchesBinding(event: KeyEventLike, binding: Chord): boolean {
 	if (event.key.toLowerCase() !== binding.key.toLowerCase()) return false;
@@ -117,24 +128,7 @@ export function matchesBinding(event: KeyEventLike, binding: Chord): boolean {
 	const alt = event.altKey === true;
 	if (binding.modifier === KEY_MODIFIER.command) return command && !alt;
 	if (binding.modifier === KEY_MODIFIER.commandAlt) return command && alt;
+	if (binding.modifier === KEY_MODIFIER.alt) return alt && !command;
 	if (binding.modifier === KEY_MODIFIER.shift) return event.shiftKey === true && !command && !alt;
 	return !command && !alt;
 }
-
-/**
- * The action each chord names — the map's vocabulary (M1.6). It lives here, not in
- * `keys.ts`, because the bindings plus this map overran the 150-line cap once two
- * branches' chords met in a merge; `keys.ts` re-exports it, so callers are unchanged.
- */
-export const KEY_ACTION = {
-	commandPalette: "command-palette",
-	newSession: "new-session",
-	closeTab: "close-tab",
-	closeOtherTabs: "close-other-tabs",
-	switchTab: "switch-tab",
-	settings: "settings",
-	toggleSidebar: "toggle-sidebar",
-	sendPrompt: "send-prompt",
-	interrupt: "interrupt",
-	contextMenu: "context-menu",
-} as const;

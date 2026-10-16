@@ -5,6 +5,7 @@ import {
 	SHORTCUT_SETTINGS,
 	SHORTCUT_TOGGLE_SIDEBAR,
 } from "@/constants/keys";
+import { overlayOpen } from "@/constants/overlay";
 import { listCommands, runCommand } from "@/plugins/commands";
 
 /**
@@ -15,7 +16,9 @@ import { listCommands, runCommand } from "@/plugins/commands";
  *
  * ⌘K is handled **even while a modal is open**, so it toggles its own palette
  * instead of being swallowed by the palette's `role="dialog"`; ⌘, and ⌘B are
- * suppressed behind an overlay, matching the strip (nothing must happen under one).
+ * suppressed behind an overlay, matching the strip and the transcript's band
+ * chords (nothing must happen under one). The one definition of that gate is
+ * `constants/overlay.ts`.
  *
  * A **plugin command's** chord (M4.19) is matched here too, from the registry read
  * at press time, so a plugin loaded after this listener mounted is bound without a
@@ -29,9 +32,6 @@ export type KeymapActions = {
 	readonly onSettings: () => void;
 	readonly onToggleSidebar: () => void;
 };
-
-/** Any open overlay dialog: settings must not navigate out from under one. */
-const MODAL_SELECTOR = '[role="dialog"]';
 
 /**
  * The id of the plugin command whose chord the event names, or `null`. Read from
@@ -83,7 +83,7 @@ export function handleAppKey(
 /** Listen for the map's window chords; returns the uninstaller. */
 export function installAppKeys(actions: KeymapActions): () => void {
 	const onKeyDown = (event: KeyboardEvent) => {
-		handleAppKey(event, actions, document.querySelector(MODAL_SELECTOR) !== null);
+		handleAppKey(event, actions, overlayOpen());
 	};
 	window.addEventListener("keydown", onKeyDown);
 	return () => {

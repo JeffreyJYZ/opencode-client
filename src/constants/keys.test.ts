@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import {
+	altChordLabel,
 	bindingChord,
 	chordLabel,
 	commandAltChordLabel,
@@ -16,6 +17,8 @@ import {
 } from "@/constants/chords";
 import {
 	KEYBOARD_SHORTCUTS,
+	SHORTCUT_BAND_NEXT,
+	SHORTCUT_BAND_PREVIOUS,
 	SHORTCUT_CLOSE_OTHERS,
 	SHORTCUT_CLOSE_TAB,
 	SHORTCUT_COMMAND_PALETTE,
@@ -61,9 +64,22 @@ describe("the keymap registry", () => {
 			SHORTCUT_TOGGLE_SIDEBAR,
 			SHORTCUT_INTERRUPT,
 			SHORTCUT_CONTEXT_MENU,
+			SHORTCUT_BAND_PREVIOUS,
+			SHORTCUT_BAND_NEXT,
 		]) {
 			expect(ids).toContain(binding.id);
 		}
+	});
+
+	test("both band chords are rows of the map, so the conflict check polices them", () => {
+		expect(KEYBOARD_SHORTCUTS).toContain(SHORTCUT_BAND_PREVIOUS);
+		expect(KEYBOARD_SHORTCUTS).toContain(SHORTCUT_BAND_NEXT);
+		expect(findChordConflict([...KEYBOARD_SHORTCUTS, SHORTCUT_BAND_PREVIOUS])).toBe(
+			bindingChord(SHORTCUT_BAND_PREVIOUS),
+		);
+		expect(findChordConflict([...KEYBOARD_SHORTCUTS, SHORTCUT_BAND_NEXT])).toBe(
+			bindingChord(SHORTCUT_BAND_NEXT),
+		);
 	});
 
 	test("the two composite chords are labelled from the glyph constants", () => {
@@ -71,6 +87,9 @@ describe("the keymap registry", () => {
 		expect(SHORTCUT_CLOSE_OTHERS.label).toBe(`${KEY_MODIFIER_GLYPH}${KEY_MODIFIER_ALT_GLYPH}W`);
 		expect(shiftChordLabel("f10")).toBe(`${KEY_MODIFIER_SHIFT_GLYPH}F10`);
 		expect(SHORTCUT_CONTEXT_MENU.label).toBe(`${KEY_MODIFIER_SHIFT_GLYPH}F10`);
+		// `⌥↑` is the Option glyph **alone** — not the ⌘⌥ composite.
+		expect(altChordLabel("↑")).toBe(`${KEY_MODIFIER_ALT_GLYPH}↑`);
+		expect(SHORTCUT_BAND_PREVIOUS.label).toBe(`${KEY_MODIFIER_ALT_GLYPH}↑`);
 	});
 
 	test("the modifier is compared exactly, so ⌘W and ⌘⌥W never shadow each other", () => {
@@ -84,6 +103,16 @@ describe("the keymap registry", () => {
 		expect(matchesBinding(held("F10", false, true), SHORTCUT_CONTEXT_MENU)).toBe(false);
 		expect(matchesBinding(held("Escape", false, true, false), SHORTCUT_INTERRUPT)).toBe(true);
 		expect(matchesBinding(held("Escape", true, false), SHORTCUT_INTERRUPT)).toBe(false);
+		// `⌥↑` is Option **without** Command, and ⌘⌥↑ is not it.
+		expect(matchesBinding(held("ArrowUp", true, false, false), SHORTCUT_BAND_PREVIOUS)).toBe(
+			true,
+		);
+		expect(matchesBinding(held("ArrowUp", true, false, true), SHORTCUT_BAND_PREVIOUS)).toBe(
+			false,
+		);
+		expect(matchesBinding(held("ArrowUp", false, false, false), SHORTCUT_BAND_PREVIOUS)).toBe(
+			false,
+		);
 	});
 
 	test("labels are composed from the modifier glyph, never typed as a range", () => {
