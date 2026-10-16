@@ -59,7 +59,7 @@ Registries register **synchronously** and return a `Disposable`; services return
 | `panels.register({ id, title, component })` | a sidebar panel (`session.sidebar.panels`) | registry |
 | `routes.register({ id, path, component })` | a route the router serves | registry |
 | `settings.registerSection({ id, title, component, order? })` (the **plugin-facing** name is `title`; the app registry stores it as `label`, and a plugin passing `label` is refused as malformed) | a section on `/settings` — **always expanded**: folding is a non-goal until a row owns it, and a contribution naming no `order` sorts **last**, never above the built-ins | registry |
-| `renderers.register({ id, kind, component })` | override a transcript renderer: `message`, `markdown`, `reasoning`, `tool`, `marker` | registry |
+| `renderers.register({ id, kind, component })` | override a transcript renderer: `message`, `markdown`, `reasoning`, `tool`, `marker`. With **nothing** registered for a kind, the built-in row is the **fallback** — the registry is empty by contract and is never pre-populated with the built-ins | registry |
 | `themes.register(theme)` / `apply(id)` / `clear()` / `active()` | a theme in the app's one theme service (spec 030) | registry + service |
 | `opencode.client` | the raw `@opencode/client` instance (full server API, `docs/opencode-api.md`) | service |
 | `opencode.on(event, handler)` | the server's event stream, filtered for you (`session.*`, `mcp.*`, `permission.*`, …); returns an unsubscribe | service |
