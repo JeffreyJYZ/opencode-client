@@ -8,7 +8,7 @@ Last updated: 2026-10-15 · Current focus: **M3 — Type and theme** (`M3.0`, th
 | M1 Shell and home | 15 / 16 | home → session view end to end; restart restores tabs |
 | M2 Session view | 11 / 11 | a live session streams, interrupts, queues and replies from the keyboard |
 | M3 Type and theme | 8 / 8 | both faces change live and survive a restart; theme applies and clears |
-| M4 Plugin host 0.1 | 9 / 11 | four example plugins install, work and uninstall through the documented API |
+| M4 Plugin host 0.1 | 9 / 17 | four example plugins install, work and uninstall through the documented API |
 | M5 Desktop polish | 5 / 5 | packaged app, updater, `verify-release` exits 0 |
 
 ## M0 — Foundations
@@ -83,6 +83,13 @@ Last updated: 2026-10-15 · Current focus: **M3 — Type and theme** (`M3.0`, th
 - [x] `M4.9` Lock the built-in settings sections against plugin replacement — the registry reserves every built-in id, and a contribution naming one is refused **inert** with `FAULT_REASONS.lockedArea` — evidence: a plugin contributing `{ id: "plugins" }` leaves the manager on screen and the fault names the reserved id
 - [ ] `M4.10` **The host is live in the app** — hydrate the installed-plugins store on boot (today it is written and never read, so a reload loses every installed plugin) and give `createLoader` its real **ports** (today it gets `isEnabled`/`react`/`jsx`/`appVersion` and no more, so every plugin `opencode.*`, event source, `transcript`, `native` and `notify` is inert) — evidence: after a real reload the manager still lists the installed plugin, and a plugin `opencode.*` call reaches the server
 - [ ] `M4.11` **Contributions actually render** — the palette consumes `commands.register` (today nothing outside tests reads it, while `commands.ts` claims the palette does), a component hosts `session.sidebar.panels` (today it is a slot name and a doc comment), and a settings section registered title is rendered (`SettingsPage` ignores it) — evidence: a plugin command appears in the palette, a panel renders in the sidebar, a plugin section shows its own title
+
+- [ ] `M4.12` **Every advertised slot has a host** — mount `<Slot>` for the ten that render nowhere today (`session.toolbar`, `transcript.row.actions`, `transcript.footer`, `composer.toolbar`, `composer.above`, `composer.below`, `statusline.left`, `statusline.right`, `overlays`, `settings.sections`); only 6 of 19 have a renderer, and the in-app reference advertises all 19 — evidence: a probe plugin registering into each renders in the named place
+- [ ] `M4.13` **Renderers actually dispatch** — the transcript switches on a hardcoded `ROW_KIND` and never calls `rendererFor`, while `renderers.ts`'s own doc claims the rows read it — evidence: a plugin renderer replaces a tool row, and with nothing registered the built-in rows are unchanged
+- [ ] `M4.14` **The app events fire** — `emitAppEvent` has no production caller, so all eight documented events (`turn-start`, `turn-end`, `chunk`, `session-changed`, `settings-changed`, `plugin-loaded`, `plugin-unloaded`, `theme-changed`) are dead and a subscriber is never called — evidence: a plugin subscribed to `turn-end` is called at a turn's end, and each of the other seven has a named emitter
+- [ ] `M4.15` **Plugin storage survives a reload** — `createMemoryStorageBackend` is the only backend, so plugin data dies with the process and `theme-gruvbox` cannot remember a choice, despite `storage.ts` claiming M4.5 supplied the persisted one — evidence: write, reload, still there; the cap still refuses an over-size write
+- [ ] `M4.16` **`native` is real** — no `NativeFs` implementation exists anywhere and the shell's `invoke_handler` exposes no filesystem command, so `host.native` can never be non-null and `session-export`'s write path cannot run — evidence: a plugin reads and writes inside its own data directory and an escape attempt is refused
+- [ ] `M4.17` **`app.substrate` and `app.builtins` are contributions** — neither has a registrant nor a renderer, so spec 040's "everything is a contribution" and "two built-in areas can be disabled like plugins" have no implementation — evidence: disabling `app.substrate` empties the window and re-enabling restores it, while a plugin still cannot contribute to either
 
 ## M5 — Desktop polish
 
