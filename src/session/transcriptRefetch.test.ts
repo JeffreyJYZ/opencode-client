@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import type { OpenCodeClient, SessionMessageInfo, SessionMessagesResponse } from "@opencode/client";
 import { DELIVERY, ROW_KIND } from "@/constants/transcript";
+import { capPayload } from "@/session/payloadCaps";
 import { refetchTranscript } from "@/session/transcriptRefetch";
 import { rowsFromMessage } from "@/session/transcriptRows";
 import { capturedMessages } from "@/test/capture";
@@ -40,7 +41,7 @@ describe("rowsFromMessage", () => {
 			id: message.shellID,
 			kind: ROW_KIND.shell,
 			command: message.command,
-			output: message.output?.output,
+			output: capPayload(message.output?.output ?? ""),
 		});
 	});
 
@@ -60,7 +61,9 @@ describe("rowsFromMessage", () => {
 			`${message.id}:t0`,
 			`${message.id}:f`,
 		]);
-		expect(rows[0]).toMatchObject({ text: (message.content[0] as { text: string }).text });
+		expect(rows[0]).toMatchObject({
+			text: { kept: (message.content[0] as { text: string }).text },
+		});
 	});
 
 	test("a kind with no row here renders nothing", () => {

@@ -1,10 +1,13 @@
 import {
 	COST_DECIMALS,
+	OUTPUT_MORE_PREFIX,
+	OUTPUT_MORE_SUFFIX,
 	SHELL_STATUS_LABEL,
 	SUBAGENT_DETAIL_FIELDS,
 	SUBAGENT_SESSION_FIELD,
 	SUBAGENT_TOOL_NAME,
 } from "@/constants/transcriptUi";
+import { lineBreaks, type Payload } from "@/session/payloadCaps";
 import type { FooterRow, ToolRow } from "@/session/transcript";
 
 /**
@@ -67,4 +70,21 @@ export function footerText(row: FooterRow): string {
 	return row.cost === undefined
 		? row.finish
 		: `${row.finish} · ${row.cost.toFixed(COST_DECIMALS)}`;
+}
+
+/**
+ * A collapsed block's toggle text: `(N more lines)`, where N is what the reader is
+ * **not** shown — the ingest's own count plus the lines the render cap hides
+ * (M2.4). Pure, so the count is asserted without a component.
+ */
+export function moreLinesLabel(count: number): string {
+	return `${OUTPUT_MORE_PREFIX}${count}${OUTPUT_MORE_SUFFIX}`;
+}
+
+/**
+ * How many line breaks a collapsed block hides of the payload it was handed: the
+ * payload's own count minus the head this render shows. Never negative.
+ */
+export function hiddenLines(payload: Payload, shown: string): number {
+	return Math.max(0, lineBreaks(payload.kept) - lineBreaks(shown));
 }

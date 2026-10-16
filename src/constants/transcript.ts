@@ -3,11 +3,11 @@
  *
  * Named here so no second place restates a value: the row kinds M2.2 renders, the
  * user band's rail tones, a tool's status, what the ingest did with one frame, the
- * strings the notice rows carry, and the two bounds the store itself needs.
+ * strings the notice rows carry, and the three bounds the store itself needs.
  *
- * Deliberately absent: the caps (`PAYLOAD_MAX_CHARS`, `PAYLOAD_ELISION`,
- * `TOOL_CONTENT_MAX_CHARS`) are **M2.4's**, applied at the append funnels the
- * transcript edits expose, not here.
+ * The **caps are M2.4's** (spec 050 §Ingest discipline) and their values live
+ * here; the one place they are *applied* is `src/session/payloadCaps.ts`, which
+ * every text payload the store keeps passes through.
  */
 
 /** What one transcript row is. M2.2 renders a surface per kind. */
@@ -75,3 +75,30 @@ export const EVENT_ID_MEMORY = 128;
 
 /** How many messages one refetch asks for; the tail of a transcript (M2.9 owns back-fill). */
 export const MESSAGE_PAGE_LIMIT = 50;
+
+/**
+ * **The ingest cap**: the most characters of one text payload the store keeps
+ * (spec 050 §Ingest discipline). A longer payload keeps its head, and the store
+ * counts the line breaks it dropped, so nothing re-inflates a trimmed payload.
+ */
+export const PAYLOAD_MAX_CHARS = 50_000;
+
+/**
+ * What the ingest's own elision reads where it cut. A marker, never part of the
+ * payload: the dropped lines are a number on the row's `Payload`, so an elision
+ * row cannot be counted twice as a line of its own.
+ */
+export const PAYLOAD_ELISION = "… more output, elided at ingest";
+
+/**
+ * **The render cap**: the collapsed head of a tool or a shell output block. Per
+ * spec 050 it stays smaller than `PAYLOAD_MAX_CHARS`, or a collapsed row would
+ * render whole and the collapsed/expanded state would mean nothing.
+ */
+export const TOOL_CONTENT_MAX_CHARS = 2_000;
+
+/** How deep a tool's input record is kept before a container below it is elided. */
+export const TOOL_INPUT_MAX_DEPTH = 6;
+
+/** What a container below `TOOL_INPUT_MAX_DEPTH` is replaced by, in the input text. */
+export const TOOL_INPUT_ELISION = "…";

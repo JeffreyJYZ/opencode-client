@@ -13,6 +13,7 @@ import {
 	type SettingsNotice,
 	settingsFromDocument,
 } from "@/app/settings/model";
+import { pruneTabScroll } from "@/app/settings/scroll";
 import {
 	browserStorage,
 	readStoredSettings,
@@ -20,6 +21,7 @@ import {
 	writeStoredSettings,
 } from "@/app/settings/storage";
 import { sameTabs } from "@/app/settings/tabState";
+import { tabKey } from "@/app/tabModel";
 import { hydrateTabState, serializeTabState, subscribeToTabs } from "@/app/tabs";
 import { SETTING_KEYS, SETTINGS_DATA_VERSION, SETTINGS_STORAGE_KEY } from "@/constants/settings";
 import { applyFonts } from "@/theme/fonts";
@@ -87,8 +89,12 @@ function installSync(): void {
 
 function syncTabs(): void {
 	const tabs = serializeTabState();
-	if (sameTabs(tabs, snapshot.settings.tabs)) return;
-	apply({ tabs });
+	// A closed tab releases its remembered position (M2.9): the strip is the set of
+	// views that exist, so the blob holds a position for exactly those keys.
+	const scroll = pruneTabScroll(getSettings().transcriptScroll, tabs.tabs.map(tabKey));
+	const tabsChanged = !sameTabs(tabs, snapshot.settings.tabs);
+	if (!tabsChanged && scroll === getSettings().transcriptScroll) return;
+	apply(tabsChanged ? { tabs, transcriptScroll: scroll } : { transcriptScroll: scroll });
 }
 
 function syncRoute(): void {

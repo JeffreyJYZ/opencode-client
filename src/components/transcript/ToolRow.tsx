@@ -1,13 +1,7 @@
 import { TOOL_STATUS_LABEL, TOOL_UNNAMED } from "@/constants/transcriptUi";
 import type { ToolRow as ToolRowModel } from "@/session/transcript";
-import {
-	ANCHOR_STYLE,
-	HEAD_STYLE,
-	META_STYLE,
-	OUTPUT_STYLE,
-	ROW_STYLE,
-	rowIdentity,
-} from "./rowStyles";
+import { OutputBlock } from "./OutputBlock";
+import { ANCHOR_STYLE, HEAD_STYLE, META_STYLE, ROW_STYLE, rowIdentity } from "./rowStyles";
 
 /**
  * One tool call: what ran, where it anchored, and how it ended.
@@ -17,7 +11,8 @@ import {
  * them is a spinner that never ends. The anchor is the row's `path` (api §4:
  * `path`, never `filePath`), already extracted by M2.1.
  *
- * The output is plain text inside a `<pre>` — the block M2.4 will cap.
+ * The output is the row's capped `Payload`, rendered by the block that owns the
+ * render cap and the `(N more lines)` count (M2.4).
  */
 export function ToolRow({ row }: { readonly row: ToolRowModel }) {
 	return (
@@ -29,7 +24,7 @@ export function ToolRow({ row }: { readonly row: ToolRowModel }) {
 					{TOOL_STATUS_LABEL[row.status]}
 				</span>
 			</header>
-			{row.output !== "" && <pre style={OUTPUT_STYLE}>{row.output}</pre>}
+			<OutputBlock output={row.output} />
 		</article>
 	);
 }

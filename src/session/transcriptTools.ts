@@ -1,6 +1,13 @@
 import type { ToolContent1, V2Event } from "@opencode/client";
 import { ROW_KIND, TOOL_ANCHOR_FIELD, TOOL_STATUS } from "@/constants/transcript";
 import { createdAtOf, durableSeqOf } from "@/session/eventEnvelope";
+import {
+	capInput,
+	capPayload,
+	capString,
+	EMPTY_PAYLOAD,
+	type Payload,
+} from "@/session/payloadCaps";
 import type { ToolRow, Transcript } from "@/session/transcript";
 import { upsertRow } from "@/session/transcriptEdits";
 
@@ -16,6 +23,10 @@ import { upsertRow } from "@/session/transcriptEdits";
  * A **subagent** row is this row: the child session rides in the tool's input
  * (spec 050 §Sessions lists `session.list({ parentID })` for a subagent list), so
  * M2.2 decides the row's label from `(name, input)` and the store keeps them whole.
+ *
+ * The cap (M2.4) is applied here, to whatever the frame carries: an input delta is
+ * **grown** onto an already-capped string, and `called`/`success`/`failed` replace
+ * a payload **wholesale**, so their counts are recomputed rather than accumulated.
  */
 
 export type ToolEvent = Extract<V2Event, { type: `session.tool.${string}` }>;
@@ -28,6 +39,7 @@ type ToolPatch = {
 	readonly name?: string;
 	readonly input?: string;
 	readonly status?: ToolRow["status"];
+	/** The output as the frame carried it; the cap is applied in `merge`. */
 	readonly output?: string;
 	readonly anchor?: string;
 };
@@ -36,6 +48,8 @@ type ToolPatch = {
 function merge(transcript: Transcript, event: ToolEvent, id: string, patch: ToolPatch): Transcript {
 	const found = transcript.rows.find((row) => row.id === id);
 	const previous = found?.kind === ROW_KIND.tool ? found : undefined;
+	const output: Payload =
+		patch.output === undefined ? (previous?.output ?? EMPTY_PAYLOAD) : capPayload(patch.output);
 	const row: ToolRow = {
 		id,
 		created: previous?.created ?? createdAtOf(event),
@@ -44,9 +58,9 @@ function merge(transcript: Transcript, event: ToolEvent, id: string, patch: Tool
 		seq: durableSeqOf(event) ?? previous?.seq ?? 0,
 		kind: ROW_KIND.tool,
 		name: patch.name ?? previous?.name ?? "",
-		input: patch.input ?? previous?.input ?? "",
+		input: patch.input === undefined ? (previous?.input ?? "") : capString(patch.input),
 		status: patch.status ?? previous?.status ?? TOOL_STATUS.running,
-		output: patch.output ?? previous?.output ?? "",
+		output,
 		anchor: patch.anchor ?? previous?.anchor,
 	};
 	return upsertRow(transcript, row);
@@ -82,7 +96,7 @@ export function reduceTool(transcript: Transcript, event: ToolEvent): Transcript
 			return merge(transcript, event, event.data.id, { input: event.data.text });
 		case "session.tool.called":
 			return merge(transcript, event, event.data.id, {
-				input: JSON.stringify(event.data.input),
+				input: capInput(event.data.input),
 				anchor: anchorOf(event.data.input),
 			});
 		case "session.tool.success":

@@ -67,13 +67,29 @@ export const ANCHOR_STYLE: CSSProperties = {
 };
 
 /**
- * A tool's or shell's output block — **the M2.4 seam**: the caps (`(N more lines)`)
- * and the expand/collapse affordance land here, at the element that already holds
- * the whole string. Nothing in M2.2 shortens it.
+ * A tool's or shell's output block — **the M2.4 seam**: it renders what the ingest
+ * kept and counts the rest, and never shortens the payload itself.
  */
 export const OUTPUT_STYLE: CSSProperties = {
 	...CODE_STYLE,
 	marginTop: "var(--oc-space-1)",
+};
+
+/** The collapsed block's toggle: a button in the meta step, never a colour-only cue. */
+export const OUTPUT_TOGGLE_STYLE: CSSProperties = {
+	...META_STYLE,
+	alignSelf: "flex-start",
+	background: "transparent",
+	border: "var(--oc-hairline) solid var(--oc-border)",
+	borderRadius: "var(--oc-radius)",
+	cursor: "pointer",
+	padding: "0 var(--oc-space-2)",
+};
+
+/** What the ingest's own cap left behind, under an expanded block. */
+export const ELISION_STYLE: CSSProperties = {
+	...META_STYLE,
+	fontStyle: "italic",
 };
 
 /**

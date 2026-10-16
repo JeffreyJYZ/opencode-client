@@ -26,7 +26,7 @@ export function ReasoningRow({ row }: { readonly row: TextRow }) {
 	return (
 		<article {...rowIdentity(row.id)} style={REASONING_STYLE}>
 			<span style={META_STYLE}>{REASONING_LABEL}</span>
-			<p style={REASONING_TEXT}>{row.text}</p>
+			<p style={REASONING_TEXT}>{row.text.kept}</p>
 		</article>
 	);
 }

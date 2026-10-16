@@ -33,14 +33,18 @@ describe("reduceTranscript — against captured frames", () => {
 	test("prose takes the `.ended` text, not the deltas", () => {
 		const prose = reduce(streaming).rows.filter((row) => row.kind === ROW_KIND.prose);
 		expect(prose).toHaveLength(2);
-		expect((prose[0] as { text: string }).text).toBe("Hi! How can I help you today?");
+		expect((prose[0] as { text: { kept: string } }).text.kept).toBe(
+			"Hi! How can I help you today?",
+		);
 		expect((prose[1] as { ended: boolean }).ended).toBe(true);
 	});
 
 	test("reasoning is its own row family", () => {
 		const reasoning = reduce(streaming).rows.filter((row) => row.kind === ROW_KIND.reasoning);
 		expect(reasoning).toHaveLength(2);
-		expect((reasoning[0] as { text: string }).text).toContain('The user said "hello"');
+		expect((reasoning[0] as { text: { kept: string } }).text.kept).toContain(
+			'The user said "hello"',
+		);
 	});
 
 	test("the user band starts queued and the delivered frame flips it", () => {
@@ -58,9 +62,13 @@ describe("reduceTranscript — against captured frames", () => {
 	test("shell keeps `output.output`, the paged object's one string", () => {
 		const shells = reduce(streaming).rows.filter((row) => row.kind === ROW_KIND.shell);
 		expect(shells).toHaveLength(1);
-		const row = shells[0] as { command: string; output: string; status: string };
+		const row = shells[0] as {
+			command: string;
+			output: { kept: string };
+			status: string;
+		};
 		expect(row.command).toBe("printf 'm21 shell line\\n'");
-		expect(row.output).toBe("m21 shell line\n");
+		expect(row.output.kept).toBe("m21 shell line\n");
 		expect(row.status).toBe("exited");
 	});
 

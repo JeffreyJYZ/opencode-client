@@ -11,7 +11,7 @@ import { ROW_STYLE, rowIdentity } from "./rowStyles";
 export function ProseRow({ row }: { readonly row: TextRow }) {
 	return (
 		<article {...rowIdentity(row.id)} style={ROW_STYLE}>
-			<Markdown text={row.text} />
+			<Markdown text={row.text.kept} />
 		</article>
 	);
 }

@@ -1,4 +1,5 @@
 import { type Delivery, ROW_KIND, type ToolStatus } from "@/constants/transcript";
+import type { Payload } from "@/session/payloadCaps";
 
 /**
  * The transcript's **shape** (spec 050 §Event ingest): a session's rows in the
@@ -14,6 +15,11 @@ import { type Delivery, ROW_KIND, type ToolStatus } from "@/constants/transcript
  *
  * `seq` is a row's provenance, not its order: rows stay in arrival order and the
  * transcript's `lastSeq` is what rejects a stale durable frame.
+ *
+ * A row's text is a **`Payload`** (M2.4), never a bare string: only
+ * `src/session/payloadCaps.ts` makes one, so a payload cannot enter the store
+ * uncapped, and the count of what the cap dropped travels with the text instead of
+ * being recomputed by whoever renders it.
  */
 
 export type RowBase = {
@@ -33,7 +39,7 @@ export type UserRow = RowBase & {
 /** Assistant prose or reasoning; `ended` marks the authoritative frame's text. */
 export type TextRow = RowBase & {
 	readonly kind: typeof ROW_KIND.prose | typeof ROW_KIND.reasoning;
-	readonly text: string;
+	readonly text: Payload;
 	readonly ended: boolean;
 };
 
@@ -43,7 +49,7 @@ export type ToolRow = RowBase & {
 	readonly name: string;
 	readonly input: string;
 	readonly status: ToolStatus;
-	readonly output: string;
+	readonly output: Payload;
 	readonly anchor?: string;
 };
 
@@ -52,7 +58,7 @@ export type ShellRow = RowBase & {
 	readonly kind: typeof ROW_KIND.shell;
 	readonly command: string;
 	readonly status: string;
-	readonly output: string;
+	readonly output: Payload;
 };
 
 export type ErrorRow = RowBase & { readonly kind: typeof ROW_KIND.error; readonly message: string };

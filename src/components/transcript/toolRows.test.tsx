@@ -9,6 +9,7 @@ import {
 	TOOL_STATUS_LABEL,
 	TOOL_UNNAMED,
 } from "@/constants/transcriptUi";
+import { capPayload } from "@/session/payloadCaps";
 import type { ShellRow, ToolRow } from "@/session/transcript";
 
 /** RTL installs auto-cleanup once per process; this importer adds its own. */
@@ -22,7 +23,7 @@ const toolRow = (over: Partial<ToolRow> = {}): ToolRow => ({
 	name: "read",
 	input: '{"path":"src/a.ts"}',
 	status: TOOL_STATUS.ok as ToolStatus,
-	output: "line one\n",
+	output: capPayload("line one\n"),
 	anchor: "src/a.ts",
 	...over,
 });
@@ -48,7 +49,7 @@ describe("a tool row", () => {
 					name: "",
 					status: TOOL_STATUS.streaming,
 					anchor: undefined,
-					output: "",
+					output: capPayload(""),
 				})}
 			/>,
 		);
@@ -63,7 +64,10 @@ describe("a tool row", () => {
 	test("a failure shows its message, never a bare spinner", () => {
 		const { container } = render(
 			<TranscriptEntry
-				row={toolRow({ status: TOOL_STATUS.failed, output: "ENOENT: no such file" })}
+				row={toolRow({
+					status: TOOL_STATUS.failed,
+					output: capPayload("ENOENT: no such file"),
+				})}
 			/>,
 		);
 		expect(screen.getByText(TOOL_STATUS_LABEL.failed)).toBeDefined();
@@ -113,7 +117,7 @@ describe("a shell row", () => {
 		kind: ROW_KIND.shell,
 		command: "echo hi",
 		status: "exited",
-		output: "hi\n",
+		output: capPayload("hi\n"),
 		...over,
 	});
 

@@ -1,3 +1,4 @@
+import { NO_TAB_SCROLL, normalizeTabScroll, type TabScrollMap } from "@/app/settings/scroll";
 import { normalizeServer, type ServerTarget } from "@/app/settings/server";
 import { normalizeSidebar, type SidebarState } from "@/app/settings/sidebar";
 import { normalizeTabs } from "@/app/settings/tabState";
@@ -38,6 +39,8 @@ export type SettingsData = {
 	readonly recentDirectories: readonly string[];
 	/** The connect flow's stored target, or `null` before one is stored. */
 	readonly server: ServerTarget | null;
+	/** Where each tab's transcript was left (M2.9), keyed by the **tab**, not a session. */
+	readonly transcriptScroll: TabScrollMap;
 };
 
 /**
@@ -59,6 +62,7 @@ export const DEFAULT_SETTINGS: SettingsData = {
 	fonts: DEFAULT_FONTS,
 	recentDirectories: [],
 	server: null,
+	transcriptScroll: NO_TAB_SCROLL,
 };
 
 /** A document holding the defaults at the current version. */
@@ -79,6 +83,7 @@ export function settingsFromDocument(document: SettingsDocument): SettingsData {
 		fonts: normalizeFonts(document[SETTING_KEYS.fonts]),
 		recentDirectories: normalizeDirectories(document[SETTING_KEYS.recentDirectories]),
 		server: normalizeServer(document[SETTING_KEYS.server]),
+		transcriptScroll: normalizeTabScroll(document[SETTING_KEYS.transcriptScroll]),
 	};
 }
 

@@ -53,7 +53,7 @@ function nodeOf(container: HTMLElement, id: string): HTMLElement | null {
 
 /** A text row's own text; anything else has none. */
 function textOf(row: TranscriptRow | undefined): string {
-	return row !== undefined && isTextRow(row) ? row.text : "";
+	return row !== undefined && isTextRow(row) ? row.text.kept : "";
 }
 
 /**
@@ -88,7 +88,7 @@ describe("TranscriptView", () => {
 			throw new Error("the capture has no streaming text part");
 		}
 		// The part has been created but has streamed nothing yet.
-		expect(growing.text).toBe("");
+		expect(growing.text.kept).toBe("");
 
 		const { container, rerender } = render(<TranscriptView rows={started.rows} />);
 		const node = nodeOf(container, growing.id);

@@ -14,8 +14,14 @@ import { ROUTE_PATH } from "@/constants/routes";
 /** The one storage key the blob lives under. */
 export const SETTINGS_STORAGE_KEY = "settings";
 
-/** The version this build writes (v2 added `settings.server`; spec 050 §Target and auth). */
-export const SETTINGS_DATA_VERSION = 2;
+/**
+ * The version this build writes. v2 added `settings.server` (spec 050 §Target and
+ * auth); **v3 adds `settings.transcriptScroll`** (M2.9). A step per version keeps
+ * the invariant `storage.test.ts` asserts — a migrated document has exactly the
+ * keys this writer produces — and a field an older build does not know is copied
+ * through untouched (spec 010 §Persistence).
+ */
+export const SETTINGS_DATA_VERSION = 3;
 
 /**
  * The version a blob with no version field is read as: the pre-versioning shape,
@@ -36,6 +42,7 @@ export const SETTING_KEYS = {
 	fonts: "fonts",
 	recentDirectories: "recentDirectories",
 	server: "server",
+	transcriptScroll: "transcriptScroll",
 } as const;
 
 /** The key the version-0 blob held the active tab under (v1 nests it in `tabs`). */

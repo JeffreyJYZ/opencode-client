@@ -57,10 +57,22 @@ function v1ToV2(document: SettingsDocument): SettingsDocument {
 	return { ...document, [SETTING_KEYS.server]: null };
 }
 
+/**
+ * The version-2 blob. Nothing in v2 carried a per-tab scroll position, so the step
+ * introduces `settings.transcriptScroll` as explicitly empty rather than leaving
+ * the field's meaning to "whatever a reader defaults to" (M2.9). Everything the
+ * blob carried is copied through untouched.
+ */
+function v2ToV3(document: SettingsDocument): SettingsDocument {
+	if (SETTING_KEYS.transcriptScroll in document) return document;
+	return { ...document, [SETTING_KEYS.transcriptScroll]: {} };
+}
+
 /** Registry keyed by source version: `MIGRATIONS[from]` produces `from + 1`. */
 export const SETTINGS_MIGRATIONS: Readonly<Record<number, SettingsMigration>> = {
 	[SETTINGS_BASE_VERSION]: v0ToV1,
 	[SETTINGS_BASE_VERSION + 1]: v1ToV2,
+	[SETTINGS_BASE_VERSION + 2]: v2ToV3,
 };
 
 export type MigrationOutcome =

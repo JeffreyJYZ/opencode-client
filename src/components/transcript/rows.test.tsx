@@ -3,6 +3,7 @@ import { cleanup, render, screen } from "@testing-library/react";
 import { TranscriptEntry } from "@/components/transcript/TranscriptEntry";
 import { DELIVERY, type Delivery, ROW_KIND } from "@/constants/transcript";
 import { RAIL_LABEL, REASONING_LABEL } from "@/constants/transcriptUi";
+import { capPayload } from "@/session/payloadCaps";
 import type { ErrorRow, FooterRow, NoticeRow, TextRow, UserRow } from "@/session/transcript";
 
 /** RTL installs auto-cleanup once per process; this importer adds its own. */
@@ -22,7 +23,7 @@ const textRow = (kind: TextRow["kind"], text: string, id = "msg_a:t0"): TextRow 
 	created: 1,
 	seq: 2,
 	kind,
-	text,
+	text: capPayload(text),
 	ended: false,
 });
 

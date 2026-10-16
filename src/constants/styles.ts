@@ -12,16 +12,33 @@ export const PLACEHOLDER_STYLE: CSSProperties = {
 };
 
 /**
- * The session surface's frame (M2.2). Flow only on purpose: the transcript's own
- * scrolling — tail-follow, unpinning, per-tab memory — is M2.9's, and a page that
- * claimed the scroll now would have to give it back.
- *
- * The horizontal space belongs to the rows' own content-width column
- * (`TranscriptView`), so the surface adds none of its own.
+ * The session surface's frame (M2.2/M2.9): the column that holds the transcript's
+ * own scroll container and, over it, the jump-to-latest pill. `position: relative`
+ * is the pill's containing block; `flex: 1 1 0%` with `minHeight: 0` is what lets
+ * the pane be shorter than its content (api §4's flex trap).
+ */
+export const SESSION_VIEW_STYLE: CSSProperties = {
+	position: "relative",
+	display: "flex",
+	flexDirection: "column",
+	flex: "1 1 0%",
+	minHeight: 0,
+};
+
+/**
+ * The transcript's scroll container (M2.9): the element `useTailFollow` reads and
+ * writes. All three of `overflowY: auto`, `flex: 1 1 0%` and `minHeight: 0` are
+ * load-bearing — a content-sized pane in a flex column shrinks to fit instead of
+ * overflowing, so a long transcript is clipped rather than scrolled (api §4) — and
+ * `overscroll-behavior` keeps a wheel at the end from chaining to the page.
  */
 export const SESSION_PAGE_STYLE: CSSProperties = {
 	color: "var(--oc-text)",
 	padding: 0,
+	flex: "1 1 0%",
+	minHeight: 0,
+	overflowY: "auto",
+	overscrollBehavior: "contain",
 };
 
 /**

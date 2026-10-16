@@ -1,6 +1,7 @@
 import type { V2Event } from "@opencode/client";
 import { DELIVERY, NOTICE, ROW_KIND } from "@/constants/transcript";
 import { createdAtOf, durableSeqOf } from "@/session/eventEnvelope";
+import { capPayload, capString } from "@/session/payloadCaps";
 import type { ShellRow, Transcript, TranscriptRow } from "@/session/transcript";
 import { appendRow, removeRow, replaceRow, setRunning, upsertRow } from "@/session/transcriptEdits";
 import { isTextEvent, reduceText } from "@/session/transcriptText";
@@ -34,11 +35,15 @@ function rowBase(event: V2Event, id: string): { id: string; created: number; seq
 }
 
 function noticeRow(event: V2Event, id: string, text: string): TranscriptRow {
-	return { ...rowBase(event, id), kind: ROW_KIND.notice, text };
+	return { ...rowBase(event, id), kind: ROW_KIND.notice, text: capString(text) };
 }
 
 function errorRow(event: V2Event, message: string): TranscriptRow {
-	return { ...rowBase(event, `error:${event.id}`), kind: ROW_KIND.error, message };
+	return {
+		...rowBase(event, `error:${event.id}`),
+		kind: ROW_KIND.error,
+		message: capString(message),
+	};
 }
 
 /** The shell family's two frames; both carry the same `shell` object. */
@@ -51,7 +56,7 @@ function shellRow(event: ShellEvent, output: string): ShellRow {
 		kind: ROW_KIND.shell,
 		command: shell.command,
 		status: shell.status,
-		output,
+		output: capPayload(output),
 	};
 }
 
@@ -75,7 +80,7 @@ export function reduceTranscript(transcript: Transcript, event: V2Event): Transc
 			return upsertRow(transcript, {
 				...rowBase(event, event.data.inboxID),
 				kind: ROW_KIND.user,
-				text: event.data.item.payload.text,
+				text: capString(event.data.item.payload.text),
 				delivery: DELIVERY.queued,
 			});
 		}

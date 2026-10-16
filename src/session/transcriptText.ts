@@ -1,6 +1,7 @@
 import type { V2Event } from "@opencode/client";
 import { ROW_KIND } from "@/constants/transcript";
 import { createdAtOf, durableSeqOf } from "@/session/eventEnvelope";
+import { capPayload, growPayload, type Payload } from "@/session/payloadCaps";
 import { isTextRow, type TextRow, type Transcript } from "@/session/transcript";
 import { upsertRow } from "@/session/transcriptEdits";
 
@@ -17,6 +18,11 @@ import { upsertRow } from "@/session/transcriptEdits";
  * part is created on demand if a delta arrives before its `.started`; the only
  * thing that can corrupt a row is a delta after `.ended`, which is dropped because
  * the authoritative text has already replaced the run.
+ *
+ * The cap (M2.4) is the ingest's, not a renderer's: a delta **grows** the payload
+ * and carries its count, while `.ended` **replaces** it and recomputes the count
+ * from the whole text — which is why a re-inflating authoritative frame can never
+ * trip the count back to zero.
  */
 
 export type TextEvent = Extract<
@@ -38,7 +44,7 @@ function textRow(
 	event: TextEvent,
 	id: string,
 	kind: "prose" | "reasoning",
-	text: string,
+	text: Payload,
 	ended: boolean,
 ): TextRow {
 	return {
@@ -49,6 +55,10 @@ function textRow(
 		text,
 		ended,
 	};
+}
+
+function freshTextRow(event: TextEvent, id: string, kind: "prose" | "reasoning"): TextRow {
+	return textRow(event, id, kind, capPayload(""), false);
 }
 
 export function reduceText(transcript: Transcript, event: TextEvent): Transcript | null {
@@ -62,22 +72,26 @@ export function reduceText(transcript: Transcript, event: TextEvent): Transcript
 		case "session.reasoning.started":
 			// A repeated `started` keeps the text already streamed.
 			return existing === undefined
-				? upsertRow(transcript, textRow(event, id, kind, "", false))
+				? upsertRow(transcript, freshTextRow(event, id, kind))
 				: null;
 		case "session.text.delta":
-		case "session.reasoning.delta":
+		case "session.reasoning.delta": {
 			if (existing?.ended === true) return null;
+			const base = existing ?? freshTextRow(event, id, kind);
 			return upsertRow(transcript, {
-				...(existing ?? textRow(event, id, kind, "", false)),
-				text: `${existing?.text ?? ""}${event.data.delta}`,
+				...base,
+				text: growPayload(base.text, event.data.delta),
 			});
+		}
 		case "session.text.ended":
-		case "session.reasoning.ended":
+		case "session.reasoning.ended": {
+			const base = existing ?? freshTextRow(event, id, kind);
 			return upsertRow(transcript, {
-				...(existing ?? textRow(event, id, kind, "", false)),
-				text: event.data.text,
+				...base,
+				text: capPayload(event.data.text),
 				ended: true,
 			});
+		}
 		default:
 			return null;
 	}

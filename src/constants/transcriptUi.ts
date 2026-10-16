@@ -11,6 +11,9 @@
 /** The attribute carrying a row's store id, so append stability is proved on it. */
 export const ROW_ID_ATTR = "data-row";
 
+/** The attribute carrying a collapsed block's `(N more lines)` number (M2.4). */
+export const MORE_LINES_ATTR = "data-more-lines";
+
 /** The transcript region's accessible name. */
 export const TRANSCRIPT_LABEL = "Transcript";
 
@@ -63,3 +66,14 @@ export const REASONING_LABEL = "Reasoning";
 
 /** Cost decimals in a footer (M2.8 owns the statusline's spend). */
 export const COST_DECIMALS = 4;
+
+/**
+ * A collapsed output block's toggle: `(N more lines)` (M2.4). A prefix/suffix pair
+ * with the count between them, so the number is a value and not a string built
+ * inline by a component.
+ */
+export const OUTPUT_MORE_PREFIX = "(";
+export const OUTPUT_MORE_SUFFIX = " more lines)";
+
+/** The affordance that gives an expanded block its head back. */
+export const OUTPUT_COLLAPSE_LABEL = "Show less";

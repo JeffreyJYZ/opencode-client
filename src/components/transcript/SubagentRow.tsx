@@ -1,14 +1,8 @@
 import { SUBAGENT_LABEL, TOOL_STATUS_LABEL } from "@/constants/transcriptUi";
 import type { ToolRow } from "@/session/transcript";
+import { OutputBlock } from "./OutputBlock";
 import { subagentDetail, subagentSession } from "./rowModel";
-import {
-	ANCHOR_STYLE,
-	HEAD_STYLE,
-	META_STYLE,
-	OUTPUT_STYLE,
-	ROW_STYLE,
-	rowIdentity,
-} from "./rowStyles";
+import { ANCHOR_STYLE, HEAD_STYLE, META_STYLE, ROW_STYLE, rowIdentity } from "./rowStyles";
 
 /**
  * A subagent call — the tool family with a child session behind it (M2.1 keeps the
@@ -33,7 +27,7 @@ export function SubagentRow({ row }: { readonly row: ToolRow }) {
 					{TOOL_STATUS_LABEL[row.status]}
 				</span>
 			</header>
-			{row.output !== "" && <pre style={OUTPUT_STYLE}>{row.output}</pre>}
+			<OutputBlock output={row.output} />
 		</article>
 	);
 }

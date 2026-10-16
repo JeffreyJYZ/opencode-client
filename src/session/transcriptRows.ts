@@ -5,6 +5,7 @@ import type {
 	ToolContent,
 } from "@opencode/client";
 import { DELIVERY, ROW_KIND, TOOL_ANCHOR_FIELD, TOOL_STATUS } from "@/constants/transcript";
+import { capInput, capPayload, capString } from "@/session/payloadCaps";
 import type { TranscriptRow } from "@/session/transcript";
 
 /**
@@ -17,6 +18,10 @@ import type { TranscriptRow } from "@/session/transcript";
  * per-prompt footer — so a row that survives a repair keeps its identity, and
  * re-applying a frame the repair already contains updates a row instead of adding
  * a second one.
+ *
+ * A repair is an **ingest** too, so every payload here goes through the same cap
+ * (`src/session/payloadCaps.ts`) the stream's frames do: a refetch must not
+ * re-inflate what the stream trimmed (M2.4).
  */
 
 function toolText(content: readonly ToolContent[]): string {
@@ -28,13 +33,13 @@ function toolText(content: readonly ToolContent[]): string {
 function toolRow(part: SessionMessageAssistantTool): TranscriptRow {
 	const state = part.state;
 	const streaming = state.status === "streaming";
-	const input = streaming ? state.input : JSON.stringify(state.input);
+	const input = streaming ? capString(state.input) : capInput(state.input);
 	const output =
 		state.status === "completed"
-			? toolText(state.content)
+			? capPayload(toolText(state.content))
 			: state.status === "error"
-				? state.error.message
-				: "";
+				? capPayload(state.error.message)
+				: capPayload("");
 	const status =
 		state.status === "completed"
 			? TOOL_STATUS.ok
@@ -76,7 +81,7 @@ function assistantRows(message: SessionMessageAssistant): TranscriptRow[] {
 			created: message.time.created,
 			seq: 0,
 			kind: isReasoning ? ROW_KIND.reasoning : ROW_KIND.prose,
-			text: part.text,
+			text: capPayload(part.text),
 			// `ended` is "this is the authoritative final text": a message the server
 			// has not completed (`time.completed` absent) may still be streaming, so
 			// its refetched parts keep accepting deltas.
@@ -106,7 +111,7 @@ export function rowsFromMessage(message: SessionMessageInfo): TranscriptRow[] {
 					created: message.time.created,
 					seq: 0,
 					kind: ROW_KIND.user,
-					text: message.text,
+					text: capString(message.text),
 					delivery: DELIVERY.delivered,
 				},
 			];
@@ -121,7 +126,7 @@ export function rowsFromMessage(message: SessionMessageInfo): TranscriptRow[] {
 					kind: ROW_KIND.shell,
 					command: message.command,
 					status: message.status,
-					output: message.output?.output ?? "",
+					output: capPayload(message.output?.output ?? ""),
 				},
 			];
 		default:
