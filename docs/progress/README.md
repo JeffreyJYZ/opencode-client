@@ -20,6 +20,8 @@ The plan is [`docs/specs/060-plan.md`](../specs/060-plan.md). Every task there h
 - **Specs hold intent, this directory holds state.** No status markers inside `docs/specs/` — the specs describe the target, not the weather.
 - **Statuses travel with the code, not with a commit message.** A commit that lands a task updates its row; the reverse (a row updated later from memory) is how boards rot.
 
+- **A milestone tally is a count, not an edit.** Two branches that each move a numerator merge **silently** into one increment while two rows are ticked, and a branch that ticks a row without touching the tally leaves it short — so after every landing, **recount the ticked rows** for that milestone and set the numerator to that number.
+
 ## Files
 
 | File | Holds |
