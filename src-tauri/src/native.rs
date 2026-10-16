@@ -12,6 +12,7 @@
 //! opened). Nothing here re-implements either.
 
 mod editor;
+pub(crate) mod fs;
 pub(crate) mod links;
 #[cfg(test)]
 mod tests;

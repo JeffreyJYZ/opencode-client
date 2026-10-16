@@ -16,6 +16,21 @@ export const NATIVE_COMMAND = {
 	notifyTurnEnd: "notify_turn_end",
 } as const;
 
+/**
+ * The seven commands the `native` service's filesystem port invokes (M4.16). The
+ * Rust half (`src-tauri/src/native/fs/commands.rs`) writes the same strings and its
+ * tests read this file, so a rename on either side fails a test.
+ */
+export const NATIVE_FS_COMMAND = {
+	dataRoot: "native_data_root",
+	realpath: "native_realpath",
+	readText: "native_read_text",
+	writeText: "native_write_text",
+	list: "native_list",
+	remove: "native_remove",
+	mkdirp: "native_mkdirp",
+} as const;
+
 /** The window event the shell raises with the paths of a dropped file (M5.2). */
 export const FILES_DROPPED_EVENT = "oc:files-dropped";
 
