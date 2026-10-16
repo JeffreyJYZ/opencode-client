@@ -50,6 +50,12 @@ const STYLE_SRC: &str = "style-src 'self' 'unsafe-inline'";
 const OBJECT_SRC: &str = "object-src 'none'";
 /// No `<base>` element exists, and one would retarget every relative asset.
 const BASE_URI: &str = "base-uri 'none'";
+/// Images in server-supplied markdown (`M2.3` renders it): the app's own assets,
+/// an inline `data:` image embedded in the markdown, and the resolved server's
+/// origin, which serves the markdown's images. This is the directive the `M2.3`
+/// TODO promised and never added — `M1.17`, where the whole-policy test below
+/// pinned its absence as correct instead of catching it.
+const IMG_SRC: &str = "img-src 'self' data:";
 /// The scheme Vite's HMR websocket speaks. Dev only.
 const DEV_CONNECT_SCHEME: &str = "ws";
 
@@ -60,6 +66,7 @@ pub fn policy(target: Option<&Target>, dev: bool) -> String {
         script_src(dev),
         STYLE_SRC.to_owned(),
         connect_src(target, dev),
+        img_src(target),
         OBJECT_SRC.to_owned(),
         BASE_URI.to_owned(),
     ]
@@ -80,9 +87,8 @@ pub fn initialization_script(target: Option<&Target>, dev: bool) -> String {
 /// server. The server url is user-supplied and on any port (M1.7), so its
 /// **origin** — never the bundled guess — is what is allowed, and nothing else.
 ///
-/// TODO(M2.3): server-supplied markdown renders images, so that row adds
-/// `img-src` for the server origin here. The plugin loader's `blob:` script
-/// source is named in [`SCRIPT_SRC`] (M4.5); this directive stays origin-only.
+/// The plugin loader's `blob:` script source is named in [`SCRIPT_SRC`] (M4.5);
+/// this directive stays origin-only.
 fn connect_src(target: Option<&Target>, dev: bool) -> String {
     let mut sources = vec!["'self'".to_owned()];
     if let Some(origin) = target.and_then(origin_of) {
@@ -97,6 +103,16 @@ fn connect_src(target: Option<&Target>, dev: bool) -> String {
         ));
     }
     format!("connect-src {}", sources.join(" "))
+}
+
+/// `img-src`, widened by the resolved server's origin for the same reason
+/// `connect-src` is: the markdown's images are served by the server, not by the
+/// bundle. No `dev` arm — Vite serves no image the bundle does not already hold.
+fn img_src(target: Option<&Target>) -> String {
+    match target.and_then(origin_of) {
+        Some(origin) => format!("{IMG_SRC} {origin}"),
+        None => IMG_SRC.to_owned(),
+    }
 }
 
 /// `script-src`, with Vite's React-refresh preamble allowed in a dev build only.
