@@ -99,3 +99,18 @@ export const ROW_DETAIL_STYLE: CSSProperties = {
 	textOverflow: "ellipsis",
 	whiteSpace: "nowrap",
 };
+
+/** A subagent row's open control (M2.19): the row's own layout, as a `<button>`. */
+export const ROW_OPEN_STYLE: CSSProperties = {
+	display: "flex",
+	flexDirection: "column",
+	gap: "var(--oc-space-1)",
+	minWidth: 0,
+	textAlign: "left",
+};
+
+/** The interrupt control a **running** subagent row offers (M2.19). */
+export const ROW_INTERRUPT_STYLE: CSSProperties = {
+	alignSelf: "flex-start",
+	fontSize: "var(--oc-font-size-meta)",
+};

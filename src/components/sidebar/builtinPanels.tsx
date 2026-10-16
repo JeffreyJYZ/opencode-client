@@ -1,3 +1,5 @@
+import { useCallback } from "react";
+import { openSessionAndGo } from "@/app/tabSync";
 import { ContextPanel } from "@/components/sidebar/ContextPanel";
 import { FilesPanel } from "@/components/sidebar/FilesPanel";
 import { McpPanel } from "@/components/sidebar/McpPanel";
@@ -7,6 +9,8 @@ import { useSidebarData } from "@/components/sidebar/sidebarData";
 import { SIDEBAR_PANEL, SIDEBAR_PANEL_LABEL, SIDEBAR_PANEL_ORDER } from "@/constants/sidebar";
 import type { Disposable } from "@/plugins/disposable";
 import { registerPanel } from "@/plugins/panels";
+import { interruptSession } from "@/session/actions";
+import { useClient } from "@/session/ClientProvider";
 
 /**
  * The sidebar's built-in panels (M2.7, M4.11): each registers through the same
@@ -31,7 +35,23 @@ function ContextSlot() {
 
 function SubagentsSlot() {
 	const data = useSidebarData();
-	return <SubagentsPanel data={data.subagents} />;
+	const client = useClient();
+	// The panel is handed actions, never a client, so its body stays a pure
+	// function of its props and mounting it starts no request (M2.19). Both
+	// actions are the app's existing seams.
+	const interrupt = useCallback(
+		(sessionID: string) => {
+			if (client !== null) void interruptSession(client, sessionID);
+		},
+		[client],
+	);
+	return (
+		<SubagentsPanel
+			data={data.subagents}
+			openSession={openSessionAndGo}
+			interrupt={interrupt}
+		/>
+	);
 }
 
 function McpSlot() {

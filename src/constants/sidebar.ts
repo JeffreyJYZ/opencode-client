@@ -75,3 +75,20 @@ export const SIDEBAR_SUBAGENT_ACTIVE = "running";
 export const SIDEBAR_ADDITIONS_PREFIX = "+";
 export const SIDEBAR_DELETIONS_PREFIX = "−";
 export const SIDEBAR_DIFF_SEPARATOR = " ";
+
+/**
+ * A subagent row's two actions (M2.19, spec 020 §Sidebar: "click to open,
+ * interrupt"): the word on each control, and the accessible name it carries — the
+ * word, then the child's own label, so two running children are distinguishable
+ * and neither control is an anonymous "Open"/"Interrupt".
+ */
+export const SIDEBAR_SUBAGENT_OPEN = "Open";
+export const SIDEBAR_SUBAGENT_INTERRUPT = "Interrupt";
+
+export function subagentOpenLabel(title: string): string {
+	return `${SIDEBAR_SUBAGENT_OPEN} ${title}`;
+}
+
+export function subagentInterruptLabel(title: string): string {
+	return `${SIDEBAR_SUBAGENT_INTERRUPT} ${title}`;
+}
