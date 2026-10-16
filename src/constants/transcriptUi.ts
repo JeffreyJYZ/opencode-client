@@ -43,11 +43,21 @@ export const SUBAGENT_TOOL_NAME = "subagent";
 /** The subagent row's kind word; the call's own subject follows it. */
 export const SUBAGENT_LABEL = "Subagent";
 
-/** The subagent input fields the row names itself from, in order of usefulness. */
-export const SUBAGENT_DETAIL_FIELDS = ["description", "agent"] as const;
+/** The subagent input fields the row reads its own words from. */
+export const SUBAGENT_AGENT_FIELD = "agent";
+export const SUBAGENT_DESCRIPTION_FIELD = "description";
+export const SUBAGENT_MODEL_FIELD = "model";
 
 /** The input field that continues an earlier subagent conversation, shown when set. */
 export const SUBAGENT_SESSION_FIELD = "sessionID";
+
+/**
+ * The subagent row's own punctuation (spec 020 §Transcript:
+ * `<Agent> Subagent — <description> · <model>`, `↳` for a continuation).
+ */
+export const SUBAGENT_TITLE_SEPARATOR = " — ";
+export const SUBAGENT_DETAIL_SEPARATOR = " · ";
+export const SUBAGENT_CONTINUATION_MARK = "↳";
 
 /** The shell row's kind word, and the prompt mark before its command. */
 export const SHELL_LABEL = "Shell";

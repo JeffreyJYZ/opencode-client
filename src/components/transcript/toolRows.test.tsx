@@ -2,13 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { cleanup, render, screen } from "@testing-library/react";
 import { TranscriptEntry } from "@/components/transcript/TranscriptEntry";
 import { ROW_KIND, TOOL_STATUS, type ToolStatus } from "@/constants/transcript";
-import {
-	SHELL_LABEL,
-	SUBAGENT_LABEL,
-	SUBAGENT_TOOL_NAME,
-	TOOL_STATUS_LABEL,
-	TOOL_UNNAMED,
-} from "@/constants/transcriptUi";
+import { SHELL_LABEL, TOOL_STATUS_LABEL, TOOL_UNNAMED } from "@/constants/transcriptUi";
 import { capPayload } from "@/session/payloadCaps";
 import type { ShellRow, ToolRow } from "@/session/transcript";
 
@@ -72,40 +66,6 @@ describe("a tool row", () => {
 		);
 		expect(screen.getByText(TOOL_STATUS_LABEL.failed)).toBeDefined();
 		expect(container.querySelector("pre")?.textContent).toBe("ENOENT: no such file");
-	});
-});
-
-describe("a subagent row", () => {
-	const subagent = (input: string, over: Partial<ToolRow> = {}): ToolRow =>
-		toolRow({ id: "tool_sub", name: SUBAGENT_TOOL_NAME, input, anchor: undefined, ...over });
-
-	test("is the tool row whose subject is its description", () => {
-		const input = JSON.stringify({
-			agent: "builder",
-			description: "Wire the rows",
-			prompt: "…",
-		});
-		render(<TranscriptEntry row={subagent(input)} />);
-		expect(screen.getByText(SUBAGENT_LABEL)).toBeDefined();
-		expect(screen.getByText("Wire the rows")).toBeDefined();
-	});
-
-	test("falls back to its kind word while the input is still streaming", () => {
-		const { container } = render(
-			<TranscriptEntry row={subagent('{"agent":"bui', { status: TOOL_STATUS.streaming })} />,
-		);
-		expect(screen.getByText(SUBAGENT_LABEL)).toBeDefined();
-		expect(container.textContent).not.toContain("bui");
-	});
-
-	test("names the child session it continues, when the input carries one", () => {
-		const input = JSON.stringify({
-			agent: "builder",
-			description: "Continue",
-			sessionID: "ses_x",
-		});
-		render(<TranscriptEntry row={subagent(input)} />);
-		expect(screen.getByText("ses_x")).toBeDefined();
 	});
 });
 
