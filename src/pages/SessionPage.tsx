@@ -1,10 +1,9 @@
-import type { CSSProperties } from "react";
 import { SessionComposer } from "@/components/composer/SessionComposer";
 import { JumpToLatest } from "@/components/transcript/JumpToLatest";
 import { TranscriptView } from "@/components/transcript/TranscriptView";
 import { useTailFollow } from "@/components/transcript/useTailFollow";
 import { ROUTE_KIND } from "@/constants/routes";
-import { SESSION_PAGE_STYLE } from "@/constants/styles";
+import { SESSION_PAGE_STYLE, SESSION_VIEW_STYLE } from "@/constants/styles";
 import type { TranscriptRow } from "@/session/transcript";
 import { useTranscript } from "@/session/useTranscript";
 
@@ -32,41 +31,27 @@ import { useTranscript } from "@/session/useTranscript";
 const NO_ROWS: readonly TranscriptRow[] = [];
 
 /**
- * The page is a column whose transcript cell grows, so the input slot sits under the
- * transcript and stays put while the transcript is longer than the window. The
- * transcript's own scroll contract — tail-follow, unpinning, per-tab memory — is
- * M2.9's; this only gives it the cell it scrolls in.
+ * The page is a column (`SESSION_VIEW_STYLE`) whose transcript cell grows, so the
+ * input slot sits under the transcript and stays put while the transcript is longer
+ * than the window.
  */
-const PAGE_STYLE: CSSProperties = {
-	...SESSION_PAGE_STYLE,
-	display: "flex",
-	flexDirection: "column",
-	height: "100%",
-	minHeight: 0,
-	position: "relative",
-};
-
-const TRANSCRIPT_CELL_STYLE: CSSProperties = {
-	flex: "1 1 0%",
-	minHeight: 0,
-	overflowY: "auto",
-};
 
 export function SessionPage({ id }: { readonly id: string }) {
 	const transcript = useTranscript(id);
 	const follow = useTailFollow(id);
 	return (
-		<main
-			data-route={ROUTE_KIND.session}
-			data-session={id}
-			data-following={follow.following}
-			style={PAGE_STYLE}
-		>
-			<div ref={follow.ref} style={TRANSCRIPT_CELL_STYLE}>
+		<div style={SESSION_VIEW_STYLE}>
+			<main
+				ref={follow.ref}
+				data-route={ROUTE_KIND.session}
+				data-session={id}
+				data-following={follow.following}
+				style={SESSION_PAGE_STYLE}
+			>
 				<TranscriptView rows={transcript?.rows ?? NO_ROWS} />
-			</div>
+			</main>
 			{!follow.following && <JumpToLatest onClick={follow.jumpToLatest} />}
 			<SessionComposer sessionID={id} running={transcript?.running ?? false} />
-		</main>
+		</div>
 	);
 }
