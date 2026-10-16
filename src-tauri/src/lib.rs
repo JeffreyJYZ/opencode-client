@@ -1,25 +1,26 @@
 //! The desktop shell: one window, built in Rust so it can carry the target handover.
 
 mod csp;
+mod menu;
+mod shell;
 mod target;
+mod updates;
+mod version;
+mod window_state;
 
 #[cfg(test)]
 mod tests;
 
-use tauri::{Url, WebviewUrl, WebviewWindowBuilder};
+use tauri::Url;
+
+/// The name the app shows: the window title, the application menu and the About
+/// panel. `tauri.conf.json`'s `productName` is the same string, so the menu a
+/// macOS user sees names the app the same way the bundle does.
+pub const APP_NAME: &str = "opencode client";
 
 /// The window label the capabilities and the frontend address.
-const MAIN_WINDOW_LABEL: &str = "main";
-/// The window title. Spec 010 gives a session route its own title later.
-const WINDOW_TITLE: &str = "opencode client";
-/// The first-run size; `tauri-plugin-window-state` restores later launches.
-const WINDOW_WIDTH: f64 = 1280.0;
-/// The first-run height.
-const WINDOW_HEIGHT: f64 = 800.0;
-/// The smallest width the layout may be squeezed to.
-const WINDOW_MIN_WIDTH: f64 = 800.0;
-/// The smallest height the layout may be squeezed to.
-const WINDOW_MIN_HEIGHT: f64 = 500.0;
+pub(crate) const MAIN_WINDOW_LABEL: &str = "main";
+
 /// The scheme the production app is served from (`tauri://localhost`).
 const APP_SCHEME: &str = "tauri";
 /// The scheme the dev server serves the app over in a dev build.
@@ -63,7 +64,21 @@ fn is_allowed_navigation(url: &Url, dev: bool) -> bool {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_window_state::Builder::default().build())
+        // The window state is restored **by hand** in `setup` below, so the clamp
+        // runs against exactly what the plugin applied instead of racing the
+        // handler Tauri queues on the main thread for `on_window_ready` (which
+        // runs *after* the window is built). Saving on exit is unchanged.
+        .plugin(
+            tauri_plugin_window_state::Builder::default()
+                .skip_initial_state(MAIN_WINDOW_LABEL)
+                .build(),
+        )
+        // The updater reads its endpoints and public key from the
+        // `plugins.updater` block of `tauri.conf.json`; the private key is never
+        // in this repository (see `scripts/verify-release.ts`). Nothing calls it
+        // yet — the page's settings section does, through
+        // `src/updates/updater.ts`.
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .setup(|app| {
             let target = target::resolve();
             match &target {
@@ -71,31 +86,20 @@ pub fn run() {
                 None => println!("[shell] no target; the page falls back to its own origin"),
             }
 
-            let mut window = WebviewWindowBuilder::new(
-                app,
-                MAIN_WINDOW_LABEL,
-                WebviewUrl::App("index.html".into()),
-            )
-            .title(WINDOW_TITLE)
-            .inner_size(WINDOW_WIDTH, WINDOW_HEIGHT)
-            .min_inner_size(WINDOW_MIN_WIDTH, WINDOW_MIN_HEIGHT)
-            // The guard: the init script below re-runs on every main-frame load.
-            // Dev-only residual risk: whatever owns `localhost:1420` is trusted
-            // in a dev build; `--strictPort` refuses a substituted port and the
-            // dev arm is compiled out of production.
-            .on_navigation(|url| is_allowed_navigation(url, cfg!(dev)));
+            // The menu is app-wide, so it is set before the window exists. Every
+            // item either performs something here or is raised for the page; an
+            // unowned id is reported rather than swallowed.
+            let _previous = app.set_menu(menu::build(app.handle())?)?;
+            app.on_menu_event(|app, event| {
+                if !menu::handle(app, event.id().as_ref()) {
+                    println!("[shell] no action for menu item {}", event.id().as_ref());
+                }
+            });
+            println!("[shell] updates from {}", updates::UPDATE_ENDPOINT);
 
-            // The policy is assembled here — after the target resolved above,
-            // before the window exists — so its `connect-src` names this
-            // launch's server and nothing guessed. The handover has to exist
-            // before the page's first script runs, which is why the window is
-            // built here rather than declared in `tauri.conf.json`: only this
-            // builder carries an initialization script. It is set even with no
-            // target, because the policy applies to the web build too.
-            let script = csp::initialization_script(target.as_ref(), cfg!(dev));
-            window = window.initialization_script(script);
-
-            window.build()?;
+            // The window, the target handover and the restore clamp all live in
+            // `shell`; it is where the geometry is read back and corrected.
+            let _window = shell::open(app.handle(), target.as_ref())?;
             Ok(())
         })
         .run(tauri::generate_context!())

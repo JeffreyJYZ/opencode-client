@@ -65,6 +65,7 @@ export const SETTINGS_SECTION_ID = {
 	typography: "typography",
 	connect: "connect",
 	plugins: "plugins",
+	version: "version",
 } as const;
 
 /**

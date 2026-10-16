@@ -11,6 +11,7 @@ import { CONNECT_TITLE } from "@/constants/connect";
 import { PLUGINS_TITLE } from "@/constants/plugins";
 import { SETTINGS_SECTION_ID } from "@/constants/settings";
 import { TYPOGRAPHY_TITLE } from "@/constants/typography";
+import { VERSION_SECTION_LABEL } from "@/constants/version";
 import { clearFaults, FAULT_AREAS, FAULT_REASONS, listFaults } from "@/plugins/faults";
 
 function Probe() {
@@ -23,6 +24,7 @@ const BUILTIN_IDS = [
 	SETTINGS_SECTION_ID.typography,
 	SETTINGS_SECTION_ID.connect,
 	SETTINGS_SECTION_ID.plugins,
+	SETTINGS_SECTION_ID.version,
 ];
 
 afterEach(() => {
@@ -39,6 +41,7 @@ describe("the settings-section registry", () => {
 			TYPOGRAPHY_TITLE,
 			CONNECT_TITLE,
 			PLUGINS_TITLE,
+			VERSION_SECTION_LABEL,
 		]);
 	});
 

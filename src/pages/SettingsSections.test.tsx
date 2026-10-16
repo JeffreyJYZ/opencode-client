@@ -9,6 +9,7 @@ import { APPEARANCE_TITLE } from "@/constants/appearance";
 import { CONNECT_TITLE } from "@/constants/connect";
 import { PLUGINS_TITLE } from "@/constants/plugins";
 import { TYPOGRAPHY_TITLE } from "@/constants/typography";
+import { VERSION_SECTION_LABEL } from "@/constants/version";
 import { clearFaults, FAULT_AREAS, FAULT_REASONS, listFaults } from "@/plugins/faults";
 import { resetSettingsState } from "@/test/settings";
 
@@ -63,6 +64,7 @@ describe("a plugin-contributed settings section", () => {
 			"Contributed",
 			CONNECT_TITLE,
 			PLUGINS_TITLE,
+			VERSION_SECTION_LABEL,
 		]);
 	});
 
@@ -92,6 +94,7 @@ describe("a plugin-contributed settings section", () => {
 				TYPOGRAPHY_TITLE,
 				CONNECT_TITLE,
 				PLUGINS_TITLE,
+				VERSION_SECTION_LABEL,
 			]);
 			const faults = listFaults().filter((fault) => fault.area === FAULT_AREAS.settings);
 			expect(faults.some((fault) => fault.reason === FAULT_REASONS.sectionThrew)).toBe(true);

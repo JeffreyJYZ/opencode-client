@@ -7,8 +7,10 @@
 		"types": ["vite/client"],
 		"allowArbitraryExtensions": true,
 		"skipLibCheck": true,
-
-		/* The vendored theme document is imported as data (`theme/themes.ts`) so the
+		/* Two independent reasons, which a merge kept apart: `package.json` is statically
+		   imported as the one source of the app version (M5.3) — the file is inlined at
+		   build time, so the number cannot drift from the one the bundle is stamped with —
+		   and the vendored theme document is imported as data (`theme/themes.ts`) so the
 		   built-in themes are read out of it rather than re-typed. */
 		"resolveJsonModule": true,
 

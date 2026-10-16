@@ -12,6 +12,7 @@ import { KEY_ESCAPE } from "@/constants/keys";
 import { PLUGINS_TITLE } from "@/constants/plugins";
 import { ROUTE_KIND, ROUTE_PATH } from "@/constants/routes";
 import { TYPOGRAPHY_TITLE } from "@/constants/typography";
+import { VERSION_SECTION_LABEL } from "@/constants/version";
 import { clearFaults } from "@/plugins/faults";
 import { resetSettingsState } from "@/test/settings";
 
@@ -62,6 +63,7 @@ describe("the settings surface", () => {
 			TYPOGRAPHY_TITLE,
 			CONNECT_TITLE,
 			PLUGINS_TITLE,
+			VERSION_SECTION_LABEL,
 		]);
 	});
 

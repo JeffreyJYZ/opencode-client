@@ -4,11 +4,13 @@ import { AppearanceSection } from "@/components/AppearanceSection";
 import { ConnectSection } from "@/components/ConnectSection";
 import { PluginsSection } from "@/components/PluginsSection";
 import { TypographySection } from "@/components/TypographySection";
+import { VersionSection } from "@/components/VersionSection";
 import { APPEARANCE_TITLE } from "@/constants/appearance";
 import { CONNECT_TITLE } from "@/constants/connect";
 import { PLUGINS_TITLE } from "@/constants/plugins";
 import { SETTINGS_SECTION_ID, SETTINGS_SECTION_ORDER } from "@/constants/settings";
 import { TYPOGRAPHY_TITLE } from "@/constants/typography";
+import { VERSION_SECTION_LABEL, VERSION_SECTION_ORDER } from "@/constants/version";
 import { FAULT_AREAS, FAULT_REASONS, recordFault } from "@/plugins/faults";
 
 /**
@@ -126,6 +128,12 @@ const BUILTINS: readonly SettingsSection[] = [
 		label: PLUGINS_TITLE,
 		component: PluginsSection,
 		order: SETTINGS_SECTION_ORDER.plugins,
+	},
+	{
+		id: SETTINGS_SECTION_ID.version,
+		label: VERSION_SECTION_LABEL,
+		component: VersionSection,
+		order: VERSION_SECTION_ORDER,
 	},
 ];
 
