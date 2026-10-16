@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# The plugin build's output (M4.6): a generated artifact, never source. The
+# committed source is `plugins/<id>/main.tsx`; `bun scripts/build-plugins.ts`
+# writes `public/plugins/<id>/main.js` here.
+public/plugins/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

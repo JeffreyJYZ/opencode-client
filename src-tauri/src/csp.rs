@@ -27,13 +27,19 @@ use script::meta_script;
 mod script;
 
 #[cfg(test)]
+mod install_tests;
+
+#[cfg(test)]
 mod tests;
 
 /// The bundled assets every other directive falls back to.
 const DEFAULT_SRC: &str = "default-src 'self'";
-/// Scripts come from the bundle only; a dev build appends `'unsafe-inline'` for
-/// Vite's React-refresh preamble (see [`script_src`]).
-const SCRIPT_SRC: &str = "script-src 'self'";
+/// Scripts come from the bundle, and from the `Blob` the plugin loader imports an
+/// installed plugin's entry from (M4.5, spec 040 §Entry file). A `blob:` URL is not
+/// covered by `'self'`, so the loader needs the scheme named here or the import is
+/// refused. A dev build appends `'unsafe-inline'` for Vite's React-refresh preamble
+/// (see [`script_src`]).
+const SCRIPT_SRC: &str = "script-src 'self' blob:";
 /// Vite injects the dev stylesheet as an inline `<style>` element and React sets
 /// inline `style` attributes (`style={{…}}`, `style.setProperty`) in both
 /// builds, so styles need `'unsafe-inline'` always. CSS cannot execute, and no
@@ -75,9 +81,8 @@ pub fn initialization_script(target: Option<&Target>, dev: bool) -> String {
 /// **origin** — never the bundled guess — is what is allowed, and nothing else.
 ///
 /// TODO(M2.3): server-supplied markdown renders images, so that row adds
-/// `img-src` for the server origin here. TODO(M4.2): the plugin loader imports
-/// from a `Blob`, so that row adds `blob:` to [`script_src`]. Neither consumer
-/// can run today, so neither is allowed today.
+/// `img-src` for the server origin here. The plugin loader's `blob:` script
+/// source is named in [`SCRIPT_SRC`] (M4.5); this directive stays origin-only.
 fn connect_src(target: Option<&Target>, dev: bool) -> String {
     let mut sources = vec!["'self'".to_owned()];
     if let Some(origin) = target.and_then(origin_of) {
