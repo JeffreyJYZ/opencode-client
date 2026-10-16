@@ -77,23 +77,43 @@ fn with_no_target_only_the_apps_own_origin_is_allowed() {
 fn production_scripts_come_from_the_bundle_and_the_plugin_blob() {
     let policy = policy(Some(&probe()), false);
     // `blob:` is the plugin loader's entry source (M4.5, spec 040 §Entry file);
-    // nothing beyond it is added, so the policy still covers the app and no more.
-    assert!(policy.contains("script-src 'self' blob:;"), "{policy}");
-    assert!(!policy.contains("'unsafe-eval'"), "{policy}");
-    assert!(!policy.contains("data:"), "{policy}");
-    assert!(!policy.contains("script-src 'self' blob: *"), "{policy}");
+    // nothing beyond it is added, so the script sources still cover the app and no
+    // more. Scoped to the **one directive** this guards: until M1.17 these were
+    // assertions over the whole policy, and an `img-src` carrying `data:` — a
+    // legitimate image source — failed them as though it were a script one.
+    let script_src = policy
+        .split("; ")
+        .find(|directive| directive.starts_with("script-src "))
+        .expect("the policy names script-src");
+    assert_eq!(
+        script_src, "script-src 'self' blob:",
+        "the bundle and the plugin blob, and nothing else"
+    );
 }
 
 #[test]
 fn the_plugin_blob_directive_widens_nothing_else_in_the_production_policy() {
     // The **whole** production policy with no target, pinned as one string: the
-    // only difference from M2.0's is the one scheme M4.5 added, so no unrelated
-    // directive (a wildcard, `http:`, `*`) can ride in unnoticed with it.
+    // differences from M2.0's are the `blob:` scheme M4.5 added and the `img-src`
+    // M1.17 added, so no unrelated directive (a wildcard, `http:`, `*`) can ride
+    // in unnoticed with them.
     assert_eq!(
         policy(None, false),
         "default-src 'self'; script-src 'self' blob:; \
          style-src 'self' 'unsafe-inline'; connect-src 'self'; \
-         object-src 'none'; base-uri 'none'"
+         img-src 'self' data:; object-src 'none'; base-uri 'none'"
+    );
+}
+
+/// M1.17: the directive the `M2.3` TODO promised and never added. The whole-policy
+/// test above pins its *presence*; this one pins what it admits — the resolved
+/// server's origin, so an image the server serves is not blocked with no error.
+#[test]
+fn img_src_admits_the_servers_origin_and_nothing_else() {
+    let policy = policy(Some(&probe()), false);
+    assert!(
+        policy.contains("img-src 'self' data: http://127.0.0.1:49374"),
+        "{policy}"
     );
 }
 
