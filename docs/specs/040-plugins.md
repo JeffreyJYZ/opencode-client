@@ -58,13 +58,13 @@ Registries register **synchronously** and return a `Disposable`; services return
 | `commands.register({ id, title, run, keybinding? })` | a palette command, optionally keybound | registry |
 | `panels.register({ id, title, component })` | a sidebar panel (`session.sidebar.panels`) | registry |
 | `routes.register({ id, path, component })` | a route the router serves | registry |
-| `settings.registerSection({ id, title, component })` | a foldable section on `/settings` | registry |
+| `settings.registerSection({ id, label, component, order? })` | a section on `/settings` — **always expanded**: folding is a non-goal until a row owns it, and a contribution naming no `order` sorts **last**, never above the built-ins | registry |
 | `renderers.register({ id, kind, component })` | override a transcript renderer: `message`, `markdown`, `reasoning`, `tool`, `marker` | registry |
 | `themes.register(theme)` / `apply(id)` / `clear()` / `active()` | a theme in the app's one theme service (spec 030) | registry + service |
 | `opencode.client` | the raw `@opencode/client` instance (full server API, `docs/opencode-api.md`) | service |
 | `opencode.on(event, handler)` | the server's event stream, filtered for you (`session.*`, `mcp.*`, `permission.*`, …); returns an unsubscribe | service |
 | `transcript.snapshot()` | the open session's rows, synchronously (what is rendered now) | service |
-| `storage.get/set/delete/keys` | your own key-value store, persisted in `settings.plugins[].data` | service |
+| `storage.get/set/delete/keys` | your own key-value store, **capped and namespace-scoped per plugin id** (`src/plugins/services/storage.ts`; the cap is `PLUGIN_DATA_MAX_BYTES`) | service |
 | `native` | `pickDirectory`, `pickFiles`, `openExternal`, and path-scoped `read`/`write`/`list`/`remove`/`dataDir` under `plugin-data/<id>/`; `null` on web | service |
 | `native.http` | an unrestricted request through the shell's `http_request`; rides `net` | service |
 | `notify.toast/banner/modal/confirm` | host-rendered notices | service |

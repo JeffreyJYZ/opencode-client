@@ -22,9 +22,9 @@ Build order for specs [000](000-overview.md)–[050](050-opencode-integration.md
 | `HIGHLIGHT_DEBOUNCE_MS` | `src/session/markdown.ts` | 80 |
 | `SESSION_PAGE_LIMIT` | `src/constants/sessions.ts` | 50 |
 | `BRANCH_READ_ATTEMPTS` / `BRANCH_READ_RETRY_MS` | `src/session/actions.ts` | 6 / 120 |
-| `PLUGIN_DATA_MAX_BYTES` | `src/plugins/manifest.ts` | 64 KiB |
+| `PLUGIN_DATA_MAX_BYTES` | `src/constants/plugins.ts` | 256 KiB |
 | `SIDEBAR_MIN_WIDTH` / `SIDEBAR_DEFAULT_WIDTH` | `src/constants/layout.ts` | 280 / 340 |
-| `PLUGIN_API_VERSION` | `src/plugins/version.ts` | `0.1` |
+| `HOST_API_VERSION` | `src/constants/plugins.ts` | `0.1` |
 | `INTERFACE_FONT_DEFAULT` / `CODE_FONT_DEFAULT` + their fallback stacks | `src/constants/fonts.ts` | `Geist` / `GeistMono Nerd Font` → `Geist Mono` → `ui-monospace, …` |
 
 ## Ordering — vertical slices, logic first inside each

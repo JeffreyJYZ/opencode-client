@@ -7,8 +7,9 @@ import {
 } from "@/plugins/blobModule";
 import { isDisposable } from "@/plugins/disposable";
 import { FAULT_AREAS, FAULT_REASONS, type FaultReason, recordFault } from "@/plugins/faults";
-import { missingHostGlobals } from "@/plugins/globals";
-import { createInstance, type PluginInstance } from "@/plugins/instance";
+import { installPluginHost, missingHostGlobals } from "@/plugins/globals";
+import type { HostFactory } from "@/plugins/host";
+import type { PluginInstance } from "@/plugins/instance";
 import type { LoadOutcome, PluginRequest } from "@/plugins/loader";
 import { parseManifest } from "@/plugins/manifest";
 
@@ -16,20 +17,25 @@ import { parseManifest } from "@/plugins/manifest";
  * The loader's two steps, held apart from the instance registry so each reads on
  * its own (spec 040 §The host).
  *
- * `prepare` validates the manifest and imports the entry — it creates no instance
- * and touches nothing that is already running, which is what makes a reload's
- * first phase safe. `start` runs `setup` and keeps its handle. A failure in either
- * is a `PluginFault`, never a throw into the host.
+ * `prepare` validates the manifest, builds the plugin's **host** (M4.3), imports
+ * the entry and reads its `setup` — it touches nothing that is already running,
+ * which is what makes a reload's first phase safe. Every refusal past the host's
+ * creation disposes the instance it made, so a refused plugin leaves nothing
+ * behind. `start` runs `setup` and keeps its handle. A failure in either is a
+ * `PluginFault`, never a throw into the host.
  */
 
 export type Prepared = {
 	readonly id: string;
 	readonly setup: (host: object) => unknown;
 	readonly warnings: readonly string[];
+	readonly host: object;
+	readonly instance: PluginInstance;
 };
 
 export type StepOptions = {
-	readonly host: object;
+	/** How a plugin's host is built (M4.3); one host per plugin, never shared. */
+	readonly createHost: HostFactory;
 	readonly appVersion: string;
 	readonly importModule?: ModuleImporter;
 };
@@ -47,7 +53,7 @@ function refuse(reason: FaultReason, subject: string, message: string): LoadOutc
 	return { status: "refused", id: subject, warnings: [] };
 }
 
-/** Validate the manifest, import the entry from a Blob, and read its `setup`. */
+/** Validate the manifest, build the host, import the entry, and read its `setup`. */
 export async function prepare(
 	request: PluginRequest,
 	options: StepOptions,
@@ -58,47 +64,51 @@ export async function prepare(
 		return { ok: false, outcome: refuse(reason, subject, message) };
 	}
 	const { id } = parsed.manifest;
+	// The host exists before the import: the entry reaches it through the
+	// `__ocHost` global. A refusal past here disposes the instance, so the plugin
+	// leaves nothing behind — not even a signal that would abort on teardown.
+	const { host, instance } = options.createHost(id);
+
+	function fail(reason: FaultReason, message: string): PreparedResult {
+		instance.dispose();
+		return { ok: false, outcome: refuse(reason, id, message) };
+	}
+
 	const bare = bareSpecifiers(request.source);
 	if (bare.length > 0) {
 		const names = bare.map((specifier) => `"${specifier}"`).join(", ");
-		return {
-			ok: false,
-			outcome: refuse(
-				FAULT_REASONS.bareSpecifier,
-				id,
-				`the entry for "${id}" still imports ${names}; a built entry must import nothing`,
-			),
-		};
+		return fail(
+			FAULT_REASONS.bareSpecifier,
+			`the entry for "${id}" still imports ${names}; a built entry must import nothing`,
+		);
 	}
+	installPluginHost(host);
 	let module: PluginModule;
 	try {
 		module = await importPluginSource(request.source, options.importModule);
 	} catch (error) {
-		const message = `the entry for "${id}" did not import: ${String(error)}`;
-		return { ok: false, outcome: refuse(FAULT_REASONS.importFailed, id, message) };
+		return fail(
+			FAULT_REASONS.importFailed,
+			`the entry for "${id}" did not import: ${String(error)}`,
+		);
 	}
 	const missing = missingHostGlobals();
 	if (missing.length > 0) {
-		const message = `the entry for "${id}" imported without the host globals ${missing.join(", ")}`;
-		return { ok: false, outcome: refuse(FAULT_REASONS.missingGlobals, id, message) };
+		return fail(
+			FAULT_REASONS.missingGlobals,
+			`the entry for "${id}" imported without the host globals ${missing.join(", ")}`,
+		);
 	}
 	const setup = setupOf(module);
 	if (setup === null) {
-		return {
-			ok: false,
-			outcome: refuse(
-				FAULT_REASONS.noSetup,
-				id,
-				`the entry for "${id}" exports no setup function`,
-			),
-		};
+		return fail(FAULT_REASONS.noSetup, `the entry for "${id}" exports no setup function`);
 	}
-	return { ok: true, prepared: { id, setup, warnings: parsed.warnings } };
+	return { ok: true, prepared: { id, setup, warnings: parsed.warnings, host, instance } };
 }
 
 /** Run `setup` and keep the handle it returned, if any. */
-export function start(prepared: Prepared, host: object): StartedResult {
-	const instance = createInstance(prepared.id);
+export function start(prepared: Prepared): StartedResult {
+	const { instance, host } = prepared;
 	try {
 		const returned = prepared.setup(host);
 		if (isDisposable(returned)) instance.add(returned);
