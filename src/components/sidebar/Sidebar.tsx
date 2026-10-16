@@ -5,7 +5,9 @@ import {
 	useState,
 	useSyncExternalStore,
 } from "react";
+import { sidebarShown } from "@/app/settings/sidebar";
 import { setSidebarWidth } from "@/app/settings/sidebarActions";
+import { useNarrowViewport } from "@/app/settings/sidebarVisibility";
 import { useSettings } from "@/app/settings/useSettings";
 import { useActiveSessionId } from "@/app/useActiveSession";
 import { Slot } from "@/components/Slot";
@@ -49,12 +51,16 @@ import { usePanelData } from "@/session/usePanelData";
  * thin handle without losing the resize; the width is written on every move, and
  * `setSidebarWidth` clamps it, so no gesture can exceed the bound.
  *
- * A child session gets no sidebar (it has no session of its own to describe).
+ * A child session gets no sidebar (it has no session of its own to describe), and
+ * a **narrow window** hides it unless the user explicitly toggled it open there
+ * (M2.25, spec 020 §Sidebar's visibility rule): the effective value is
+ * `sidebarShown`, so the wide flag alone never un-hides a fresh narrow window.
  */
 
 export function Sidebar() {
 	const sessionID = useActiveSessionId();
 	const sidebar = useSettings().settings.sidebar;
+	const narrow = useNarrowViewport();
 	const { data } = usePanelData(sessionID);
 	const panels = useSyncExternalStore(subscribeToPanels, listPanels);
 	const [dragging, setDragging] = useState(false);
@@ -84,7 +90,7 @@ export function Sidebar() {
 
 	if (sessionID === null) return null;
 	if (data.session.info !== null && data.session.info.parentID !== undefined) return null;
-	if (!sidebar.visible) return null;
+	if (!sidebarShown(sidebar, narrow)) return null;
 
 	return (
 		<aside aria-label={SIDEBAR_LABEL} style={{ ...SIDEBAR_STYLE, width: sidebar.width }}>

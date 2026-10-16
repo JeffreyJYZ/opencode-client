@@ -59,7 +59,11 @@ describe("the menu's page half", () => {
 		// blob a reload reads already carries the new value.
 		const loaded = readStoredSettings(storage);
 		expect(settingsFromDocument(loaded.document).sidebar.visible).toBe(false);
-		expect(loaded.document[SETTING_KEYS.sidebar]).toEqual({ visible: false, width: 260 });
+		expect(loaded.document[SETTING_KEYS.sidebar]).toEqual({
+			visible: false,
+			narrowVisible: false,
+			width: 260,
+		});
 	});
 
 	test("the close-tab item closes the active tab, the way ⌘W does", () => {

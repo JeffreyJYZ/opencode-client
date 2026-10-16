@@ -32,7 +32,11 @@ describe("the sidebar store writes", () => {
 		setSidebarWidth(300);
 		// The blob the next launch reads, through the same read path a reload takes.
 		const loaded = readStoredSettings(storage);
-		expect(loaded.document[SETTING_KEYS.sidebar]).toEqual({ visible: true, width: 300 });
+		expect(loaded.document[SETTING_KEYS.sidebar]).toEqual({
+			visible: true,
+			narrowVisible: false,
+			width: 300,
+		});
 		expect(settingsFromDocument(loaded.document).sidebar.width).toBe(300);
 
 		// A width beyond the bound is stored clamped, so a reload cannot restore one
