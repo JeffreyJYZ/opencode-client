@@ -1,6 +1,7 @@
 import { APP_VERSION } from "@/constants/plugins";
 import type { ModuleImporter } from "@/plugins/blobModule";
-import { installHostGlobals } from "@/plugins/globals";
+import { installRuntimeGlobals } from "@/plugins/globals";
+import { createHostFactory, type HostFactory } from "@/plugins/host";
 import type { PluginInstance } from "@/plugins/instance";
 import { prepare, start } from "@/plugins/loadSteps";
 
@@ -35,8 +36,8 @@ export type LoadOutcome = {
 export type LoaderOptions = {
 	/** The master switch (spec 040: off by default). Read on every activation. */
 	readonly isEnabled: () => boolean;
-	/** The host handed to `setup`; M4.3 builds the real one. */
-	readonly host: object;
+	/** How a plugin's host is built (M4.3); one host per plugin, never shared. */
+	readonly createHost?: HostFactory;
 	readonly react: unknown;
 	readonly jsx: unknown;
 	readonly appVersion?: string;
@@ -63,11 +64,11 @@ export function createLoader(options: LoaderOptions): Loader {
 	const running = new Map<string, PluginInstance>();
 	const listeners = new Set<() => void>();
 	const steps = {
-		host: options.host,
+		createHost: options.createHost ?? createHostFactory(),
 		appVersion: options.appVersion ?? APP_VERSION,
 		importModule: options.importModule,
 	};
-	installHostGlobals({ host: options.host, react: options.react, jsx: options.jsx });
+	installRuntimeGlobals({ react: options.react, jsx: options.jsx });
 
 	function notify(): void {
 		for (const listener of [...listeners]) listener();
@@ -82,13 +83,13 @@ export function createLoader(options: LoaderOptions): Loader {
 		if (!options.isEnabled()) return OFF;
 		const prepared = await prepare(request, steps);
 		if (!prepared.ok) return prepared.outcome;
-		const { id, setup, warnings } = prepared.prepared;
+		const { id } = prepared.prepared;
 		retire(id);
-		const started = start({ id, setup, warnings }, options.host);
+		const started = start(prepared.prepared);
 		if (!started.ok) return started.outcome;
 		running.set(id, started.instance);
 		notify();
-		return { status: LOADED, id, warnings };
+		return { status: LOADED, id, warnings: prepared.prepared.warnings };
 	}
 
 	return {

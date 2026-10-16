@@ -51,12 +51,12 @@ describe("register", () => {
 		expect(ids()).toEqual(["m04-a"]);
 	});
 
-	test("orders by the key first, then by registration order", () => {
+	test("orders by the key first, then registration order; no order sorts last", () => {
 		track(register({ id: "m04-late", slot: TEST_SLOT, component: handle, order: 5 }));
 		track(register({ id: "m04-first", slot: TEST_SLOT, component: handle, order: -1 }));
 		track(register({ id: "m04-default", slot: TEST_SLOT, component: handle }));
 		track(register({ id: "m04-second", slot: TEST_SLOT, component: handle, order: 5 }));
-		expect(ids()).toEqual(["m04-first", "m04-default", "m04-late", "m04-second"]);
+		expect(ids()).toEqual(["m04-first", "m04-late", "m04-second", "m04-default"]);
 	});
 
 	test("an empty slot is the same stable array on every read", () => {

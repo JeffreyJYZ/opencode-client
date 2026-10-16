@@ -33,9 +33,10 @@ export function clearTrace(): void {
 }
 
 export function makeLoader(isEnabled: () => boolean = () => true): Loader {
+	// No `createHost`: the loader's own default builds a real host per plugin,
+	// which is the path under test here — these sources never touch it.
 	const options: LoaderOptions = {
 		isEnabled,
-		host: HOST,
 		react: HOST_GLOBALS.react,
 		jsx: HOST_GLOBALS.jsx,
 	};

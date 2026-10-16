@@ -9,6 +9,7 @@ import { CONNECT_TITLE } from "@/constants/connect";
 import { PLUGINS_TITLE } from "@/constants/plugins";
 import { SETTINGS_SECTION_ID, SETTINGS_SECTION_ORDER } from "@/constants/settings";
 import { TYPOGRAPHY_TITLE } from "@/constants/typography";
+import { compareByOrder, NO_ORDER } from "@/plugins/collection";
 import { FAULT_AREAS, FAULT_REASONS, recordFault } from "@/plugins/faults";
 
 /**
@@ -34,17 +35,20 @@ export type SettingsSection = {
 	readonly order?: number;
 };
 
-/** The order a section that names none gets. */
-export const DEFAULT_SECTION_ORDER = 0;
+/**
+ * The order a section that names none gets: **last**, after every ordered one
+ * (M4.3's ruling — M3.5 measured the old default, which put a plugin section
+ * above the built-in Typography section). A contribution belongs after the
+ * built-ins registered before it.
+ */
+export const DEFAULT_SECTION_ORDER = NO_ORDER;
 
 const byId = new Map<string, SettingsSection>();
 const listeners = new Set<() => void>();
 let snapshot: readonly SettingsSection[] = [];
 
 function sorted(): SettingsSection[] {
-	return [...byId.values()].sort(
-		(a, b) => (a.order ?? DEFAULT_SECTION_ORDER) - (b.order ?? DEFAULT_SECTION_ORDER),
-	);
+	return [...byId.values()].sort(compareByOrder);
 }
 
 function publish(): void {
