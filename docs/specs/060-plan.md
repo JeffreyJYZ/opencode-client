@@ -78,6 +78,7 @@ Build order for specs [000](000-overview.md)–[050](050-opencode-integration.md
 | M2.7 | Sidebar: Session, Context, Subagents, MCP, Files panels; ⌘B; drag-resize; persisted width | panels match `session.stats` / `vcs.status` |
 | M2.8 | Statusline: location + branch (bounded retry), subagents, tokens, spend, contextual hints; clickable segments | branch appears after the location resolves |
 | M2.9 | Scroll: tail-follow, unpin on scroll-up, jump-to-latest pill, per-tab scroll/expansion memory | scroll position survives a tab switch |
+| M2.10 | **The model picker keys by something unique**: `ComposerIdentity` uses `model.id` as both the React key and the `<select>` value and resolves the choice with `find(...)`, so when the list holds two entries with one `id` the second is unselectable and the shown selection can be wrong | the colliding list is reproduced and measured from the app own call, and both entries of a colliding pair are selectable |
 
 ### M3 — Type and theme
 
