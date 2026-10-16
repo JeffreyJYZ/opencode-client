@@ -4,7 +4,7 @@ Last updated: 2026-10-15 · Current focus: **M3 — Type and theme** (`M3.0`, th
 
 | Milestone | Done / total | Gate |
 | --- | --- | --- |
-| M0 Foundations | 8 / 9 | `bun run verify` (now ending in `cargo check`) and `cargo test`; `bun tauri dev` opens a window with the target injected |
+| M0 Foundations | 9 / 9 | `bun run verify` (now ending in `cargo check`) and `cargo test`; `bun tauri dev` opens a window with the target injected |
 | M1 Shell and home | 15 / 15 | home → session view end to end; restart restores tabs |
 | M2 Session view | 11 / 11 | a live session streams, interrupts, queues and replies from the keyboard |
 | M3 Type and theme | 6 / 7 | both faces change live and survive a restart; theme applies and clears |
