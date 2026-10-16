@@ -36,3 +36,30 @@ isolated server's only usable model answered in prose. Tool payloads are read fr
 pinned generated types (`dist/promise/generated/types.d.ts`), which is where
 `docs/opencode-api.md` §4's shapes come from — say so in a report rather than passing a
 typed literal off as captured.
+
+## Captured dock fixtures (M2.6)
+
+`m25-docks.json` and `m25-docks-frames.jsonl`, both **verbatim** from one isolated
+2.0.29 server (all four XDG dirs redirected), captured 2026-10-16 with
+`bun scripts/capture-docks.ts <url> <password> <out.json> <frames.jsonl> <seconds>`:
+
+- `m25-docks.json` — the **two list responses the docks read**: `permission.list({sessionID})`
+  (one pending request, `action: "m25probe"`) and `session.form.list({sessionID})` (one
+  form: a `string` field and a `multiselect` field with two options), keyed by session id.
+- `m25-docks-frames.jsonl` — the two cue frames, `form.created` and `permission.asked`.
+
+What it deliberately shows: a permission request's data is the **spread `Request.fields`**
+(`action`, `resources`, `source` — no wrapping `request` key, `packages/schema/src/permission.ts`),
+and a form's fields carry `placeholder` on `string` only and `options` as
+`{value, label}` (`packages/schema/src/form.ts`) — the two shapes a hand-written fixture
+would most likely get wrong.
+
+Two facts the capture records rather than hides:
+
+- The **permission request had to be seeded out of band**: the route exists
+  (`POST /api/session/:id/permission`) but the pinned client exposes no create method for
+  it — only `list`/`get`/`reply` — so `capture-docks.ts` posts it with one `fetch`, and
+  the isolated config gives that action `effect: "ask"` (every action its default ruleset
+  matches evaluates to `allow`, so no request would otherwise exist).
+- The session directory is a **throwaway** path, and the action is a probe name no tool
+  sends: nothing in this fixture claims a real agent asked for those resources.

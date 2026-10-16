@@ -3,6 +3,8 @@ import { STREAM_ENDED_REASON, STREAM_IDLE_REASON } from "@/constants/server";
 import { INGEST_OUTCOME } from "@/constants/transcript";
 import type { OpenCodeClient } from "@/session/client";
 import type { ConnectionStore } from "@/session/connection";
+import { cueDock } from "@/session/dockCue";
+import type { DockSignals } from "@/session/dockSignal";
 import {
 	type ActivitySink,
 	applyFrameEffects,
@@ -45,6 +47,8 @@ export type SessionIngestOptions = {
 	readonly timers?: TimerScheduler;
 	/** The unread pip; the provider passes `notifySessionOutput`. */
 	readonly onOutput?: (sessionID: string) => void;
+	/** The docks' refetch cue: a permission/form frame the transcript did not hold. */
+	readonly signals?: DockSignals;
 };
 
 export type SessionIngest = {
@@ -87,7 +91,9 @@ export function createSessionIngest(options: SessionIngestOptions): SessionInges
 			onLive();
 			return;
 		}
-		if (transcripts.ingest(event) !== INGEST_OUTCOME.reduced) return;
+		const outcome = transcripts.ingest(event);
+		cueDock(event, transcripts, options.signals);
+		if (outcome !== INGEST_OUTCOME.reduced) return;
 		applyFrameEffects(event, activity, onOutput);
 	}
 

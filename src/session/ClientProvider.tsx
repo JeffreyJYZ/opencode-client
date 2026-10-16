@@ -15,28 +15,25 @@ import { updateSettings } from "@/app/settings/store";
 import { buildBundle, type ClientBundle, type ProbeOverride } from "@/session/bundle";
 import type { OpenCodeClient } from "@/session/client";
 import type { ConnectionState } from "@/session/connectionState";
+import type { DockSignals } from "@/session/dockSignal";
 import { readAndStripAuthToken, resolveTargets } from "@/session/environment";
 import type { ResolvedTarget } from "@/session/target";
 import type { TranscriptStore } from "@/session/transcriptStore";
 
 /**
- * The one client, its connection state and its event ingest, through a context
- * (spec 050 §Target and auth, §Event ingest). Rebuilt only when the target
- * actually changes — `connect` and `disconnect` are the only writers — never per
- * render, never per call, so plugins can later reach the same instance as
- * `host.opencode.client` (spec 040) rather than through a mutable singleton.
- *
- * The **subscription's lifetime is this component's**: `ingest.start()` on mount
- * and `ingest.stop()` on unmount, so a target change tears the old stream down
- * (its timers and its abort controller with it) before the new one opens.
+ * The one client, its connection state, its transcript store and its event ingest,
+ * through a context (spec 050 §Target and auth, §Event ingest). Rebuilt only when the
+ * target actually changes — `connect` and `disconnect` are the only writers — never
+ * per render, never per call, so plugins can later reach the same instance as
+ * `host.opencode.client` (spec 040). The **subscription's lifetime is this
+ * component's**: `ingest.start()` on mount and `ingest.stop()` on unmount.
  */
-
 type ClientContextValue = ClientBundle & {
 	/** Store the target and connect to it (spec 050 §Target and auth). */
 	readonly connect: (server: ServerTarget) => void;
 	/** Drop the live connection. The blob keeps the target, so a relaunch reconnects. */
 	readonly disconnect: () => void;
-	/** The offline banner's retry: probe now, and re-open the stream. */
+	/** The offline banner's retry: probe now and re-open the stream. */
 	readonly retry: () => void;
 };
 
@@ -50,28 +47,33 @@ function useClientContext(): ClientContextValue {
 	return value;
 }
 
-/** The app's one client, or `null` when no target resolved (a normal state, spec 010 §Window). */
+/** The app's one client, or `null` when no target resolved (spec 010 §Window). */
 export function useClient(): OpenCodeClient | null {
 	return useClientContext().client;
 }
 
-/** The resolved target and how it resolved. */
+/** The resolved target, and how it resolved. */
 export function useTarget(): ResolvedTarget | null {
 	return useClientContext().target;
 }
 
-/** The connection state, as a subscription — the offline banner and M2.8 read this. */
+/** The connection state, as a subscription — the offline banner and M2.8. */
 export function useConnection(): ConnectionState {
 	const { connection } = useClientContext();
 	return useSyncExternalStore(connection.subscribe, connection.getState);
 }
 
-/** The transcript store the stream feeds (M2.1); M2.2 renders from it. */
+/** The transcript store the stream feeds (M2.1); M2.2 renders it. */
 export function useTranscripts(): TranscriptStore {
 	return useClientContext().transcripts;
 }
 
-/** The retry action the offline banner exposes (spec 050: one retry, never a storm). */
+/** The docks' refetch cue (M2.6): a revision per session. */
+export function useDockSignals(): DockSignals {
+	return useClientContext().dockSignals;
+}
+
+/** The retry action the offline banner exposes (spec 050: never a storm). */
 export function useRetryConnection(): () => void {
 	return useClientContext().retry;
 }
@@ -95,8 +97,8 @@ export type ClientProviderProps = {
 };
 
 export function ClientProvider({ children, probe, client: clientOverride }: ClientProviderProps) {
-	// The `auth_token` is consumed (and stripped from the address bar) exactly once,
-	// before the first paint; every later resolution reuses the password it yielded.
+	// `auth_token` is consumed (and stripped from the address bar) exactly once, before
+	// the first paint; every later resolution reuses the password it yielded.
 	const [authTokenPassword] = useState(() => readAndStripAuthToken());
 	const build = useCallback(
 		(target: ResolvedTarget | null) => buildBundle(target, probe, clientOverride, INGEST_HOOKS),
@@ -107,8 +109,8 @@ export function ClientProvider({ children, probe, client: clientOverride }: Clie
 
 	useEffect(() => {
 		void bundle.connection.check();
-		// StrictMode mounts twice; `check` de-duplicates in flight and `dispose` only
-		// drops listeners, so the second mount probes again rather than staying dead.
+		// StrictMode mounts twice; `check` de-duplicates in flight and `dispose` only drops
+		// listeners, so the second mount probes again rather than staying dead.
 		return () => {
 			bundle.connection.dispose();
 		};

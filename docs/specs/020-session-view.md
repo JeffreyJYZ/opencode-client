@@ -72,7 +72,7 @@ Scroll behaviour:
 - Slash commands: the menu merges the app's **client commands** with the server's `command.list()` (loaded asynchronously — an empty first read is normal). Accepting a server command inserts `/<name> ` and sends nothing; accepting a client command runs it in the app.
 - `@` mentions: files (`file.find`), agents, skills. Mentions are stored as structured spans (`{ start, end, text }`) with the prompt, not as plain text.
 - Attachments: drag-and-drop or the picker; files ride the prompt payload's `files[]` with `uri`, `name`, optional description and mention. Images preview inline above the input.
-- Enter sends, ⌘↩ (configurable: ↩) inserts a newline; while a turn runs, **Esc** interrupts — and the interrupt key is live for the whole non-idle window (a running session shows `esc interrupt` in the statusline).
+- ⌘↩ sends and ↩ inserts a newline (the shell's key table, `src/constants/keys.ts`, is the single authority — spec 010 owns this binding, and spec 020 previously said the opposite, corrected 2026-10-16 when `M2.5` found the two specs in direct conflict). The map is **not yet user-configurable**: that needs the settings surface (`M3.5`), and until then the binding is fixed. While a turn runs, **Esc** interrupts — and the interrupt key is live for the whole non-idle window (a running session shows `esc interrupt` in the statusline).
 - A prompt submitted while a turn is running is **queued**, not dropped: it appears in the transcript immediately with the queued rail tone and moves to the tail in enqueue order once delivered.
 - A refused send (`Prompt not sent`) keeps the text in the box and explains why.
 

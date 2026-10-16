@@ -1,4 +1,9 @@
-import type { SessionMessagesResponse, V2Event } from "@opencode/client";
+import type {
+	FormInfo,
+	PermissionRequest,
+	SessionMessagesResponse,
+	V2Event,
+} from "@opencode/client";
 import { sessionIDOf } from "@/session/eventEnvelope";
 
 /**
@@ -33,6 +38,31 @@ export async function capturedMessages(): Promise<Record<string, SessionMessages
 export function sessionOfType(frames: readonly V2Event[], type: string): string {
 	for (const frame of frames) if (frame.type === type) return sessionIDOf(frame) as string;
 	throw new Error(`the capture has no ${type} frame`);
+}
+
+/** The captured dock fixtures (M2.6): the two list responses and the two cue frames. */
+export type DocksFixture = {
+	readonly sessionID: string;
+	readonly permissions: readonly PermissionRequest[];
+	readonly forms: readonly FormInfo[];
+};
+
+/** The pending permission and form a real server answered with (see the fixtures README). */
+export async function capturedDocks(): Promise<DocksFixture> {
+	return JSON.parse(
+		await Bun.file(new URL(`${FIXTURE_DIR}/m25-docks.json`, import.meta.url)).text(),
+	) as DocksFixture;
+}
+
+/** The two cue frames (`permission.asked`, `form.created`) a real server emitted. */
+export async function capturedDockFrames(): Promise<V2Event[]> {
+	const text = await Bun.file(
+		new URL(`${FIXTURE_DIR}/m25-docks-frames.jsonl`, import.meta.url),
+	).text();
+	return text
+		.trim()
+		.split("\n")
+		.map((line) => JSON.parse(line) as V2Event);
 }
 
 /** Every session the captured stream carries: the stream is not session-scoped. */

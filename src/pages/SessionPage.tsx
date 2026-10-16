@@ -1,19 +1,24 @@
+import type { CSSProperties } from "react";
+import { SessionComposer } from "@/components/composer/SessionComposer";
 import { JumpToLatest } from "@/components/transcript/JumpToLatest";
 import { TranscriptView } from "@/components/transcript/TranscriptView";
 import { useTailFollow } from "@/components/transcript/useTailFollow";
 import { ROUTE_KIND } from "@/constants/routes";
-import { SESSION_PAGE_STYLE, SESSION_VIEW_STYLE } from "@/constants/styles";
+import { SESSION_PAGE_STYLE } from "@/constants/styles";
 import type { TranscriptRow } from "@/session/transcript";
 import { useTranscript } from "@/session/useTranscript";
 
 /**
  * The session surface: the open session's transcript (spec 010 §Routes, spec 050
- * §Event ingest).
+ * §Event ingest) with the session's input slot beneath it — the prompt box, or the
+ * dock that replaces it while a permission or a question is pending (spec 020
+ * §Regions).
  *
  * The page **reads the store and nothing else** — `useTranscript` is M2.1's
- * read-only hook, and every row is a pure function of the row it is handed. The
- * store holds a session only while the strip has a tab for it, so a session the app
- * never opened renders the shared empty state rather than fetching on its own.
+ * read-only hook, and the composer takes the store's own `running` flag rather than
+ * keeping a flag of its own. The store holds a session only while the strip has a tab
+ * for it, so a session the app never opened renders the shared empty state rather
+ * than fetching on its own.
  *
  * M2.9 adds the transcript's own scroll container: the page's `<main>` is the box
  * `useTailFollow` follows, and the pill is rendered **over** it only while the
@@ -26,21 +31,42 @@ import { useTranscript } from "@/session/useTranscript";
 
 const NO_ROWS: readonly TranscriptRow[] = [];
 
+/**
+ * The page is a column whose transcript cell grows, so the input slot sits under the
+ * transcript and stays put while the transcript is longer than the window. The
+ * transcript's own scroll contract — tail-follow, unpinning, per-tab memory — is
+ * M2.9's; this only gives it the cell it scrolls in.
+ */
+const PAGE_STYLE: CSSProperties = {
+	...SESSION_PAGE_STYLE,
+	display: "flex",
+	flexDirection: "column",
+	height: "100%",
+	minHeight: 0,
+	position: "relative",
+};
+
+const TRANSCRIPT_CELL_STYLE: CSSProperties = {
+	flex: "1 1 0%",
+	minHeight: 0,
+	overflowY: "auto",
+};
+
 export function SessionPage({ id }: { readonly id: string }) {
 	const transcript = useTranscript(id);
 	const follow = useTailFollow(id);
 	return (
-		<div style={SESSION_VIEW_STYLE}>
-			<main
-				ref={follow.ref}
-				data-route={ROUTE_KIND.session}
-				data-session={id}
-				data-following={follow.following}
-				style={SESSION_PAGE_STYLE}
-			>
+		<main
+			data-route={ROUTE_KIND.session}
+			data-session={id}
+			data-following={follow.following}
+			style={PAGE_STYLE}
+		>
+			<div ref={follow.ref} style={TRANSCRIPT_CELL_STYLE}>
 				<TranscriptView rows={transcript?.rows ?? NO_ROWS} />
-			</main>
+			</div>
 			{!follow.following && <JumpToLatest onClick={follow.jumpToLatest} />}
-		</div>
+			<SessionComposer sessionID={id} running={transcript?.running ?? false} />
+		</main>
 	);
 }

@@ -1,4 +1,10 @@
-import { chordLabel, KEY_MODIFIER, type KeyBinding, tabRangeLabel } from "@/constants/chords";
+import {
+	chordLabel,
+	KEY_ESCAPE_LABEL,
+	KEY_MODIFIER,
+	type KeyBinding,
+	tabRangeLabel,
+} from "@/constants/chords";
 
 /**
  * The keyboard map (spec 010 §Desktop behaviours): **one table**, so the palette's
@@ -20,6 +26,8 @@ export const KEY_ACTION = {
 	switchTab: "switch-tab",
 	settings: "settings",
 	toggleSidebar: "toggle-sidebar",
+	sendPrompt: "send-prompt",
+	interrupt: "interrupt",
 } as const;
 
 /** ⌘K: open the command palette (spec 010 §Desktop behaviours). */
@@ -83,6 +91,34 @@ export const SHORTCUT_TOGGLE_SIDEBAR: KeyBinding = {
 	description: "Toggle sidebar",
 };
 
+/**
+ * ⌘↩: send the prompt (spec 010 §Desktop behaviours' map; spec 020 §Prompt box
+ * documents the other reading — see the report's error list). It is matched by the
+ * **composer**, not by a window handler, because only the composer knows whether its
+ * field has focus; the row is in this table so the help lists it and the
+ * chord-uniqueness test covers it.
+ */
+export const SHORTCUT_SEND: KeyBinding = {
+	id: KEY_ACTION.sendPrompt,
+	key: "Enter",
+	modifier: KEY_MODIFIER.command,
+	label: chordLabel("↩"),
+	description: "Send prompt",
+};
+
+/**
+ * `Esc`: interrupt a running turn. A bare key, so it is the one row with
+ * `KEY_MODIFIER.none`. The composer matches it through the registry and only acts
+ * while the store says a turn is running (requirement 2).
+ */
+export const SHORTCUT_INTERRUPT: KeyBinding = {
+	id: KEY_ACTION.interrupt,
+	key: "Escape",
+	modifier: KEY_MODIFIER.none,
+	label: KEY_ESCAPE_LABEL,
+	description: "Interrupt a running turn",
+};
+
 /** Every row of the map, in the order the help UI shows them. */
 export const KEYBOARD_SHORTCUTS: readonly KeyBinding[] = [
 	SHORTCUT_COMMAND_PALETTE,
@@ -91,4 +127,6 @@ export const KEYBOARD_SHORTCUTS: readonly KeyBinding[] = [
 	SHORTCUT_SWITCH_TAB,
 	SHORTCUT_SETTINGS,
 	SHORTCUT_TOGGLE_SIDEBAR,
+	SHORTCUT_SEND,
+	SHORTCUT_INTERRUPT,
 ];

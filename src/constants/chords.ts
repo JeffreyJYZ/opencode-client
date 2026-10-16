@@ -7,12 +7,17 @@
 /** A modifier held with the key. */
 export const KEY_MODIFIER = {
 	command: "command",
+	/** No modifier: a bare key such as `Escape` (M2.5's interrupt). */
+	none: "none",
 } as const;
 
 export type KeyModifier = (typeof KEY_MODIFIER)[keyof typeof KEY_MODIFIER];
 
 /** The glyph the help UI shows for the modifier. */
 export const KEY_MODIFIER_GLYPH = "⌘";
+
+/** The labelless keys the map names, so no surface types their word. */
+export const KEY_ESCAPE_LABEL = "Esc";
 
 /** What separates the two ends of a chord range (`⌘1…⌘9`). */
 export const CHORD_RANGE_SEPARATOR = "…";

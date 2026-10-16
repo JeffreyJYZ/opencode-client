@@ -1,0 +1,48 @@
+{
+  "sessionID": "ses_ebf5dbfb3ffegyk1O22RONtZYN",
+  "permissions": [
+    {
+      "id": "per_140a240500013UXYP1510MsO1p",
+      "sessionID": "ses_ebf5dbfb3ffegyk1O22RONtZYN",
+      "action": "m25probe",
+      "resources": [
+        "/tmp/m25-target"
+      ],
+      "source": {
+        "type": "tool",
+        "messageID": "msg_seed",
+        "id": "part_seed"
+      }
+    }
+  ],
+  "forms": [
+    {
+      "id": "frm_140a2404f001N62U73GiLcO8ok",
+      "sessionID": "ses_ebf5dbfb3ffegyk1O22RONtZYN",
+      "title": "Which files should change?",
+      "fields": [
+        {
+          "key": "target",
+          "title": "Target",
+          "type": "string",
+          "placeholder": "src/…"
+        },
+        {
+          "key": "scope",
+          "title": "Scope",
+          "type": "multiselect",
+          "options": [
+            {
+              "value": "tests",
+              "label": "Tests"
+            },
+            {
+              "value": "docs",
+              "label": "Docs"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
