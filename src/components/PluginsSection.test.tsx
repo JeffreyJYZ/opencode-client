@@ -9,7 +9,7 @@ import {
 	PLUGINS_INSTALL_LABEL,
 	PLUGINS_NO_CAPABILITIES,
 } from "@/constants/pluginManager";
-import { PLUGINS_TITLE } from "@/constants/plugins";
+import { PLUGINS_SECTION } from "@/constants/plugins";
 import { clearFaults } from "@/plugins/faults";
 import { resetInstalled } from "@/plugins/installed";
 import { clearLogs } from "@/plugins/logs";
@@ -65,7 +65,9 @@ afterEach(() => {
 describe("the section itself", () => {
 	test("is always present and offers no control that disables it", () => {
 		render(<PluginsSection />);
-		expect(screen.getByRole("heading", { name: PLUGINS_TITLE })).toBeTruthy();
+		// The section's title is the host's (M4.11), so the marker is what proves
+		// the section rendered here; the heading itself is asserted by the surface.
+		expect(document.querySelector(`[data-section="${PLUGINS_SECTION}"]`)).toBeTruthy();
 		expect(screen.getByRole("button", { name: PLUGINS_INSTALL_LABEL })).toBeTruthy();
 		// Every action targets a plugin; none targets the manager.
 		expect(document.querySelectorAll("[data-plugin-action]")).toHaveLength(0);

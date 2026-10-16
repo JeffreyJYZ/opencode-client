@@ -1,13 +1,13 @@
-import { PanelField, SidebarPanel } from "@/components/sidebar/SidebarPanel";
-import { SIDEBAR_EMPTY, SIDEBAR_FIELD, SIDEBAR_PANEL_LABEL } from "@/constants/sidebar";
+import { PanelField } from "@/components/sidebar/SidebarPanel";
+import { SIDEBAR_EMPTY, SIDEBAR_FIELD } from "@/constants/sidebar";
 import { formatSpend, formatTokens } from "@/session/amounts";
 import type { ContextPanelData } from "@/session/panelData";
 
 /**
- * The Context panel (spec 020 §Sidebar; its acceptance: "shows the same
+ * The Context panel body (spec 020 §Sidebar; its acceptance: "shows the same
  * tokens/percentage the server reports"). Every figure below is a field of
  * `session.stats` (`ContextPanelData.stats`) except `In context`, which is the
- * length of `session.context`.
+ * length of `session.context`. The host draws the frame and title (M4.11).
  *
  * No percentage is shown: the pinned client's payloads carry no context-window
  * size, so a percentage would be a locally invented divisor — exactly what the
@@ -19,7 +19,7 @@ export function ContextPanel({ data }: { readonly data: ContextPanelData }) {
 	const figure = (value: number) => (stats === null ? SIDEBAR_EMPTY : String(value));
 	const tokens = (value: number) => (stats === null ? SIDEBAR_EMPTY : formatTokens(value));
 	return (
-		<SidebarPanel title={SIDEBAR_PANEL_LABEL.context}>
+		<>
 			<PanelField label={SIDEBAR_FIELD.contextMessages} value={String(data.contextCount)} />
 			<PanelField label={SIDEBAR_FIELD.prompts} value={figure(stats?.prompts ?? 0)} />
 			<PanelField label={SIDEBAR_FIELD.steps} value={figure(stats?.steps ?? 0)} />
@@ -35,6 +35,6 @@ export function ContextPanel({ data }: { readonly data: ContextPanelData }) {
 				label={SIDEBAR_FIELD.spend}
 				value={stats === null ? SIDEBAR_EMPTY : formatSpend(stats.cost)}
 			/>
-		</SidebarPanel>
+		</>
 	);
 }

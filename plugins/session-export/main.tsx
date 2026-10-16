@@ -50,12 +50,7 @@ function ExportSection({ host }: { readonly host: Host }) {
 			live = false;
 		};
 	}, [host]);
-	return (
-		<>
-			<h2>{SECTION_TITLE}</h2>
-			<p style={NOTE_STYLE}>{size === null ? EMPTY_NOTE : `Last export: ${size}.`}</p>
-		</>
-	);
+	return <p style={NOTE_STYLE}>{size === null ? EMPTY_NOTE : `Last export: ${size}.`}</p>;
 }
 
 export default {

@@ -15,7 +15,6 @@ import {
 	REFERENCE_SECTION,
 	REFERENCE_SERVICES_LABEL,
 	REFERENCE_SLOTS_LABEL,
-	REFERENCE_TITLE,
 	REFERENCE_VERSION_LINE,
 } from "@/constants/reference";
 import { SECTION_STYLE } from "@/constants/settingsUi";
@@ -80,7 +79,6 @@ export function ReferenceSection() {
 	const services = REFERENCE.host.filter((member) => member.kind === "service");
 	return (
 		<section style={SECTION_STYLE} data-section={REFERENCE_SECTION}>
-			<h2>{REFERENCE_TITLE}</h2>
 			<p style={NOTE_STYLE}>
 				{REFERENCE_VERSION_LINE(REFERENCE.apiVersion, REFERENCE.appVersion)}
 			</p>

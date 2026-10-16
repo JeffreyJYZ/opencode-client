@@ -3,7 +3,7 @@ import type { SettingsSection } from "@/app/settings/sections";
 import { sessionTab, settingsTab } from "@/app/tabModel";
 import { buildEntries, entryMatches, filterEntries } from "@/components/paletteModel";
 import { SHORTCUT_SETTINGS } from "@/constants/keys";
-import { PALETTE_KIND } from "@/constants/palette";
+import { PALETTE_KIND, PALETTE_KIND_LABEL } from "@/constants/palette";
 import { SETTINGS_TAB_LABEL } from "@/constants/tabs";
 import type { SessionRow } from "@/session/useSessions";
 import { pickerRow } from "@/test/picker";
@@ -18,6 +18,7 @@ const SOURCES = {
 	tabs: [sessionTab("ses_1")],
 	sessions: [row("ses_1", "Alpha", "/dev/a"), row("ses_2", "Beta", "/dev/b")],
 	commands: [{ name: "commit", description: "Commit changes" }],
+	pluginCommands: [],
 	sections: [SECTION],
 };
 
@@ -53,6 +54,30 @@ describe("the palette model", () => {
 	test("a tab row uses the strip's own title", () => {
 		const entries = buildEntries({ ...SOURCES, tabs: [settingsTab()] });
 		expect(entries[1].label).toBe(SETTINGS_TAB_LABEL);
+	});
+
+	test("a plugin command is a command row, kept apart from a server command of the same name", () => {
+		const entries = buildEntries({
+			...SOURCES,
+			commands: [{ name: "export", description: "server export" }],
+			pluginCommands: [
+				{
+					id: "session-export.export",
+					title: "Session: export transcript",
+					run: () => {},
+					keybinding: "mod+shift+e",
+				},
+			],
+		});
+		expect(entries.find((entry) => entry.id.startsWith("plugin:"))).toMatchObject({
+			kind: PALETTE_KIND.command,
+			label: "Session: export transcript",
+			detail: PALETTE_KIND_LABEL.command,
+			chord: "mod+shift+e",
+			ref: "session-export.export",
+		});
+		// The server's own command is a second row, not replaced by the plugin's.
+		expect(entries.some((entry) => entry.ref === "export")).toBe(true);
 	});
 
 	test("filtering matches the label and the detail a row shows", () => {

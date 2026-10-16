@@ -17,7 +17,16 @@ export function AppPorts() {
 	const client = useClient();
 	const transcripts = useTranscripts();
 	useEffect(() => {
-		setAppPorts(buildHostPorts({ client, transcripts }));
+		let cancelled = false;
+		// `buildHostPorts` reads the shell's data root (async), so the ports are
+		// published when it resolves; a superseded build (a connect/disconnect
+		// rebuilt the bundle) must not overwrite the newer one.
+		void buildHostPorts({ client, transcripts }).then((ports) => {
+			if (!cancelled) setAppPorts(ports);
+		});
+		return () => {
+			cancelled = true;
+		};
 	}, [client, transcripts]);
 	return null;
 }

@@ -1,18 +1,18 @@
-import { SidebarPanel } from "@/components/sidebar/SidebarPanel";
 import { EMPTY_STYLE, ROW_DETAIL_STYLE, ROW_STYLE } from "@/components/sidebar/sidebarStyles";
-import { SIDEBAR_EMPTY, SIDEBAR_PANEL_LABEL, SIDEBAR_ROW_SEPARATOR } from "@/constants/sidebar";
+import { SIDEBAR_EMPTY, SIDEBAR_ROW_SEPARATOR } from "@/constants/sidebar";
 import type { McpPanelData } from "@/session/panelData";
 
 /**
- * The MCP servers panel (spec 020 §Sidebar): `mcp.list()` — name, status word,
- * and its error when the status carries one (`McpStatusFailed` /
+ * The MCP servers panel body (spec 020 §Sidebar): `mcp.list()` — name, status
+ * word, and its error when the status carries one (`McpStatusFailed` /
  * `McpStatusNeedsAuth`, `docs/opencode-api.md` §4). Nothing here connects or
- * disconnects; the panel reports what the server says.
+ * disconnects; the panel reports what the server says. The host draws the frame
+ * and title (M4.11).
  */
 
 export function McpPanel({ data }: { readonly data: McpPanelData }) {
 	return (
-		<SidebarPanel title={SIDEBAR_PANEL_LABEL.mcp}>
+		<>
 			{data.servers.length === 0 ? (
 				<p style={EMPTY_STYLE}>{SIDEBAR_EMPTY}</p>
 			) : (
@@ -29,6 +29,6 @@ export function McpPanel({ data }: { readonly data: McpPanelData }) {
 					);
 				})
 			)}
-		</SidebarPanel>
+		</>
 	);
 }

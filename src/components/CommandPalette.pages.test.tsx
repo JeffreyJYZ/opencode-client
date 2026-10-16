@@ -3,6 +3,7 @@ import { cleanup, fireEvent, screen, waitFor } from "@testing-library/react";
 import { resetSettingsSections } from "@/app/settings/sections";
 import { resetTabs } from "@/app/tabs";
 import { ROUTE_PATH } from "@/constants/routes";
+import { resetCommands } from "@/plugins/commands";
 import type { OpenCodeClient } from "@/session/client";
 import { openPalette, renderPalette } from "@/test/palette";
 import { FIRST_PAGE, type PickerPage, pagedClient, pickerRow } from "@/test/picker";
@@ -11,6 +12,7 @@ import { FIRST_PAGE, type PickerPage, pagedClient, pickerRow } from "@/test/pick
 afterEach(cleanup);
 afterEach(resetTabs);
 afterEach(resetSettingsSections);
+afterEach(resetCommands);
 beforeEach(() => window.history.pushState(null, "", ROUTE_PATH.home));
 
 /**

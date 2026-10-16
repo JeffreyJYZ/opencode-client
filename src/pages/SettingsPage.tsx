@@ -5,7 +5,7 @@ import { closeSettingsSurface } from "@/app/tabSync";
 import { SettingsSectionBoundary } from "@/components/SettingsSectionBoundary";
 import { KEY_ESCAPE } from "@/constants/keys";
 import { ROUTE_KIND } from "@/constants/routes";
-import { SURFACE_STYLE } from "@/constants/settingsUi";
+import { SECTION_HEADING_STYLE, SURFACE_STYLE } from "@/constants/settingsUi";
 import { SETTINGS_TAB_LABEL } from "@/constants/tabs";
 
 /**
@@ -17,7 +17,12 @@ import { SETTINGS_TAB_LABEL } from "@/constants/tabs";
  *
  * The surface knows no section by name. It renders the registry in registry
  * order, each section inside its own boundary, so a section that throws is inert
- * plus a logged fault while the others keep rendering (M3.5 requirement 5).
+ * plus a logged fault while the others keep rendering (M3.5 requirement 5). It
+ * also renders the section's **registered title** (M4.11): the heading is the
+ * registry's `label`, drawn by the host, so a plugin section shows its own title
+ * and a section body never repeats it. The heading sits **inside** the boundary,
+ * so a section that throws takes its heading down with it rather than leaving an
+ * empty one behind.
  *
  * Focus enters the surface when it opens, so Tab reaches the first control
  * without a click; Escape leaves it by closing the tab — the same move ⌘W makes,
@@ -47,8 +52,9 @@ export function SettingsPage() {
 			style={SURFACE_STYLE}
 			onKeyDown={onKeyDown}
 		>
-			{sections.map(({ id, component: Section }) => (
+			{sections.map(({ id, label, component: Section }) => (
 				<SettingsSectionBoundary key={id} id={id}>
+					<h2 style={SECTION_HEADING_STYLE}>{label}</h2>
 					<Section />
 				</SettingsSectionBoundary>
 			))}

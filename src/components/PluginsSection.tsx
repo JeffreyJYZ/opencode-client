@@ -11,7 +11,7 @@ import {
 	PLUGINS_FAULT_COUNT,
 	PLUGINS_LOCKED_NOTE,
 } from "@/constants/pluginManager";
-import { PLUGINS_EMPTY_NOTE, PLUGINS_SECTION, PLUGINS_TITLE } from "@/constants/plugins";
+import { PLUGINS_EMPTY_NOTE, PLUGINS_SECTION } from "@/constants/plugins";
 import { SECTION_STYLE } from "@/constants/settingsUi";
 import { listFaults, subscribeToFaults } from "@/plugins/faults";
 import { listLogs, subscribeToLogs } from "@/plugins/logs";
@@ -54,7 +54,6 @@ export function PluginsSection() {
 
 	return (
 		<section style={SECTION_STYLE} data-section={PLUGINS_SECTION}>
-			<h2>{PLUGINS_TITLE}</h2>
 			<p style={NOTE_STYLE}>{PLUGINS_LOCKED_NOTE}</p>
 			<label style={SWITCH_STYLE} data-plugin-master-switch>
 				<input

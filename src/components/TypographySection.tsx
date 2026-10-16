@@ -14,7 +14,6 @@ import {
 	TYPOGRAPHY_SAMPLE_LABEL,
 	TYPOGRAPHY_SAMPLE_TEXT,
 	TYPOGRAPHY_SECTION,
-	TYPOGRAPHY_TITLE,
 } from "@/constants/typography";
 import {
 	clampFontSize,
@@ -120,7 +119,6 @@ export function TypographySection() {
 	const fonts = useSettings().settings.fonts;
 	return (
 		<section style={SECTION_STYLE} data-section={TYPOGRAPHY_SECTION}>
-			<h2>{TYPOGRAPHY_TITLE}</h2>
 			<RoleControls role={FONT_ROLE.ui} fonts={fonts} />
 			<RoleControls role={FONT_ROLE.code} fonts={fonts} />
 			<p style={NOTE_STYLE}>{TYPOGRAPHY_FALLBACK_NOTE}</p>
