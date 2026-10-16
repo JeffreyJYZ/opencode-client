@@ -117,6 +117,19 @@ export function clearFaults(): void {
 	notify();
 }
 
+/**
+ * Drop the faults recorded against one subject (M4.5): uninstalling a plugin
+ * removes the faults its **id** carries, so a removed plugin leaves nothing behind.
+ * A fault a registry recorded against a contribution id is not addressed here — the
+ * registry's `subject` is the contribution, not the plugin that offered it.
+ */
+export function clearFaultsFor(subject: string): void {
+	const remaining = faults.filter((fault) => fault.subject !== subject);
+	if (remaining.length === faults.length) return;
+	faults = remaining;
+	notify();
+}
+
 export function subscribeToFaults(listener: () => void): () => void {
 	listeners.add(listener);
 	return () => {

@@ -49,6 +49,7 @@ Three layers in one place (`src/theme/tokens.css`), never a raw hex in a compone
 - A theme is `{ id, name, variables, css? }`; the built-in dark/light pair are themes in the same registry a plugin registers into.
 - Applying a theme is idempotent and reversible: clearing restores the built-in pair. A plugin theme cannot override the **font** variables — user font settings win, so a theme can never make the UI unreadable.
 - The vendored documents are the source; a theme's variables are read out of them, not re-typed.
+- **Follow system** (`M3.6`): the appearance control offers *Follow system* beside the registry's themes. The service — still the only writer of `data-theme`, with `src/theme/dom.ts` as its sole DOM half — resolves the preference against `prefers-color-scheme` and **re-applies when the OS flips**; the resolution is a **pure function of the media state**, and the media listener exists **only** while that preference is in force. `system` is therefore a **reserved id**: the registry refuses it as a theme id, so no plugin can collide with the stored preference.
 
 ## Acceptance
 

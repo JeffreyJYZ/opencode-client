@@ -3,6 +3,7 @@ import { useSyncExternalStore } from "react";
 import { updateSettings } from "@/app/settings/store";
 import { useSettings } from "@/app/settings/useSettings";
 import {
+	APPEARANCE_FOLLOW_SYSTEM_LABEL,
 	APPEARANCE_IN_FORCE_LABEL,
 	APPEARANCE_SECTION,
 	APPEARANCE_THEME_FIELD_ID,
@@ -12,7 +13,7 @@ import {
 	APPEARANCE_UNKNOWN_THEME,
 } from "@/constants/appearance";
 import { INPUT_STYLE, LABEL_STYLE, SECTION_STYLE } from "@/constants/settingsUi";
-import { DEFAULT_THEME_ID } from "@/constants/theme";
+import { DEFAULT_THEME_ID, FOLLOW_SYSTEM_THEME_ID } from "@/constants/theme";
 import {
 	activeTheme,
 	listThemes,
@@ -31,6 +32,10 @@ import {
  *
  * The read-back is the service's, not the blob's: a plugin may put its own theme
  * in force through `themes.apply`, and the line should name what is *on screen*.
+ *
+ * The first choice is **Follow system** (M3.6): its value is the sentinel
+ * `FOLLOW_SYSTEM_THEME_ID`, which the applier reads before the registry, so the
+ * mode comes from `prefers-color-scheme` and the section holds no literal.
  */
 
 const NOTE_STYLE: CSSProperties = {
@@ -42,7 +47,8 @@ export function AppearanceSection() {
 	const stored = useSettings().settings.theme;
 	const themes = useSyncExternalStore(subscribeToThemes, listThemes);
 	const active = useSyncExternalStore(subscribeToActiveTheme, activeTheme);
-	// The stored id, or the built-in default the blob's `null` means.
+	// The stored choice (a theme id, or the follow-system sentinel), or the
+	// built-in default the blob's `null` means.
 	const chosen = stored ?? DEFAULT_THEME_ID;
 	return (
 		<section style={SECTION_STYLE} data-section={APPEARANCE_SECTION}>
@@ -57,6 +63,7 @@ export function AppearanceSection() {
 						updateSettings({ theme: event.target.value });
 					}}
 				>
+					<option value={FOLLOW_SYSTEM_THEME_ID}>{APPEARANCE_FOLLOW_SYSTEM_LABEL}</option>
 					{themes.map((theme) => (
 						<option key={theme.id} value={theme.id}>
 							{theme.name}
