@@ -1,4 +1,9 @@
-import type { OpenCodeClient, PermissionReply, SessionPromptInput } from "@opencode/client";
+import type {
+	McpServer,
+	OpenCodeClient,
+	PermissionReply,
+	SessionPromptInput,
+} from "@opencode/client";
 import { type FlatPrompt, promptPayloadOf } from "@/session/promptPayload";
 import type { PromptRequest } from "@/session/promptTypes";
 
@@ -89,4 +94,43 @@ export async function cancelForm(
 	input: { readonly sessionID: string; readonly formID: string },
 ): Promise<void> {
 	await client.session.form.cancel({ sessionID: input.sessionID, formID: input.formID });
+}
+
+/**
+ * Connect one MCP server, by its own name (M2.20, spec 020 §Sidebar). The
+ * generated `McpConnectInput` carries an optional `location` beside the
+ * required `server`; the name alone is what the experimental route
+ * (`POST /api/experimental/mcp/:server/connect`, `docs/opencode-api.md` §5)
+ * routes on, so the seam sends exactly the name it was handed.
+ */
+export async function connectMcpServer(client: OpenCodeClient, name: string): Promise<void> {
+	await client.mcp.connect({ server: name });
+}
+
+/** Disconnect one MCP server, by its own name — the same route, `/disconnect`. */
+export async function disconnectMcpServer(client: OpenCodeClient, name: string): Promise<void> {
+	await client.mcp.disconnect({ server: name });
+}
+
+/**
+ * Re-read the MCP server list after a connect or a disconnect (M2.20). The
+ * app ingests no `mcp.status.changed` event, so the slot refetches `mcp.list()`
+ * once the action settles and renders what the server then says.
+ */
+export async function refreshMcpServers(client: OpenCodeClient): Promise<readonly McpServer[]> {
+	return (await client.mcp.list()).data;
+}
+
+/**
+ * Resolve the config path the MCP detail shows (M2.20, spec 020 §Sidebar).
+ * `mcp.list()` carries no path (`docs/opencode-api.md` §4), so the seam reads
+ * `config.get()` and returns the first document entry that names one — or
+ * `null` when none does, which the panel renders as-is rather than inventing.
+ */
+export async function readMcpConfigPath(client: OpenCodeClient): Promise<string | null> {
+	const entries = await client.config.get();
+	for (const entry of entries) {
+		if (typeof entry.path === "string" && entry.path !== "") return entry.path;
+	}
+	return null;
 }

@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { openSessionAndGo } from "@/app/tabSync";
 import { ContextPanel } from "@/components/sidebar/ContextPanel";
 import { FilesPanel } from "@/components/sidebar/FilesPanel";
-import { McpPanel } from "@/components/sidebar/McpPanel";
+import { McpSlot } from "@/components/sidebar/McpSlot";
 import { SessionPanel } from "@/components/sidebar/SessionPanel";
 import { SubagentsPanel } from "@/components/sidebar/SubagentsPanel";
 import { useSidebarData } from "@/components/sidebar/sidebarData";
@@ -52,11 +52,6 @@ function SubagentsSlot() {
 			interrupt={interrupt}
 		/>
 	);
-}
-
-function McpSlot() {
-	const data = useSidebarData();
-	return <McpPanel data={data.mcp} />;
 }
 
 function FilesSlot() {

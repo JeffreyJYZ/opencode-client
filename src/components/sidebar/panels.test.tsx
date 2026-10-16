@@ -97,7 +97,16 @@ describe("the sidebar panels", () => {
 			{ name: "srv", status: { status: "connected" } },
 			{ name: "broken", status: { status: "failed", error: "boom" } },
 		];
-		render(<McpPanel data={{ servers }} />);
+		render(
+			<McpPanel
+				data={{ servers }}
+				expanded={null}
+				onToggle={() => undefined}
+				onConnect={() => undefined}
+				onDisconnect={() => undefined}
+				configPath={undefined}
+			/>,
+		);
 		expect(screen.getByText("srv")).toBeDefined();
 		expect(screen.getByText("connected")).toBeDefined();
 		expect(screen.getByText(/boom/)).toBeDefined();
