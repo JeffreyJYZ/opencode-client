@@ -50,6 +50,7 @@ Build order for specs [000](000-overview.md)–[050](050-opencode-integration.md
 | M0.4b | Registry hardening from M0.4's review (micro, free model): (1) a **non-function component** is a malformed entry and must be refused + faulted — today a truthy non-component is accepted and fails at render, which spec 040 forbids ("never breaks the app"); (2) a registered route may **not replace a built-in path**; it serves unknown paths only, since `/settings` is the route to the plugin manager; (3) a comment pinning `homeRoute()`'s identity contract. The registry split is **not** here — that is M4.3's (the file is at 144/150) | tests for both refusals, `bun test` output quoted |
 | M0.5 | opencode client provider: `OpenCode.make`, target resolution, offline state + banner, `useClient` (the session list lands in M1.2, where it has a consumer) | kill the server → banner with the url; restart → recovers |
 | M0.6 | The repository under git: `git init`, `.gitignore` verified (build output, scratch, `.DS_Store`), one initial commit of the scaffold + docs, and the SDD scratch dir ignored | `git log --oneline -1` exists and `git status --short` is clean |
+| M0.10 | **The gate tests Rust too**: `bun run verify` runs `cargo test` beside `cargo check`, so a Rust-only change cannot pass the gate untested | `bun run verify` fails on a deliberately broken Rust test, and passes once it is fixed |
 
 ### M1 — Shell and home
 

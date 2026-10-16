@@ -4,12 +4,12 @@ Last updated: 2026-10-15 · Current focus: **M3 — Type and theme** (`M3.0`, th
 
 | Milestone | Done / total | Gate |
 | --- | --- | --- |
-| M0 Foundations | 9 / 9 | `bun run verify` (now ending in `cargo check`) and `cargo test`; `bun tauri dev` opens a window with the target injected |
+| M0 Foundations | 9 / 10 | `bun run verify` (now ending in `cargo check`) and `cargo test`; `bun tauri dev` opens a window with the target injected |
 | M1 Shell and home | 15 / 16 | home → session view end to end; restart restores tabs |
 | M2 Session view | 11 / 11 | a live session streams, interrupts, queues and replies from the keyboard |
 | M3 Type and theme | 8 / 8 | both faces change live and survive a restart; theme applies and clears |
 | M4 Plugin host 0.1 | 8 / 11 | four example plugins install, work and uninstall through the documented API |
-| M5 Desktop polish | 3 / 5 | packaged app, updater, `verify-release` exits 0 |
+| M5 Desktop polish | 5 / 5 | packaged app, updater, `verify-release` exits 0 |
 
 ## M0 — Foundations
 
@@ -22,6 +22,8 @@ Last updated: 2026-10-15 · Current focus: **M3 — Type and theme** (`M3.0`, th
 - [x] `M0.4b` Registry hardening from M0.4's review (**done** `e89bf6c`, controller-verified, `cat-jam-free`, ~4 min): a non-function component is refused as malformed; a registered route may not replace a built-in path; `homeRoute()`'s identity gets a comment — evidence: tests for both refusals, `bun test` output quoted
 - [x] `M0.5` opencode client provider + offline state — **done** (`9dba6ff`), **reviewed** `accept` (nothing blocks M1.1): 33→82 tests; the acceptance proven in a browser against **its own** isolated server (closed port → banner naming the url; up → online; killed → banner returns; restart + retry → recovered); `?auth_token=` stripped before first paint; the registered service untouched (74/609 sessions and `service.json`'s mtime identical)
 - [x] `M0.6` Repository under git: `git init`, `.gitignore` verified, one initial commit of the scaffold + docs — evidence: `ebf7280` on `main`, 26 files, `git status --short` empty — **done**
+
+- [ ] `M0.10` **The gate tests Rust too** — `verify` wraps `cargo check` but **not** `cargo test`, so the 74 Rust tests run in no gate and a Rust-only change is green by default; add the test half and keep it bounded — evidence: `bun run verify` fails on a deliberately broken Rust test and passes once it is fixed
 
 ## M1 — Shell and home
 
@@ -85,10 +87,10 @@ Last updated: 2026-10-15 · Current focus: **M3 — Type and theme** (`M3.0`, th
 ## M5 — Desktop polish
 
 - [x] `M5.1` Context menus on tabs, recents, transcript rows, panels — evidence: every action reachable by keyboard
-- [ ] `M5.2` Native integrations: open-in-editor (and external links to the OS browser), clipboard + toast, unfocused turn-end notification, drag-drop attach — evidence: each fires from a real interaction
+- [x] `M5.2` Native integrations: open-in-editor (and external links to the OS browser), clipboard + toast, unfocused turn-end notification, drag-drop attach — evidence: each fires from a real interaction
 - [x] `M5.3` Window state restore, menu bar, version display — evidence: restart restores size and position
 - [x] `M5.4` Tauri updater + committed `verify-release` — evidence: `bun scripts/verify-release.ts <tag>` prints one verdict line, exits non-zero on a gap
-- [ ] `M5.5` Packaging: macOS `app` bundle + README install steps — evidence: `bun tauri build` produces a runnable app
+- [x] `M5.5` Packaging: macOS `app` bundle + README install steps — evidence: `bun tauri build` produces a runnable app
 
 ## Decisions log
 
@@ -178,6 +180,8 @@ Last updated: 2026-10-15 · Current focus: **M3 — Type and theme** (`M3.0`, th
 
 | 2026-10-16 | **`M3.6` follow-system landed** (`55eb54b`; my own gate: **748 pass / 0 fail**, 454 files ≤150, `e2e: PASS`). One entry in Appearance; the **service** owns the resolution and the media listener (it is the only writer of `data-theme`), and the resolution is a **pure function of the media state** (`resolveSystemTheme(matchesDark)`), so both directions are testable with no media query and no timers; `FOLLOW_SYSTEM_THEME_ID = "system"` is now **reserved in the registry** so no plugin can collide with the stored preference. The 150-line cap pushed M3.4 DOM half into `src/theme/dom.ts` (`writeThemeDom`), so the only-writer claim is now true **transitively** — the service is its sole caller, and spec 030 says so | **A row the user asked for at a hand check is a good row**: they saw the gap the moment they used the feature. **The OS flip stays owed** and is on the hand-check list — the brief forbade the agent to claim it, and it did not. **Three bookkeeping truths this exposed**: (1) `m3sys` was cut from a commit *before* the rows landed, so the agent truthfully reported that no `M3.6` row existed **in its own tree** — my sequencing, not a docs gap, and the cause is now written down; (2) **a new worktree has no `node_modules`**, so `bun install` belongs in the cut, not in the brief — it cost this agent a step; (3) my invented port band (5570–5585) is reserved **nowhere** — the only real band is `E2E_PORT_FIRST/LAST = 5390/5400`, so a worktree takes a **free port by probe**, as I did for the hand-check server, never a number from a brief |
 
+| 2026-10-16 | **`M5.2` + `M5.5` landed** (`774e134`, `5f94aeb`; my own gate: exit 0, **788 pass / 0 fail**, 497 files ≤150, `e2e: PASS` — now **8 checks**, up from 6 with the two composer-drop cases — and `cargo test` 74/0). Native integration is the shell seam the page calls **by command name**, the Rust half writing the same strings with tests pinning them so a rename cannot drift: editor, external links, clipboard, notifications, Finder drop. Packaging produced a **runnable bundle** (`bun tauri build` exit 0, `opencode client.app` under `src-tauri/target/release/bundle/macos/`, 17M on disk) launched **from the bundle** against an isolated server, where `lsof` showed its own `WebKit.WebContent` established to that server and **no** connection to the registered service — `M1.7` precedence proven again, this time from a release artifact | **Ruling on a conflict I created.** Spec 010 said open-in-editor uses *the OS default handler*; my brief said a named editor and the agent followed the brief, so the code hardcodes `zed`, kept in step with `DEFAULT_EDITOR` in `src/constants/native.ts`. **The code wins and the spec moves**: the action opens a row **at its line**, and the OS default handler cannot carry a line — that is the point of it. Spec 010 also now states the **external-link allowlist** (`http`/`https`/`mailto`, with `javascript:` refused and logged) that until now lived only in a Rust constant. **A gate gap this row exposed, now `M0.10`**: `verify` wraps `cargo check` and not `cargo test`, so the 74 Rust tests run in no gate and a Rust-only change is green by default. **And one of the seven findings in the report was itself wrong**: it flagged spec 040 §The host `native.http` as an error, but no HTTP capability exists anywhere in the shell, so that line is accurate — a claim is not evidence in either direction |
+
 ## Hand checks (desktop-only)
 
 What no agent can prove on this machine, in one place. A check is closed by a person saying so, with the date — the same standard as any other evidence.
@@ -188,6 +192,8 @@ What no agent can prove on this machine, in one place. A check is closed by a pe
 - `M3.1`/`M3.2`/`M3.3`/`M3.4` — **closed 2026-10-16 by the user, in WKWebView** (the dev window, the real webview, not Chromium): the **Code** role's picker offered **all six** names — `GeistMono Nerd Font`, `GeistMono Nerd Font Mono`, `GeistMono Nerd Font Propo`, then `Geist Mono`, `ui-monospace`, `monospace` — so the machine's cask **does** resolve here (the families are proven by measuring a glyph advance in the running webview, which is exactly what Chromium could not settle); the **Interface** role's picker offered its four (`Geist`, `system-ui`, `ui-sans-serif`, `ui-rounded`), confirming the two roles are wired to different token stacks; and **light and dark both applied and stayed legible**.
 
 - `M3.6` **follow system** — choose *Follow system* in Appearance, then flip macOS appearance (System Settings → Appearance) with the window open: the app must follow in **both directions**. No agent can flip the OS for itself, so this closes by your hand.
+
+- `M5.2` **live OS effects** (the code and the unit tests are in; the effects themselves need a person, because the WKWebView has no remote inspector and exposes no page elements to the accessibility tree): a markdown link opens in the OS browser; a `javascript:` link is **refused**, not opened; a transcript row **Open in editor** opens the file in Zed at its line; **Copy** reaches the clipboard and shows its toast; a turn ending with the window unfocused posts a **system notification**; and a real **Finder drop** attaches a file to the composer.
 
 ## Defects found (not yet a row)
 
