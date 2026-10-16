@@ -1,7 +1,9 @@
 import { type ComponentType, useSyncExternalStore } from "react";
 import { ConnectSection } from "@/components/ConnectSection";
+import { TypographySection } from "@/components/TypographySection";
 import { CONNECT_TITLE } from "@/constants/connect";
 import { SETTINGS_SECTION_ID } from "@/constants/settings";
+import { TYPOGRAPHY_TITLE } from "@/constants/typography";
 
 /**
  * The settings-section registry (spec 010 §Routes: the settings surface).
@@ -66,13 +68,19 @@ export function useSettingsSections(): readonly SettingsSection[] {
 	return useSyncExternalStore(subscribeToSettingsSections, getSettingsSections);
 }
 
-/** The built-ins M1.6 ships; M3.5 grows the surface by registering alongside them. */
+/** The built-ins the registry ships; M3.5 grows the surface by registering alongside them. */
 const BUILTINS: readonly SettingsSection[] = [
 	{
 		id: SETTINGS_SECTION_ID.connect,
 		label: CONNECT_TITLE,
 		component: ConnectSection,
 		order: DEFAULT_SECTION_ORDER,
+	},
+	{
+		id: SETTINGS_SECTION_ID.typography,
+		label: TYPOGRAPHY_TITLE,
+		component: TypographySection,
+		order: DEFAULT_SECTION_ORDER + 1,
 	},
 ];
 

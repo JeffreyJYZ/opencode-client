@@ -24,15 +24,13 @@ import { sameTabs } from "@/app/settings/tabState";
 import { tabKey } from "@/app/tabModel";
 import { hydrateTabState, serializeTabState, subscribeToTabs } from "@/app/tabs";
 import { SETTING_KEYS, SETTINGS_DATA_VERSION, SETTINGS_STORAGE_KEY } from "@/constants/settings";
-import { applyFonts } from "@/theme/fonts";
+import { applyFonts, sameFontPreferences } from "@/theme/fonts";
 
 /**
  * The settings store: one in-memory document, one write path, one restore. No
  * React in it — `useSettings.ts` subscribes (the same shape `tabs.ts` uses).
- *
  * The strip and the route are *read* from their own stores and written here, so
- * there is exactly one serializer for the blob (spec 010 §Persistence, the
- * brief's "writing must not fight the tab store").
+ * there is exactly one serializer for the blob (spec 010 §Persistence).
  */
 
 export type SettingsSnapshot = {
@@ -72,7 +70,11 @@ function publish(settings: SettingsData): void {
 /** The one write path: fold fields into the document, then persist. */
 function apply(fields: Partial<SettingsData>): void {
 	document = { ...document, ...fields, [SETTING_KEYS.dataVersion]: SETTINGS_DATA_VERSION };
-	publish(settingsFromDocument(document));
+	const settings = settingsFromDocument(document);
+	// A font change is applied live (M3.2), before the frame renders; other fields leave the root alone.
+	const fontsChanged = !sameFontPreferences(settings.fonts, snapshot.settings.fonts);
+	publish(settings);
+	if (fontsChanged) applyFonts(settings.fonts);
 	if (storage !== null && !suspended) writeStoredSettings(storage, document);
 }
 
@@ -89,8 +91,7 @@ function installSync(): void {
 
 function syncTabs(): void {
 	const tabs = serializeTabState();
-	// A closed tab releases its remembered position (M2.9): the strip is the set of
-	// views that exist, so the blob holds a position for exactly those keys.
+	// A closed tab releases its remembered position (M2.9): the blob holds one for exactly the strip's keys.
 	const scroll = pruneTabScroll(getSettings().transcriptScroll, tabs.tabs.map(tabKey));
 	const tabsChanged = !sameTabs(tabs, snapshot.settings.tabs);
 	if (!tabsChanged && scroll === getSettings().transcriptScroll) return;
@@ -114,11 +115,9 @@ function syncLastOpened(): void {
  * so a hot reload or a second call cannot double-apply.
  *
  * A stored tab whose session no longer exists is **kept**: at restore time no
- * server round-trip has happened, so "unknown to the server" and "deleted" are
- * indistinguishable, and the route's own session view is the surface that
- * reports it (spec 010 §Routes: an unknown id renders the same "no session"
- * state as home's empty case). Dropping it instead would need a request before
- * the first paint, which is exactly what this cannot do.
+ * server round-trip has happened, so "unknown" and "deleted" are indistinguishable
+ * and the route's own view reports it (spec 010 §Routes) — dropping it would need a
+ * request before the first paint, which is exactly what this cannot do.
  */
 export function restoreSettings(store: SettingsStorage | null = browserStorage()): void {
 	if (restored) return;

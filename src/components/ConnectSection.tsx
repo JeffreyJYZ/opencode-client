@@ -11,6 +11,7 @@ import {
 	CONNECT_URL_LABEL,
 	DISCONNECT_BUTTON_TEXT,
 } from "@/constants/connect";
+import { BUTTON_STYLE, INPUT_STYLE, LABEL_STYLE, SECTION_STYLE } from "@/constants/settingsUi";
 import { useConnect, useConnection, useDisconnect, useTarget } from "@/session/ClientProvider";
 
 /**
@@ -23,39 +24,11 @@ import { useConnect, useConnection, useDisconnect, useTarget } from "@/session/C
  * the form submits in-page and the value goes straight into the settings blob.
  */
 
-const SECTION_STYLE: CSSProperties = {
-	display: "flex",
-	flexDirection: "column",
-	gap: "var(--oc-space-3)",
-	maxWidth: "var(--oc-content-max-width)",
-	padding: "var(--oc-space-4)",
-};
-
 const FORM_STYLE: CSSProperties = {
 	display: "flex",
 	flexDirection: "column",
 	gap: "var(--oc-space-2)",
 	maxWidth: "32rem",
-};
-
-const LABEL_STYLE: CSSProperties = {
-	display: "flex",
-	flexDirection: "column",
-	gap: "var(--oc-space-1)",
-	color: "var(--oc-text-muted)",
-};
-
-const INPUT_STYLE: CSSProperties = {
-	background: "var(--oc-surface-raised)",
-	color: "var(--oc-text)",
-	border: "1px solid var(--oc-border)",
-	borderRadius: "var(--oc-radius)",
-	padding: "var(--oc-space-1) var(--oc-space-2)",
-};
-
-const BUTTON_STYLE: CSSProperties = {
-	...INPUT_STYLE,
-	cursor: "pointer",
 };
 
 const URL_STYLE: CSSProperties = {
