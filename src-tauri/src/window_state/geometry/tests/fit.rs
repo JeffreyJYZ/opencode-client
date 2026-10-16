@@ -16,28 +16,22 @@ fn a_frame_that_never_left_its_display_is_untouched() {
 
 #[test]
 fn a_frame_saved_on_a_larger_display_is_shrunk_and_moved_back() {
-    // Saved on a 5K display, returning on the laptop.
+    // Saved on a 5K display up and to the left, returning on the laptop: the
+    // frame the real app read back was 4000x2600+1300-600, and the clamp shrinks
+    // it to the work area and pulls its origin back inside.
     let frame = Rect {
-        x: 3000,
-        y: 1900,
-        width: 2560,
-        height: 1400,
+        x: 1300,
+        y: -600,
+        width: 4000,
+        height: 2600,
     };
-    assert_eq!(
-        fit(frame, LAPTOP, CHROME),
-        Rect {
-            x: 0,
-            y: 25,
-            width: LAPTOP.width,
-            height: LAPTOP.height,
-        }
-    );
+    assert_eq!(fit(frame, LAPTOP, CHROME), LAPTOP);
 }
 
 #[test]
 fn a_frame_hanging_off_the_right_edge_is_pulled_back_inside() {
     let frame = Rect {
-        x: 1200,
+        x: 2500,
         y: 100,
         width: 1280,
         height: 800,
