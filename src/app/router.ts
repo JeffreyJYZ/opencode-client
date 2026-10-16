@@ -1,9 +1,16 @@
+import { APP_EVENT } from "@/constants/plugins";
 import { ROUTE_KIND, ROUTE_PATH, SESSION_PATH_PREFIX } from "@/constants/routes";
+import { emitAppEvent } from "@/plugins/appEvents";
 
 /**
  * The internal router (spec 010 §Routes): the history API plus `popstate`, no
  * router dependency. Nothing here touches React — `useRoute.ts` is the only
  * place a component subscribes to navigation.
+ *
+ * Navigation is also where `session-changed` fires (M4.14): the route is the one
+ * truth for which session is open (`useActiveSession.ts`), so a push, a replace or
+ * a `popstate` that lands on a different session — or leaves one for home or
+ * settings — emits the id, or `null`.
  */
 
 /** Where the app can be. Depth is two: a surface, and a session's own panels. */
@@ -86,8 +93,16 @@ export function currentRoute(): Route {
 
 const listeners = new Set<() => void>();
 let popstateBound = false;
+/** The open session the last navigation named, for `session-changed` (M4.14). */
+let openSessionID: string | null = null;
 
 function notify(): void {
+	const route = currentRoute();
+	const sessionID = route.kind === ROUTE_KIND.session ? route.id : null;
+	if (sessionID !== openSessionID) {
+		openSessionID = sessionID;
+		emitAppEvent(APP_EVENT.sessionChanged, { sessionID });
+	}
 	for (const listener of [...listeners]) listener();
 }
 
@@ -123,4 +138,9 @@ export function replaceRoute(route: Route): void {
 	if (path === currentPath()) return;
 	window.history.replaceState(null, "", path);
 	notify();
+}
+
+/** The tests' reset for the `session-changed` memory; production never calls it. */
+export function resetRouteSession(): void {
+	openSessionID = null;
 }

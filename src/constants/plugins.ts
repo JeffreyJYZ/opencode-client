@@ -95,3 +95,25 @@ export const PLUGIN_HOST_GLOBAL_SPECIFIERS = ["react", "react/jsx-runtime"] as c
  * must import nothing").
  */
 export const PLUGIN_REFUSED_SPECIFIERS = ["react-dom", "react-dom/client"] as const;
+
+/**
+ * The app events a plugin subscribes to through `host.on` (spec 040 §The host). One
+ * name per surface that emits it: `src/plugins/appEvents.ts` is the bus, this is the
+ * vocabulary, and every emitter reads its name from here rather than spelling the
+ * string again. `turn-start`/`turn-end`/`chunk` come from the transcript store,
+ * `session-changed` from the router, `settings-changed` from the settings store,
+ * `theme-changed` from the theme service, and `plugin-loaded`/`plugin-unloaded`
+ * from the loader.
+ */
+export const APP_EVENT = {
+	turnStart: "turn-start",
+	turnEnd: "turn-end",
+	chunk: "chunk",
+	sessionChanged: "session-changed",
+	settingsChanged: "settings-changed",
+	pluginLoaded: "plugin-loaded",
+	pluginUnloaded: "plugin-unloaded",
+	themeChanged: "theme-changed",
+} as const;
+
+export type AppEventName = (typeof APP_EVENT)[keyof typeof APP_EVENT];

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import type { V2Event } from "@opencode/client";
-import { APP_VERSION, HOST_API_VERSION } from "@/constants/plugins";
+import { APP_EVENT, APP_VERSION, HOST_API_VERSION } from "@/constants/plugins";
 import { emitAppEvent } from "@/plugins/appEvents";
 import { createHostFactory, type NativeDeps } from "@/plugins/host";
 import { clearLogs, listLogs } from "@/plugins/logs";
@@ -111,7 +111,7 @@ describe("native, transcript and opencode", () => {
 		const { host } = createHostFactory({ subscribe })("m44-a");
 		const seen: string[] = [];
 		const off = host.opencode.on("session.*", (event) => seen.push(event.type));
-		emitAppEvent("turn-start");
+		emitAppEvent(APP_EVENT.turnStart);
 		for (const handler of handlers) {
 			handler({ type: "session.updated" } as unknown as V2Event);
 			handler({ type: "message.part" } as unknown as V2Event);
@@ -127,11 +127,11 @@ describe("app events", () => {
 	test("host.on receives an emitted app event, and stops on unsubscribe", () => {
 		const { host, instance } = createHostFactory()("m44-a");
 		const seen: unknown[] = [];
-		host.on("turn-start", (payload) => seen.push(payload));
-		emitAppEvent("turn-start", { id: 1 });
+		host.on(APP_EVENT.turnStart, (payload) => seen.push(payload));
+		emitAppEvent(APP_EVENT.turnStart, { id: 1 });
 		expect(seen).toEqual([{ id: 1 }]);
 		instance.dispose();
-		emitAppEvent("turn-start", { id: 2 });
+		emitAppEvent(APP_EVENT.turnStart, { id: 2 });
 		expect(seen).toEqual([{ id: 1 }]);
 	});
 });
