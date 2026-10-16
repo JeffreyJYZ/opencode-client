@@ -17,10 +17,17 @@ import { SLOT } from "@/constants/slots";
  * interrupt affordance, and the `composer.toolbar` host. It was `PromptBoxView`'s
  * own line until the three composer slots pushed that file to the 150-line cap;
  * the seam is the line itself, and the DOM it draws is unchanged.
+ *
+ * **Interrupt and "Queued" read different facts** (M2.26): the button is about the
+ * turn (`running`), the label about the queue (`queued`, the transcript's own
+ * `DELIVERY.queued`). A running turn with an empty queue is interruptible and not
+ * queued, so it shows the button and no label.
  */
 export type ComposerToolbarProps = {
 	readonly identity: ComposerIdentityProps;
 	readonly running: boolean;
+	/** A prompt is actually queued in this session (never a synonym for `running`). */
+	readonly queued: boolean;
 	readonly sending: boolean;
 	readonly onSend: () => void;
 	readonly onInterrupt: () => void;
@@ -49,7 +56,7 @@ export function ComposerToolbar(props: ComposerToolbarProps) {
 						{COMPOSER_SEND_LABEL}
 					</button>
 				)}
-				{props.running ? (
+				{props.queued ? (
 					<span title={COMPOSER_QUEUED_NOTE} style={COMPOSER_LINE_STYLE}>
 						{COMPOSER_QUEUED_LABEL}
 					</span>

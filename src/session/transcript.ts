@@ -1,4 +1,4 @@
-import { type Delivery, ROW_KIND, type ToolStatus } from "@/constants/transcript";
+import { DELIVERY, type Delivery, ROW_KIND, type ToolStatus } from "@/constants/transcript";
 import type { Payload } from "@/session/payloadCaps";
 
 /**
@@ -106,4 +106,17 @@ export function emptyTranscript(sessionID: string): Transcript {
 /** Whether a row kind is prose or reasoning — the two the stream appends to. */
 export function isTextRow(row: TranscriptRow): row is TextRow {
 	return row.kind === ROW_KIND.prose || row.kind === ROW_KIND.reasoning;
+}
+
+/**
+ * Whether any prompt in this transcript is still waiting to be delivered (M2.26).
+ * The composer's "Queued" label reads **this**, never the running flag: a turn with
+ * an empty queue says nothing, and the queue's real state is the reducer's own
+ * `DELIVERY.queued` on a user row. Existence only — the row count is not this read.
+ */
+export function hasQueuedPrompt(transcript: Transcript | undefined): boolean {
+	if (transcript === undefined) return false;
+	return transcript.rows.some(
+		(row) => row.kind === ROW_KIND.user && row.delivery === DELIVERY.queued,
+	);
 }
