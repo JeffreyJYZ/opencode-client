@@ -1,9 +1,11 @@
 /**
- * The Plugins section's copy (M3.5, spec 040 §Build, install, develop). M3.5
- * **registers** the section so the plugin manager (M4.5) needs no settings
- * change and a plugin's own section joins the same registry; the manager's
- * controls land with those rows, and until then the section states the one thing
- * that is true — nothing is installed and plugins are off by default.
+ * The Plugins surface's shared vocabulary (M3.5, spec 040 §Build, install,
+ * develop): the title and `data-section` marker the settings surface and the
+ * command palette both read, plus the host-API constants the loader and the build
+ * script share — the manifest's API version, the entry default, the data dir, the
+ * log levels, the host globals and the build's input/output dirs. M4.5's manager
+ * copy lives in `constants/pluginManager.ts`, so this file stays the **host's**
+ * vocabulary and the manager's wording changes when its UI does.
  */
 
 export const PLUGINS_TITLE = "Plugins";
@@ -12,10 +14,6 @@ export const PLUGINS_TITLE = "Plugins";
 export const PLUGINS_SECTION = "plugins";
 
 export const PLUGINS_EMPTY_NOTE = "No plugins are installed.";
-
-/** The master switch's default (spec 040: plugins are off by default). */
-export const PLUGINS_OFF_NOTE =
-	"Plugins are off by default. Installing, enabling and inspecting one happens here.";
 
 /**
  * The host API version this build implements (spec 040 §Manifest, `apiVersion`). A
@@ -73,3 +71,27 @@ export const HOST_GLOBAL = {
 	react: "__ocReact",
 	jsx: "__ocJsx",
 } as const;
+
+/** The directory a plugin's **source** lives in, committed (spec 040 §Build). */
+export const PLUGIN_SOURCE_DIR = "plugins";
+
+/** Where the build writes an entry; Vite serves `public/` at the site root. */
+export const PLUGIN_OUT_DIR = "public/plugins";
+
+/** The source file names the build looks for, in order (spec 040 §Entry file). */
+export const PLUGIN_SOURCE_ENTRY = ["main.tsx", "main.ts"] as const;
+
+/**
+ * The specifiers the build resolves onto the host globals (spec 040 §Entry file):
+ * `react` and `react/jsx-runtime` become reads of `__ocReact` / `__ocJsx`, so a
+ * built entry imports nothing and uses the app's own React.
+ */
+export const PLUGIN_HOST_GLOBAL_SPECIFIERS = ["react", "react/jsx-runtime"] as const;
+
+/**
+ * The specifiers the build **externalises and refuses**: a plugin gets the app's
+ * React, never a second copy, so an import of `react-dom` survives the bundle and
+ * the bare-specifier check fails the build (spec 040 §Entry file: "the built file
+ * must import nothing").
+ */
+export const PLUGIN_REFUSED_SPECIFIERS = ["react-dom", "react-dom/client"] as const;
