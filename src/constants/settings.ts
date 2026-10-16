@@ -84,10 +84,25 @@ export const SETTINGS_SECTION_ORDER = {
 	reference: 4,
 } as const;
 
-/** Sidebar defaults — spec 010 §Persistence's "visible + width"; M2.7 owns its UI. */
-export const DEFAULT_SIDEBAR = { visible: true, width: 260 } as const;
+/**
+ * Sidebar defaults — spec 010 §Persistence's "visible + width"; M2.7 owns its UI.
+ * `narrowVisible` is the narrow window's own value (M2.25): a narrow viewport
+ * hides the sidebar unless the user toggled it open in that state, so its default
+ * is **hidden** while the wide default is shown.
+ */
+export const DEFAULT_SIDEBAR = { visible: true, narrowVisible: false, width: 260 } as const;
 export const SIDEBAR_MIN_WIDTH = 180;
 export const SIDEBAR_MAX_WIDTH = 480;
+
+/**
+ * The narrow-window breakpoint (M2.25, spec 020 §Sidebar): a viewport **narrower
+ * than** this hides the sidebar unless it was explicitly toggled open. The query
+ * below is derived from it, so the number and the rule cannot drift.
+ */
+export const SIDEBAR_NARROW_BREAKPOINT = 720;
+
+/** The media query the sidebar watches for the narrow rule above. */
+export const SIDEBAR_NARROW_MEDIA_QUERY = `(width < ${SIDEBAR_NARROW_BREAKPOINT}px)`;
 
 /** The two font roles (spec 030 §Two font roles). */
 export const FONT_ROLE = { ui: "ui", code: "code" } as const;

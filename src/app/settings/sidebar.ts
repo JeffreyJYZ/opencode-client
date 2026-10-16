@@ -9,6 +9,11 @@ import { DEFAULT_SIDEBAR, SIDEBAR_MAX_WIDTH, SIDEBAR_MIN_WIDTH } from "@/constan
 
 export type SidebarState = {
 	readonly visible: boolean;
+	/**
+	 * The narrow window's own value (M2.25): a narrow viewport hides the sidebar
+	 * unless this was toggled open, so the wide flag alone never un-hides it.
+	 */
+	readonly narrowVisible: boolean;
 	readonly width: number;
 };
 
@@ -26,8 +31,20 @@ export function clampSidebarWidth(width: number): number {
 export function normalizeSidebar(raw: unknown): SidebarState {
 	const record = typeof raw === "object" && raw !== null ? (raw as Record<string, unknown>) : {};
 	const width = record.width;
+	const narrowVisible = record.narrowVisible;
 	return {
 		visible: typeof record.visible === "boolean" ? record.visible : DEFAULT_SIDEBAR.visible,
+		narrowVisible:
+			typeof narrowVisible === "boolean" ? narrowVisible : DEFAULT_SIDEBAR.narrowVisible,
 		width: typeof width === "number" ? clampSidebarWidth(width) : DEFAULT_SIDEBAR.width,
 	};
+}
+
+/**
+ * The sidebar's effective visibility (M2.25): the narrow value on a narrow window,
+ * the wide value otherwise. One reader, so the panel and its tests agree on the
+ * rule instead of each re-deriving it.
+ */
+export function sidebarShown(sidebar: SidebarState, narrow: boolean): boolean {
+	return narrow ? sidebar.narrowVisible : sidebar.visible;
 }

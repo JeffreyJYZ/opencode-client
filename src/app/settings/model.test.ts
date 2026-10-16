@@ -71,6 +71,7 @@ describe("settingsFromDocument — hostile or missing fields", () => {
 		});
 		expect(settings.sidebar).toEqual({
 			visible: DEFAULT_SIDEBAR.visible,
+			narrowVisible: DEFAULT_SIDEBAR.narrowVisible,
 			width: SIDEBAR_MAX_WIDTH,
 		});
 	});
