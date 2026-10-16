@@ -114,6 +114,7 @@ Build order for specs [000](000-overview.md)–[050](050-opencode-integration.md
 | M4.15 | **Plugin storage survives a reload**: a persisted `PluginStorageBackend` instead of the memory one, still bounded by `PLUGIN_DATA_MAX_BYTES` | a plugin writes, the app reloads, the value is still there, and an over-size write is still refused |
 | M4.16 | **`native` is real**: a `NativeFs` adapter plus the shell's filesystem command, path-scoped by the same `safe_id` rule, so `host.native` is not `null` | a plugin reads and writes inside its own data directory, and an escape attempt is refused |
 | M4.17 | **`app.substrate` and `app.builtins` are contributions**: the shell and the built-in areas register through the host API and render through their slots, so the manager lists them as built-ins | both appear in the manager as built-in registrations, a **disable attempt on either is refused** with a locked-area fault (never an empty window with no way back), and the app renders exactly as before, while a plugin still cannot contribute to either |
+| M4.18 | **The slot coverage check is a name-list, not a host check**: `slots.test.ts` compares `SLOTS` against `Object.values(SLOT)` — two string lists — so it stayed green while `session.sidebar.panels` rendered nowhere (found by `M4.12`) | a host check: removing a `<Slot>` mount fails it and a registration with no mount fails it — each proven by breaking it that way |
 
 ### M5 — Desktop polish
 
