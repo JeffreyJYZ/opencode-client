@@ -72,11 +72,23 @@ describe("the sidebar panels", () => {
 	});
 
 	test("Subagents lists the children and says an unfinished row is running", () => {
-		render(<SubagentsPanel data={{ children: [CHILD] }} />);
+		render(
+			<SubagentsPanel
+				data={{ children: [CHILD] }}
+				openSession={() => undefined}
+				interrupt={() => undefined}
+			/>,
+		);
 		expect(screen.getByText("researcher")).toBeDefined();
 		expect(screen.getByText(/running/)).toBeDefined();
 		cleanup();
-		render(<SubagentsPanel data={{ children: [] }} />);
+		render(
+			<SubagentsPanel
+				data={{ children: [] }}
+				openSession={() => undefined}
+				interrupt={() => undefined}
+			/>,
+		);
 		expect(screen.getByText(SIDEBAR_EMPTY)).toBeDefined();
 	});
 
