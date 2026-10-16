@@ -1,5 +1,6 @@
 import type { CSSProperties, FormEvent } from "react";
 import { useRef, useState } from "react";
+import { Button } from "@/components/Button";
 import {
 	PLUGINS_INSTALL_FAILED,
 	PLUGINS_INSTALL_LABEL,
@@ -11,7 +12,7 @@ import {
 	PLUGINS_SOURCE_LABEL,
 	PLUGINS_SOURCE_PLACEHOLDER,
 } from "@/constants/pluginManager";
-import { BUTTON_STYLE, INPUT_STYLE, LABEL_STYLE } from "@/constants/settingsUi";
+import { INPUT_STYLE, LABEL_STYLE } from "@/constants/settingsUi";
 import { installPlugin } from "@/plugins/manager";
 
 /**
@@ -89,9 +90,9 @@ export function PluginInstallForm() {
 					placeholder={PLUGINS_SOURCE_PLACEHOLDER}
 				/>
 			</label>
-			<button type="submit" style={BUTTON_STYLE} data-plugin-install>
+			<Button type="submit" data-plugin-install>
 				{PLUGINS_INSTALL_LABEL}
-			</button>
+			</Button>
 			<p style={STATUS_STYLE} role="status" data-plugin-message>
 				{message}
 			</p>

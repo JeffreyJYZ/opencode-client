@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 import { useSyncExternalStore } from "react";
 import { updateSettings } from "@/app/settings/store";
 import { useSettings } from "@/app/settings/useSettings";
+import { Section } from "@/components/Section";
 import {
 	APPEARANCE_FOLLOW_SYSTEM_LABEL,
 	APPEARANCE_IN_FORCE_LABEL,
@@ -11,7 +12,7 @@ import {
 	APPEARANCE_THEME_NOTE,
 	APPEARANCE_UNKNOWN_THEME,
 } from "@/constants/appearance";
-import { INPUT_STYLE, LABEL_STYLE, SECTION_STYLE } from "@/constants/settingsUi";
+import { INPUT_STYLE, LABEL_STYLE } from "@/constants/settingsUi";
 import { DEFAULT_THEME_ID, FOLLOW_SYSTEM_THEME_ID } from "@/constants/theme";
 import {
 	activeTheme,
@@ -50,7 +51,7 @@ export function AppearanceSection() {
 	// built-in default the blob's `null` means.
 	const chosen = stored ?? DEFAULT_THEME_ID;
 	return (
-		<section style={SECTION_STYLE} data-section={APPEARANCE_SECTION}>
+		<Section name={APPEARANCE_SECTION}>
 			<label style={LABEL_STYLE} htmlFor={APPEARANCE_THEME_FIELD_ID}>
 				{APPEARANCE_THEME_LABEL}
 				<select
@@ -73,6 +74,6 @@ export function AppearanceSection() {
 				{`${APPEARANCE_IN_FORCE_LABEL}: ${active?.name ?? APPEARANCE_UNKNOWN_THEME}`}
 			</p>
 			<p style={NOTE_STYLE}>{APPEARANCE_THEME_NOTE}</p>
-		</section>
+		</Section>
 	);
 }

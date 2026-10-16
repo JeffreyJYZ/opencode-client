@@ -1,3 +1,4 @@
+import { APP_KIT } from "@/app/hostKit";
 import { currentRoute } from "@/app/router";
 import { pushBanner } from "@/components/notify/bannerStore";
 import { pushModal, requestConfirm } from "@/components/notify/modalStore";
@@ -39,8 +40,9 @@ import type { TranscriptStore } from "@/session/transcriptStore";
  *   only where there is no shell: the web build and the test process, where
  *   `pluginDataRoot()` answers `null`.
  *
- * `kit` is not overridden: the host factory's own `PLUGIN_KIT` (empty) is what a
- * host built here gets, so `host.ui.kit` stays empty until a row supplies one.
+ * `kit` is the app's real kit (M4.21, `app/hostKit.ts`): the six primitives
+ * the app itself renders, frozen. A host built anywhere else gets the
+ * factory's own `PLUGIN_KIT` (empty).
  */
 
 /**
@@ -90,6 +92,7 @@ export async function buildHostPorts(input: HostPortInput): Promise<HostDeps> {
 		},
 		storage: createLocalStorageBackend(),
 		notifier: APP_NOTIFIER,
+		kit: APP_KIT,
 		native:
 			root === null || root === undefined
 				? undefined

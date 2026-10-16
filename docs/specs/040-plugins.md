@@ -54,7 +54,7 @@ Registries register **synchronously** and return a `Disposable`; services return
 | `host.` | Adds | Kind |
 | --- | --- | --- |
 | `ui.register({ id, slot, component, order? })` | a component into a named slot, in registration order; an explicit `order` breaks ties, lower first, and equal orders keep registration order | registry |
-| `ui.kit` | the app's primitives (`Button`, `Panel`, `Section`, `FieldRow`, `Menu`, `Markdown`, `cls` and the class constants) so plugin UI matches a built-in's without copying Tailwind strings | object |
+| `ui.kit` | the app's own primitives (`Button`, `Panel`, `Section`, `FieldRow`, `Menu`, `Markdown`, M4.21 `src/app/hostKit.ts`) so plugin UI matches a built-in's without copying style objects — `FieldRow` is the sidebar family's `PanelField`, `Menu` is `ContextMenu`; there is no `cls` and no class constants (styling is inline style objects over tokens, not class strings) | object |
 | `commands.register({ id, title, run, keybinding? })` | a palette command, optionally keybound | registry |
 | `panels.register({ id, title, component })` | a sidebar panel (`session.sidebar.panels`) | registry |
 | `routes.register({ id, path, component })` | a route the router serves | registry |
@@ -113,7 +113,7 @@ Never describe these as a sandbox.
 
 | Plugin | Proves |
 | --- | --- |
-| `hello-world` | a slot contribution, the lifecycle (**not** `host.ui.kit` — that seam is deliberately empty) (marker set in `setup`, cleared in `dispose`) |
+| `hello-world` | a slot contribution, the lifecycle, and a palette command (it renders its own markup rather than `host.ui.kit`; marker set in `setup`, cleared in `dispose`) |
 | `theme-gruvbox` | `themes.register` + `apply`, a settings section, `storage` persistence |
 | `session-export` | `commands.register` + `transcript.snapshot()` + `native.write` into the plugin's data dir |
 | `context-meter` | a sidebar panel (`panels.register`) driven by `opencode.on("session.usage.updated")` |

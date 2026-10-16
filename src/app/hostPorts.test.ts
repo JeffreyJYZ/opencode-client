@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { mkdir, mkdtemp, readdir, readFile, realpath, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { APP_KIT } from "@/app/hostKit";
 import { buildHostPorts } from "@/app/hostPorts";
 import { clearFaults } from "@/plugins/faults";
 import { createHostFactory } from "@/plugins/host";
@@ -65,5 +66,15 @@ describe("the app's published host ports", () => {
 		// It landed under the plugin's own directory, not the bare root.
 		const onDisk = join(dataDirOf(root, PLUGIN_ID), "notes", "a.txt");
 		expect(await readFile(onDisk, "utf8")).toBe("hello");
+	});
+
+	test("the published ports carry the real kit, so a plugin's host has it", async () => {
+		const ports = await buildHostPorts({
+			client: null,
+			transcripts: createTranscriptStore(),
+			nativeRoot: null,
+		});
+		expect(ports.kit).toBe(APP_KIT);
+		expect(createHostFactory(ports)(PLUGIN_ID).host.ui.kit).toBe(APP_KIT);
 	});
 });
