@@ -89,7 +89,10 @@ async function buildOne(id: string): Promise<void> {
 		configFile: false,
 		logLevel: "warn",
 		plugins: [hostGlobalsPlugin()],
-		esbuild: { jsx: "automatic", jsxImportSource: "react" },
+		/* Vite's own JSX switch. The `esbuild` spelling is a deprecated alias Vite converts
+		   to exactly these keys, but its types come from the uninstalled `esbuild` package,
+		   so only this spelling type-checks. Same resolved config either way. */
+		oxc: { jsx: { runtime: "automatic", importSource: "react" } },
 		build: {
 			lib: { entry: entryOf(id), formats: ["es"], fileName: () => PLUGIN_ENTRY_DEFAULT },
 			write: false,
@@ -105,6 +108,11 @@ async function buildOne(id: string): Promise<void> {
 		},
 	});
 	const output = Array.isArray(result) ? result[0] : result;
+	/* `build()` widens its result to include `RolldownWatcher` (a caller may set
+	   `build.watch`; this one never does), so narrow instead of casting. */
+	if (!("output" in output)) {
+		throw new Error("build-plugins: build() returned a watcher");
+	}
 	const chunks = output.output.filter((one) => one.type === "chunk");
 	if (chunks.length !== 1) {
 		throw new Error(
