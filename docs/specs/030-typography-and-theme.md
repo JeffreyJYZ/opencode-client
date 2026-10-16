@@ -11,13 +11,13 @@ The sketch: "font should be mainly a font fit for ui, not a mono font, and font 
 
 - Fallbacks: interface `Geist, system-ui, -apple-system, "Segoe UI", sans-serif`; code `"GeistMono Nerd Font", "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace`.
 - The bloat is **bundled, the default is installed**: Geist and Geist Mono are committed (OFL) so a build resolves an offline machine, but the shipped code face is the machine's **Nerd Font** cut, which a distribution cannot carry (its glyph set is large and the cask owns the updates). A missing Nerd Font falls back to the bundled `Geist Mono` — never to a serif or a proportional face.
-- Why the Nerd Font cut: it carries the box-drawing, powerline and icon glyphs the TUI vocabulary leans on (`│ ╹ ▀ ↳ ✓`), so a tool row or a rail never falls back to a different face mid-line. The plain `Geist Mono` variable cut lacks most of them.
+- Why the Nerd Font cut: it carries the box-drawing, powerline and icon glyphs the TUI vocabulary leans on (`│ ╹ ▀ ↳ ✓`), so a tool row or a rail never falls back to a different face mid-line. Measured 2026-10-16 (`M3.1`): the plain `Geist Mono` variable cut **does** carry the box-drawing glyphs (`│` and `╹` both advance `59.999`) — what it lacks is the **icon range** (`U+E0B0` advances `50` against the Nerd Font's `60`), so this line overstated the gap until that measurement.
 - Mono is never the default for anything else. A row's prose, its status word and its durations are proportional; only the *content* a tool produced is mono.
 
 ## How a font is applied
 
 - The root carries exactly two custom properties, `--oc-font-ui` (family stack) and `--oc-font-code`, plus `--oc-font-ui-size` and `--oc-font-code-size`. Nothing writes a font family or size literal in a component.
-- `initializeFonts()` reads the stored preference once at startup and writes those variables; applying a change in settings writes them again and re-renders. No component measures a glyph.
+- The startup read is `restoreSettings()` → `applyFonts()` (`src/app/settings/store.ts` → `src/theme/fonts.ts`); it reads the stored preference once and writes those variables, and applying a change in settings writes them again and re-renders. **There is no `initializeFonts()`** (this line named one until 2026-10-16, when `M3.1`/`M3.2` found the spec was the only place it existed). No component measures a glyph — a measurement belongs to a proof, not to the app.
 - **No cell grid.** Layout is CSS: no measured advance, no `ch`-based panes, no glyph-drawn borders, no cell-snapped scroll. `ch` may appear only inside a mono surface where a character-width unit is genuinely wanted.
 - Sizes: interface default **15px**, code default **13px**, both settable in a bounded range (interface 12–20, code 11–18) with a reset. Line height is a token (`--oc-leading`) so density is one value, not a per-component guess.
 - Weight: interface sections use the variable face's weights (400/500/600); no synthetic bold.
