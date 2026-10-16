@@ -111,7 +111,7 @@ Build order for specs [000](000-overview.md)–[050](050-opencode-integration.md
 | M4.14 | **The app events fire**: `emitAppEvent` is called by the app's own turn, session, settings and theme changes, so a subscriber is really invoked | a plugin subscribed to `turn-end` is called at a turn's end, and each of the other seven events has a named emitter |
 | M4.15 | **Plugin storage survives a reload**: a persisted `PluginStorageBackend` instead of the memory one, still bounded by `PLUGIN_DATA_MAX_BYTES` | a plugin writes, the app reloads, the value is still there, and an over-size write is still refused |
 | M4.16 | **`native` is real**: a `NativeFs` adapter plus the shell's filesystem command, path-scoped by the same `safe_id` rule, so `host.native` is not `null` | a plugin reads and writes inside its own data directory, and an escape attempt is refused |
-| M4.17 | **`app.substrate` and `app.builtins` are contributions**: the shell and the built-in areas register through the host API and render through their slots, so the manager can disable them as it would a plugin | disabling `app.substrate` empties the window and re-enabling restores it, while a plugin still cannot contribute to either |
+| M4.17 | **`app.substrate` and `app.builtins` are contributions**: the shell and the built-in areas register through the host API and render through their slots, so the manager lists them as built-ins | both appear in the manager as built-in registrations, a **disable attempt on either is refused** with a locked-area fault (never an empty window with no way back), and the app renders exactly as before, while a plugin still cannot contribute to either |
 
 ### M5 — Desktop polish
 
