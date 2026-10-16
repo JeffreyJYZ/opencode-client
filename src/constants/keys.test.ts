@@ -2,18 +2,25 @@ import { describe, expect, test } from "bun:test";
 import {
 	bindingChord,
 	chordLabel,
+	commandAltChordLabel,
 	findChordConflict,
 	KEY_MODIFIER,
+	KEY_MODIFIER_ALT_GLYPH,
 	KEY_MODIFIER_GLYPH,
+	KEY_MODIFIER_SHIFT_GLYPH,
 	MAX_KEYBOARD_TAB,
 	MIN_KEYBOARD_TAB,
 	matchesBinding,
+	shiftChordLabel,
 	tabRangeLabel,
 } from "@/constants/chords";
 import {
 	KEYBOARD_SHORTCUTS,
+	SHORTCUT_CLOSE_OTHERS,
 	SHORTCUT_CLOSE_TAB,
 	SHORTCUT_COMMAND_PALETTE,
+	SHORTCUT_CONTEXT_MENU,
+	SHORTCUT_INTERRUPT,
 	SHORTCUT_NEW_SESSION,
 	SHORTCUT_SETTINGS,
 	SHORTCUT_SWITCH_TAB,
@@ -22,6 +29,11 @@ import {
 
 function event(key: string, held = true): KeyboardEvent {
 	return new KeyboardEvent("keydown", { key, metaKey: held, ctrlKey: false, bubbles: true });
+}
+
+/** The same event with Option, Shift and/or Command held, for the composite chords. */
+function held(key: string, altKey: boolean, shiftKey: boolean, metaKey = true): KeyboardEvent {
+	return new KeyboardEvent("keydown", { key, metaKey, altKey, shiftKey, bubbles: true });
 }
 
 describe("the keymap registry", () => {
@@ -43,12 +55,35 @@ describe("the keymap registry", () => {
 			SHORTCUT_COMMAND_PALETTE,
 			SHORTCUT_NEW_SESSION,
 			SHORTCUT_CLOSE_TAB,
+			SHORTCUT_CLOSE_OTHERS,
 			SHORTCUT_SWITCH_TAB,
 			SHORTCUT_SETTINGS,
 			SHORTCUT_TOGGLE_SIDEBAR,
+			SHORTCUT_INTERRUPT,
+			SHORTCUT_CONTEXT_MENU,
 		]) {
 			expect(ids).toContain(binding.id);
 		}
+	});
+
+	test("the two composite chords are labelled from the glyph constants", () => {
+		expect(commandAltChordLabel("W")).toBe(`${KEY_MODIFIER_GLYPH}${KEY_MODIFIER_ALT_GLYPH}W`);
+		expect(SHORTCUT_CLOSE_OTHERS.label).toBe(`${KEY_MODIFIER_GLYPH}${KEY_MODIFIER_ALT_GLYPH}W`);
+		expect(shiftChordLabel("f10")).toBe(`${KEY_MODIFIER_SHIFT_GLYPH}F10`);
+		expect(SHORTCUT_CONTEXT_MENU.label).toBe(`${KEY_MODIFIER_SHIFT_GLYPH}F10`);
+	});
+
+	test("the modifier is compared exactly, so ⌘W and ⌘⌥W never shadow each other", () => {
+		expect(matchesBinding(held("w", false, false), SHORTCUT_CLOSE_TAB)).toBe(true);
+		expect(matchesBinding(held("w", true, false), SHORTCUT_CLOSE_TAB)).toBe(false);
+		expect(matchesBinding(held("w", true, false), SHORTCUT_CLOSE_OTHERS)).toBe(true);
+		expect(matchesBinding(held("w", false, false), SHORTCUT_CLOSE_OTHERS)).toBe(false);
+		// `⇧F10` needs Shift and **no** command key; `Esc` still tolerates `⇧Esc`.
+		expect(matchesBinding(held("F10", false, true, false), SHORTCUT_CONTEXT_MENU)).toBe(true);
+		expect(matchesBinding(held("F10", false, false), SHORTCUT_CONTEXT_MENU)).toBe(false);
+		expect(matchesBinding(held("F10", false, true), SHORTCUT_CONTEXT_MENU)).toBe(false);
+		expect(matchesBinding(held("Escape", false, true, false), SHORTCUT_INTERRUPT)).toBe(true);
+		expect(matchesBinding(held("Escape", true, false), SHORTCUT_INTERRUPT)).toBe(false);
 	});
 
 	test("labels are composed from the modifier glyph, never typed as a range", () => {

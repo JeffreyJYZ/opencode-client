@@ -52,9 +52,13 @@ function moreLines(container: HTMLElement): number {
 function transcript(kind: TextRow["kind"], lines: number) {
 	const payload = streamed(LINE.repeat(lines));
 	const rows: TranscriptRow[] = [textRow(kind, payload, `msg_stream:${kind}`)];
-	const { container, rerender } = render(<TranscriptView rows={rows} />);
+	const { container, rerender } = render(
+		<TranscriptView rows={rows} sessionID={TEST_SESSION} running={false} />,
+	);
 	return { payload, container, rerender, rows };
 }
+
+const TEST_SESSION = "ses_test";
 
 describe("a text row the ingest trimmed", () => {
 	test("prose shows the ingest's count and the note, and no toggle", () => {
@@ -83,7 +87,13 @@ describe("the count is the row's, not the list's", () => {
 	test("a later row does not change a trimmed prose row's count", () => {
 		const { container, rerender, rows } = transcript(ROW_KIND.prose, 4000);
 		const before = moreLines(container);
-		rerender(<TranscriptView rows={[...rows, NOTICE_ROW]} />);
+		rerender(
+			<TranscriptView
+				rows={[...rows, NOTICE_ROW]}
+				sessionID={TEST_SESSION}
+				running={false}
+			/>,
+		);
 		expect(screen.getByText(NOTICE.compacted)).toBeDefined();
 		expect(moreLines(container)).toBe(before);
 		expect(screen.getAllByText(PAYLOAD_ELISION)).toHaveLength(1);

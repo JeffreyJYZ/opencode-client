@@ -4,6 +4,7 @@ import { TranscriptView } from "@/components/transcript/TranscriptView";
 import { useTailFollow } from "@/components/transcript/useTailFollow";
 import { ROUTE_KIND } from "@/constants/routes";
 import { SESSION_PAGE_STYLE, SESSION_VIEW_STYLE } from "@/constants/styles";
+import { useClient } from "@/session/ClientProvider";
 import type { TranscriptRow } from "@/session/transcript";
 import { useTranscript } from "@/session/useTranscript";
 
@@ -39,6 +40,8 @@ const NO_ROWS: readonly TranscriptRow[] = [];
 export function SessionPage({ id }: { readonly id: string }) {
 	const transcript = useTranscript(id);
 	const follow = useTailFollow(id);
+	const running = transcript?.running ?? false;
+	const client = useClient();
 	return (
 		<div style={SESSION_VIEW_STYLE}>
 			<main
@@ -48,10 +51,15 @@ export function SessionPage({ id }: { readonly id: string }) {
 				data-following={follow.following}
 				style={SESSION_PAGE_STYLE}
 			>
-				<TranscriptView rows={transcript?.rows ?? NO_ROWS} />
+				<TranscriptView
+					rows={transcript?.rows ?? NO_ROWS}
+					sessionID={id}
+					running={running}
+					client={client}
+				/>
 			</main>
 			{!follow.following && <JumpToLatest onClick={follow.jumpToLatest} />}
-			<SessionComposer sessionID={id} running={transcript?.running ?? false} />
+			<SessionComposer sessionID={id} running={running} />
 		</div>
 	);
 }

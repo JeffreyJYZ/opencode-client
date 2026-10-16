@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { TranscriptView } from "@/components/transcript/TranscriptView";
 import { ROW_KIND } from "@/constants/transcript";
 import { TRANSCRIPT_EMPTY_LABEL } from "@/constants/transcriptUi";
@@ -51,6 +51,11 @@ function nodeOf(container: HTMLElement, id: string): HTMLElement | null {
 	return container.querySelector(`[data-row="${id}"]`);
 }
 
+/** The region under test: the captured session's rows, with no turn running. */
+function view(rows: readonly TranscriptRow[]) {
+	return <TranscriptView rows={rows} sessionID={sessionID} running={false} />;
+}
+
 /** A text row's own text; anything else has none. */
 function textOf(row: TranscriptRow | undefined): string {
 	return row !== undefined && isTextRow(row) ? row.text.kept : "";
@@ -66,13 +71,13 @@ function shownText(row: TranscriptRow | undefined): string {
 
 describe("TranscriptView", () => {
 	test("a transcript with no rows says so rather than rendering nothing", () => {
-		render(<TranscriptView rows={[]} />);
+		render(view([]));
 		expect(screen.getByText(TRANSCRIPT_EMPTY_LABEL)).toBeDefined();
 	});
 
 	test("every row is keyed by the store's own id, in arrival order", () => {
 		const transcript = reduceTo(streamed.length);
-		const { container } = render(<TranscriptView rows={transcript.rows} />);
+		const { container } = render(view(transcript.rows));
 		const rendered = [...container.querySelectorAll("[data-row]")].map((element) =>
 			element.getAttribute("data-row"),
 		);
@@ -90,12 +95,12 @@ describe("TranscriptView", () => {
 		// The part has been created but has streamed nothing yet.
 		expect(growing.text.kept).toBe("");
 
-		const { container, rerender } = render(<TranscriptView rows={started.rows} />);
+		const { container, rerender } = render(view(started.rows));
 		const node = nodeOf(container, growing.id);
 		expect(node).not.toBeNull();
 
 		const delta = reduceTo(lastOf("session.text.delta") + 1);
-		rerender(<TranscriptView rows={delta.rows} />);
+		rerender(view(delta.rows));
 		const grown = delta.rows.find((row) => row.id === growing.id);
 		expect(grown).not.toBe(growing);
 		expect(nodeOf(container, growing.id)).toBe(node);
@@ -103,22 +108,37 @@ describe("TranscriptView", () => {
 
 		// `.ended` replaces the text wholesale; the node must survive that too.
 		const ended = reduceTo(streamed.length);
-		rerender(<TranscriptView rows={ended.rows} />);
+		rerender(view(ended.rows));
 		const final = ended.rows.find((row) => row.id === growing.id);
 		expect(nodeOf(container, growing.id)).toBe(node);
 		expect(node?.textContent?.trim()).toBe(shownText(final));
 		expect(final !== undefined && isTextRow(final) && final.ended).toBe(true);
 	});
 
+	test("a menu opened from a row closes once that row is gone from the store", () => {
+		// The region outlives its rows, so this is the case requirement 4 names: the
+		// menu's target is the row, and the row leaving the store must close it.
+		const transcript = reduceTo(streamed.length);
+		const first = transcript.rows[0];
+		if (first === undefined) throw new Error("the capture has no rows");
+		const { container, rerender } = render(view(transcript.rows));
+		const node = nodeOf(container, first.id);
+		if (node === null) throw new Error("the first row did not render");
+		fireEvent.contextMenu(node);
+		expect(screen.queryByRole("menu")).not.toBeNull();
+		rerender(view(transcript.rows.filter((row) => row.id !== first.id)));
+		expect(screen.queryByRole("menu")).toBeNull();
+	});
+
 	test("an append does not re-create the rows before it", () => {
 		const early = reduceTo(lastOf("session.text.delta") + 1);
-		const { container, rerender } = render(<TranscriptView rows={early.rows} />);
+		const { container, rerender } = render(view(early.rows));
 		const before = [...container.querySelectorAll("[data-row]")];
 		expect(before.length).toBeGreaterThan(0);
 
 		const later = reduceTo(streamed.length);
 		expect(later.rows.length).toBeGreaterThan(early.rows.length);
-		rerender(<TranscriptView rows={later.rows} />);
+		rerender(view(later.rows));
 		const after = [...container.querySelectorAll("[data-row]")];
 		// Same nodes, same order, for every row that existed before the append.
 		for (const [index, node] of before.entries()) expect(after[index]).toBe(node);

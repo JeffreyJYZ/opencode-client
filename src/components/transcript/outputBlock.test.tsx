@@ -58,6 +58,8 @@ function outputOf(container: HTMLElement): string {
 	return container.querySelector("pre")?.textContent ?? "";
 }
 
+const TEST_SESSION = "ses_test";
+
 describe("a collapsed output block", () => {
 	test("shows the render cap's head and counts the lines it hides", () => {
 		const row = toolRow(600);
@@ -97,9 +99,17 @@ describe("a collapsed output block", () => {
 describe("the count is the row's, not the list's", () => {
 	test("a later row does not change a collapsed block's count", () => {
 		const rows: TranscriptRow[] = [toolRow(600)];
-		const { container, rerender } = render(<TranscriptView rows={rows} />);
+		const { container, rerender } = render(
+			<TranscriptView rows={rows} sessionID={TEST_SESSION} running={false} />,
+		);
 		const before = moreLines(container);
-		rerender(<TranscriptView rows={[...rows, NOTICE_ROW]} />);
+		rerender(
+			<TranscriptView
+				rows={[...rows, NOTICE_ROW]}
+				sessionID={TEST_SESSION}
+				running={false}
+			/>,
+		);
 		expect(screen.getByText(NOTICE.compacted)).toBeDefined();
 		expect(moreLines(container)).toBe(before);
 	});

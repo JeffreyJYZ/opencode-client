@@ -1,8 +1,8 @@
-import { MAX_KEYBOARD_TAB, MIN_KEYBOARD_TAB } from "@/constants/chords";
-import { SHORTCUT_CLOSE_TAB, SHORTCUT_NEW_SESSION } from "@/constants/keys";
+import { MAX_KEYBOARD_TAB, MIN_KEYBOARD_TAB, matchesBinding } from "@/constants/chords";
+import { SHORTCUT_CLOSE_OTHERS, SHORTCUT_CLOSE_TAB, SHORTCUT_NEW_SESSION } from "@/constants/keys";
 
 /**
- * The tab strip's keys (spec 010 §Desktop behaviours): ⌘T, ⌘1…⌘9, ⌘W.
+ * The tab strip's keys (spec 010 §Desktop behaviours): ⌘T, ⌘1…⌘9, ⌘W, ⌘⌥W.
  *
  * Matching is pure so the index math is unit-testable without a DOM. The
  * installer takes actions, so the store and the router stay out of this file.
@@ -11,6 +11,7 @@ import { SHORTCUT_CLOSE_TAB, SHORTCUT_NEW_SESSION } from "@/constants/keys";
 export type TabKeyActions = {
 	readonly onNewSession: () => void;
 	readonly onCloseActive: () => void;
+	readonly onCloseOthers: () => void;
 	readonly onSwitchTab: (index: number) => void;
 };
 
@@ -56,6 +57,10 @@ export function indexForDigit(digit: string, count: number): number | null {
  * Handle one keydown; returns `true` when it consumed the event. `modalOpen`
  * suppresses every binding while an overlay dialog owns the window — ⌘W and ⌘T
  * must not close or stack anything behind the picker.
+ *
+ * `⌘⌥W` is matched through `matchesBinding` (which checks Option) and **before**
+ * `⌘W`: `matchesShortcut` compares the key alone, so ordering is what keeps the
+ * two rows from shadowing each other.
  */
 export function handleTabKey(
 	event: KeyboardEvent,
@@ -67,6 +72,11 @@ export function handleTabKey(
 	if (matchesShortcut(event, SHORTCUT_NEW_SESSION)) {
 		event.preventDefault();
 		actions.onNewSession();
+		return true;
+	}
+	if (matchesBinding(event, SHORTCUT_CLOSE_OTHERS)) {
+		event.preventDefault();
+		actions.onCloseOthers();
 		return true;
 	}
 	if (matchesShortcut(event, SHORTCUT_CLOSE_TAB)) {

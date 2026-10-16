@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 import { SESSION_STATUS } from "@/constants/sessions";
 import type { RecentGroup } from "@/pages/homeModel";
-import { agentModel, lastPathSegment, relativeTime, sessionTitle } from "@/pages/homeModel";
+import { RecentsRow } from "@/pages/RecentsRow";
 
 const BUTTON_STYLE: CSSProperties = {
 	background: "var(--oc-surface-raised)",
@@ -43,16 +43,6 @@ export function HomeRecentsSection({
 		fontWeight: 500,
 		margin: 0,
 		color: "var(--oc-text-muted)",
-	};
-	const titleStyle: CSSProperties = {
-		fontSize: "var(--oc-font-ui-size)",
-		fontWeight: 500,
-		color: "var(--oc-text)",
-	};
-	const metaStyle: CSSProperties = {
-		fontSize: "var(--oc-font-size-meta)",
-		color: "var(--oc-text-muted)",
-		whiteSpace: "nowrap",
 	};
 	return (
 		<section style={{ display: "flex", flexDirection: "column", gap: "var(--oc-space-4)" }}>
@@ -100,27 +90,7 @@ export function HomeRecentsSection({
 						>
 							{group.sessions.map((session) => (
 								<li key={session.id}>
-									<button
-										type="button"
-										className="oc-row"
-										style={{
-											width: "100%",
-											display: "flex",
-											alignItems: "center",
-											gap: "var(--oc-space-3)",
-											textAlign: "left",
-										}}
-										onClick={() => openSession(session.id)}
-									>
-										<span style={titleStyle}>{sessionTitle(session)}</span>
-										<span style={metaStyle}>
-											{lastPathSegment(session.location.directory)} ·{" "}
-											{relativeTime(session.time.updated)}
-											{agentModel(session) !== null
-												? ` · ${agentModel(session)}`
-												: ""}
-										</span>
-									</button>
+									<RecentsRow session={session} openSession={openSession} />
 								</li>
 							))}
 						</ul>

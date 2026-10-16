@@ -5,6 +5,7 @@ import { toggleSidebar } from "@/app/settings/sidebarActions";
 import { installTabKeyboard } from "@/app/tabKeys";
 import {
 	closeActiveTabAndGo,
+	closeOtherActiveTabsAndGo,
 	openSettingsAndGo,
 	requestCommandPalette,
 	requestNewSession,
@@ -43,6 +44,7 @@ export function Shell() {
 		return installTabKeyboard(getTabCount, {
 			onNewSession: requestNewSession,
 			onCloseActive: closeActiveTabAndGo,
+			onCloseOthers: closeOtherActiveTabsAndGo,
 			onSwitchTab: switchTabAndGo,
 		});
 	}, []);
