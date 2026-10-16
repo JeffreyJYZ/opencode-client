@@ -34,7 +34,6 @@ const SKIP_PREFIXES = [
 	"src-tauri/gen/",
 	"public/plugins/",
 	"src/theme/vendor/",
-	"src/theme/themes/",
 	"src/docs/reference.generated.ts",
 	"src/test/fixtures/",
 	".superpowers/",

@@ -8,7 +8,6 @@
 			"!**/src-tauri/target",
 			"!**/public/plugins",
 			"!**/src/theme/vendor",
-			"!**/src/theme/themes",
 			"!**/src/test/fixtures",
 			"!**/src/docs/reference.generated.ts"
 		]
