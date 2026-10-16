@@ -17,6 +17,13 @@ import { BUILTIN_SECTIONS } from "./builtinSections";
  * `PluginFault` (area `settings`), the same rule `plugins/registry.ts` gives a
  * slot. A section that throws at render is the surface's own concern — see
  * `SettingsSectionBoundary`.
+ *
+ * **The built-in ids are reserved** (M4.9, spec 040 §Model: the plugin manager is a
+ * settings section, not a slot). A contribution naming one is refused the same
+ * inert way, under the `lockedArea` reason the slot registry already uses, so a
+ * plugin cannot take the manager's own surface away. The built-ins are placed into
+ * the map directly and never come through that check, which is why it takes no
+ * `Actor` and does not learn about capabilities or trust.
  */
 
 export type SettingsSection = {
@@ -39,6 +46,20 @@ const byId = new Map<string, SettingsSection>();
 const listeners = new Set<() => void>();
 let snapshot: readonly SettingsSection[] = [];
 
+/**
+ * The ids a contribution may not take (M4.9): derived from the built-in table, so
+ * the reserved set can never drift from the sections that actually exist — never a
+ * second hand-typed list.
+ */
+const RESERVED_IDS: ReadonlySet<string> = new Set(BUILTIN_SECTIONS.map((section) => section.id));
+
+/**
+ * What a refusal returns: a callable handle, because the registry's callers dispose
+ * a section's handle as a function, and a no-op, because a refused contribution was
+ * never registered.
+ */
+const REFUSED_SECTION = (): void => {};
+
 function sorted(): SettingsSection[] {
 	return [...byId.values()].sort(compareByOrder);
 }
@@ -60,21 +81,31 @@ export function getSettingsSections(): readonly SettingsSection[] {
 	return snapshot;
 }
 
-/** Add or replace a section; returns a handle that removes exactly this one. */
+/**
+ * Add or replace a section; returns a handle that removes exactly this one. A
+ * contribution naming a built-in id, or a malformed one, is refused: the handle is
+ * a no-op, a `PluginFault` records why, and the registry is untouched.
+ */
 export function registerSettingsSection(section: SettingsSection): () => void {
+	const subject = typeof section?.id === "string" ? section.id : "?";
+	if (RESERVED_IDS.has(subject)) {
+		recordFault({
+			area: FAULT_AREAS.settings,
+			reason: FAULT_REASONS.lockedArea,
+			subject,
+			message: `the settings section "${subject}" is a built-in; a contribution cannot take it`,
+		});
+		return REFUSED_SECTION;
+	}
 	const problem = sectionProblem(section);
 	if (problem !== null) {
-		const subject = typeof section?.id === "string" ? section.id : "?";
 		recordFault({
 			area: FAULT_AREAS.settings,
 			reason: FAULT_REASONS.malformedEntry,
 			subject,
 			message: `the settings section "${subject}" has ${problem}`,
 		});
-		return () => {
-			// A refusal has nothing to retract, and the settings registry's handle is
-			// callable (its callers dispose it as a function).
-		};
+		return REFUSED_SECTION;
 	}
 	byId.set(section.id, section);
 	publish();
