@@ -77,7 +77,9 @@ export function SessionPage({ id }: { readonly id: string }) {
 					client={client}
 				/>
 			</main>
-			{!follow.following && <JumpToLatest onClick={follow.jumpToLatest} />}
+			{!follow.following && (
+				<JumpToLatest count={follow.rowsBelow} onClick={follow.jumpToLatest} />
+			)}
 			<SessionComposer sessionID={id} running={running} />
 		</div>
 	);

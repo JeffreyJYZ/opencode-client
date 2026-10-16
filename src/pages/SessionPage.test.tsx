@@ -97,7 +97,7 @@ describe("SessionPage", () => {
 		box.scrollTop = 40;
 		fireEvent.scroll(box);
 		expect(box.getAttribute("data-following")).toBe("false");
-		expect(screen.getByText(JUMP_LATEST_LABEL)).toBeDefined();
+		expect(screen.getByText(JUMP_LATEST_LABEL, { exact: false })).toBeDefined();
 	});
 
 	test("a tab switch restores that tab's own position", async () => {

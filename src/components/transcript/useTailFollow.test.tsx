@@ -73,7 +73,7 @@ describe("unpinning", () => {
 		box.scrollTop = 120;
 		fireEvent.scroll(box);
 		expect(followingOf(box)).toBe("true");
-		expect(screen.queryByText(JUMP_LATEST_LABEL)).toBeNull();
+		expect(screen.queryByText(JUMP_LATEST_LABEL, { exact: false })).toBeNull();
 	});
 
 	test("a scroll nobody's hand caused cannot unpin — a following view is put back", () => {
@@ -88,7 +88,7 @@ describe("unpinning", () => {
 		fireEvent.scroll(box);
 		expect(followingOf(box)).toBe("true");
 		expect(box.scrollTop).toBe(300);
-		expect(screen.queryByText(JUMP_LATEST_LABEL)).toBeNull();
+		expect(screen.queryByText(JUMP_LATEST_LABEL, { exact: false })).toBeNull();
 	});
 
 	test("the reader's own upward gesture unpins and offers the pill", () => {
@@ -101,7 +101,7 @@ describe("unpinning", () => {
 		box.scrollTop = 120;
 		fireEvent.scroll(box);
 		expect(followingOf(box)).toBe("false");
-		expect(screen.getByText(JUMP_LATEST_LABEL)).toBeDefined();
+		expect(screen.getByText(JUMP_LATEST_LABEL, { exact: false })).toBeDefined();
 	});
 
 	test("jump-to-latest restores follow and the tail", () => {
@@ -113,10 +113,10 @@ describe("unpinning", () => {
 		fireEvent.wheel(box, { deltaY: -120 });
 		box.scrollTop = 120;
 		fireEvent.scroll(box);
-		fireEvent.click(screen.getByText(JUMP_LATEST_LABEL));
+		fireEvent.click(screen.getByText(JUMP_LATEST_LABEL, { exact: false }));
 		expect(followingOf(box)).toBe("true");
 		expect(distanceFromTail(box)).toBe(0);
-		expect(screen.queryByText(JUMP_LATEST_LABEL)).toBeNull();
+		expect(screen.queryByText(JUMP_LATEST_LABEL, { exact: false })).toBeNull();
 	});
 });
 
