@@ -1,4 +1,10 @@
-import { BUILTIN_THEME_IDS, THEME_CSS_END_TAG, THEME_MODE, type Theme } from "@/constants/theme";
+import {
+	BUILTIN_THEME_IDS,
+	FOLLOW_SYSTEM_THEME_ID,
+	THEME_CSS_END_TAG,
+	THEME_MODE,
+	type Theme,
+} from "@/constants/theme";
 import { BUILTIN_THEMES } from "@/theme/themes";
 
 /**
@@ -66,6 +72,9 @@ export function themeProblem(theme: unknown): string | null {
 	const { id, name, mode, variables, css } = theme as Partial<Theme>;
 	if (typeof id !== "string" || id.trim() === "") return "an empty id";
 	if (BUILTIN_THEME_IDS.includes(id)) return `the built-in id "${id}"`;
+	// The follow-system sentinel is a stored *preference*, not a theme (M3.6): a
+	// plugin taking its id would make the two indistinguishable in `settings.theme`.
+	if (id === FOLLOW_SYSTEM_THEME_ID) return `the reserved id "${id}"`;
 	if (typeof name !== "string" || name.trim() === "") return "an empty name";
 	if (mode !== THEME_MODE.dark && mode !== THEME_MODE.light) {
 		return `the unknown mode "${String(mode)}"`;

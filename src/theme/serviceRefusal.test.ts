@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import {
 	BUILTIN_THEME,
+	FOLLOW_SYSTEM_THEME_ID,
 	THEME_MODE,
 	THEME_PROTECTED_VARIABLE_PREFIX,
 	type Theme,
@@ -50,6 +51,7 @@ describe("a theme that fails to apply", () => {
 		const malformed = [
 			{ ...PROOF_THEME, id: "  " },
 			{ ...PROOF_THEME, id: BUILTIN_THEME.dark.id },
+			{ ...PROOF_THEME, id: FOLLOW_SYSTEM_THEME_ID },
 			{ ...PROOF_THEME, name: "" },
 			{ ...PROOF_THEME, mode: "midnight" },
 			{ ...PROOF_THEME, variables: ["--oc-surface"] },

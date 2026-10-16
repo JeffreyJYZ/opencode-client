@@ -1,6 +1,7 @@
 import type { SettingsData } from "@/app/settings/model";
+import { FOLLOW_SYSTEM_THEME_ID } from "@/constants/theme";
 import { applyFonts, sameFontPreferences } from "@/theme/fonts";
-import { applyTheme, clearTheme, getTheme } from "@/theme/service";
+import { applyFollowSystem, applyTheme, clearTheme, getTheme } from "@/theme/service";
 
 /**
  * Apply what the user chose for the app's appearance (spec 030 §Theme service).
@@ -18,7 +19,9 @@ import { applyTheme, clearTheme, getTheme } from "@/theme/service";
  * A stored theme id that nothing registered — a plugin theme whose plugin has not
  * loaded yet — is **not** a fault: the built-in default is applied and the id
  * stays in the blob, so the plugin's own load (`themes.register` + `apply`) can
- * put it back in force.
+ * put it back in force. The **follow-system** sentinel (M3.6) is read first and
+ * resolved by the service, so its mode comes from `prefers-color-scheme` and the
+ * watch it needs is attached here, on the boot path.
  */
 export function applyAppearance(settings: SettingsData, previous?: SettingsData): void {
 	const themeChanged = previous === undefined || settings.theme !== previous.theme;
@@ -27,7 +30,10 @@ export function applyAppearance(settings: SettingsData, previous?: SettingsData)
 	if (!themeChanged && !fontsChanged) return;
 	if (themeChanged) {
 		const wanted = settings.theme;
-		if (wanted !== null && getTheme(wanted) !== null) applyTheme(wanted);
+		// The follow-system sentinel is read **before** the registry: it names no
+		// theme, and it is the one choice whose mode the service resolves (M3.6).
+		if (wanted === FOLLOW_SYSTEM_THEME_ID) applyFollowSystem();
+		else if (wanted !== null && getTheme(wanted) !== null) applyTheme(wanted);
 		else clearTheme();
 	}
 	if (fontsChanged) applyFonts(settings.fonts);

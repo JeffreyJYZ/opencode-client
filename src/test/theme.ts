@@ -34,3 +34,56 @@ export function styleCount(): number {
 export function themeFaults(): readonly PluginFault[] {
 	return listFaults().filter((fault) => fault.area === FAULT_AREAS.themes);
 }
+
+/** What a media stub recorded and can replay. */
+export type MediaStub = {
+	readonly record: { query: string; added: number; removed: number };
+	readonly count: () => number;
+	readonly flip: (matchesDark: boolean) => void;
+	readonly restore: () => void;
+};
+
+/**
+ * A stub for the system's `prefers-color-scheme` list (M3.6): it records the
+ * query, counts attach/detach, keeps `matches` live (not a snapshot taken at
+ * call time) and lets a test flip the system without a real OS change — the OS
+ * flip itself is the user's hand check. `restore` puts the window back.
+ */
+export function stubMedia(matchesDark: boolean): MediaStub {
+	const original = window.matchMedia;
+	const state = { matches: matchesDark };
+	const listeners = new Set<(event: MediaQueryListEvent) => void>();
+	const record = { query: "", added: 0, removed: 0 };
+	window.matchMedia = ((query: string) => {
+		record.query = query;
+		return {
+			get matches(): boolean {
+				return state.matches;
+			},
+			addEventListener: (_type: string, listener: (event: MediaQueryListEvent) => void) => {
+				record.added += 1;
+				listeners.add(listener);
+			},
+			removeEventListener: (
+				_type: string,
+				listener: (event: MediaQueryListEvent) => void,
+			) => {
+				record.removed += 1;
+				listeners.delete(listener);
+			},
+		} as unknown as MediaQueryList;
+	}) as unknown as typeof window.matchMedia;
+	return {
+		record,
+		count: () => listeners.size,
+		flip: (next: boolean) => {
+			state.matches = next;
+			for (const listener of [...listeners]) {
+				listener({ matches: next } as MediaQueryListEvent);
+			}
+		},
+		restore: () => {
+			window.matchMedia = original;
+		},
+	};
+}
