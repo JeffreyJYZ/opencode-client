@@ -8,7 +8,7 @@ Last updated: 2026-10-15 · Current focus: **M3 — Type and theme** (`M3.0`, th
 | M1 Shell and home | 16 / 16 | home → session view end to end; restart restores tabs |
 | M2 Session view | 12 / 13 | a live session streams, interrupts, queues and replies from the keyboard |
 | M3 Type and theme | 8 / 8 | both faces change live and survive a restart; theme applies and clears |
-| M4 Plugin host 0.1 | 16 / 18 | four example plugins install, work and uninstall through the documented API |
+| M4 Plugin host 0.1 | 17 / 19 | four example plugins install, work and uninstall through the documented API |
 | M5 Desktop polish | 5 / 5 | packaged app, updater, `verify-release` exits 0 |
 
 ## M0 — Foundations
@@ -92,7 +92,7 @@ Last updated: 2026-10-15 · Current focus: **M3 — Type and theme** (`M3.0`, th
 - [x] `M4.15` **Plugin storage survives a reload** — `createMemoryStorageBackend` is the only backend, so plugin data dies with the process and `theme-gruvbox` cannot remember a choice, despite `storage.ts` claiming M4.5 supplied the persisted one — **delivered by `M4.10`** (`0162015`), not built twice: `src/plugins/services/storageBackend.ts` is a `localStorage`-backed `PluginStorageBackend`, published to the host through the app's own ports (`src/plugins/appPorts.ts` ← `src/app/AppPorts.tsx`), and the cap is still enforced a layer up in `createPluginStorage`. **Two separate proofs, labelled**: at unit level the backend's own test shows *two backends over one storage share the map, so a value survives a rebuild*; at app level `M4.10`'s real-reload browser run listed the plugin again (1 row before, 1 after) and its `server.info()` answered — evidence: write, reload, still there; the cap still refuses an over-size write
 - [x] `M4.16` **`native` is real** — no `NativeFs` implementation exists anywhere and the shell's `invoke_handler` exposes no filesystem command, so `host.native` can never be non-null and `session-export`'s write path cannot run — evidence: a plugin reads and writes inside its own data directory and an escape attempt is refused
 - [ ] `M4.17` **`app.substrate` and `app.builtins` are contributions** — neither has a registrant nor a renderer, so spec 040's "everything is a contribution" and "two built-in areas can be disabled like plugins" have no implementation — evidence: both appear in the manager as built-in registrations, a **disable attempt on either is refused** with a locked-area fault (never an empty window with no way back), and the app renders exactly as before
-- [ ] `M4.18` **The "every advertised slot has a host" check is a name-list, not a host check** — `slots.test.ts` compares two string tuples (`SLOTS` vs `Object.values(SLOT)`), so it stayed green while `session.sidebar.panels` rendered nowhere; found by `M4.12`, whose own new `SidebarSlots.test.tsx` is the real thing — evidence: removing a `<Slot>` mount fails the check, and a registration with no mount fails it, both shown by breaking it
+- [x] `M4.18` **The "every advertised slot has a host" check is a name-list, not a host check** — `slots.test.ts` compares two string tuples (`SLOTS` vs `Object.values(SLOT)`), so it stayed green while `session.sidebar.panels` rendered nowhere; found by `M4.12`, whose own new `SidebarSlots.test.tsx` is the real thing — evidence: removing a `<Slot>` mount fails the check, and a registration with no mount fails it, both shown by breaking it
 
 ## M5 — Desktop polish
 

@@ -30,6 +30,7 @@ Live repo: the opencode **desktop client** (Tauri 2 + React). Abandoned sibling 
 - **Landing a branch means `bun install` in the *target* tree before the gate.** A branch that changed `package.json`/`bun.lock` otherwise fails `tsc` with `Cannot find module` on a dependency that **is** declared and absent — hit three times (`zod`, `@tauri-apps/plugin-updater`, `@tauri-apps/plugin-clipboard-manager`). The controller's execution scratch carries `land.sh <branch> "<message>"` (git-ignored, under `.superpowers/sdd/060-plan/`), which runs merge → install → `verify` → `e2e` chained under `set -e` so the install cannot be remembered too late.
 - **A new worktree has no `node_modules`** — `node_modules` is per-tree, so `bun install` belongs to *cutting* the worktree, not to the brief.
 - **Two records, never mixed**: `docs/progress/` is the project status (committed, durable, one row per plan id); `.superpowers/sdd/<plan>/progress.md` is the execution ledger (git-ignored scratch and the recovery map after a context compaction). A landed task updates the board; the ledger is evidence for the loop, not for the reader.
+- **The report path a brief names is the integration tree's `.superpowers/sdd/<plan>/`** — an explicit carve-out from "never touch another worktree" that every brief must state as a carve-out, or an implementer correctly refuses to write it (measured 2026-10-16: an agent flagged the contradiction rather than resolving it). Write the report there and nowhere else in that tree.
 
 ## Never reintroduce
 
