@@ -8,11 +8,18 @@ import {
 } from "@/components/contextmenu/surfaceItems";
 import { KEYBOARD_SHORTCUTS, SHORTCUT_INTERRUPT } from "@/constants/keys";
 import {
+	MENU_COPY_EMPTY_HINT,
+	MENU_COPY_ID,
+	MENU_EDITOR_ID,
+	MENU_EDITOR_NO_TARGET_HINT,
 	MENU_ELEMENT_ROUTE_HINT,
 	MENU_INTERRUPT_IDLE_HINT,
 	MENU_OPEN_SESSION_ID,
 } from "@/constants/menu";
 import { TAB_KIND } from "@/constants/tabs";
+import { ROW_KIND, TOOL_STATUS } from "@/constants/transcript";
+import { capPayload } from "@/session/payloadCaps";
+import type { ToolRow } from "@/session/transcript";
 
 /**
  * The four surfaces' lists are the **registry's** rows, not a second map (M5.1
@@ -38,7 +45,9 @@ describe("the surfaces' item lists", () => {
 		let bound = 0;
 		for (const list of everyList()) {
 			for (const item of list) {
-				if (item.id === MENU_OPEN_SESSION_ID) continue;
+				// The unbound items (the recents row, a row's Copy and Open-in-editor)
+				// name no binding: their route is the element's own key, held below.
+				if (item.binding === undefined) continue;
 				const binding = registry.get(item.id);
 				if (binding === undefined) throw new Error(`no registry row for ${item.id}`);
 				expect(item.label).toBe(binding.description);
@@ -55,7 +64,19 @@ describe("the surfaces' item lists", () => {
 		}
 	});
 
-	test("the one unbound item names the element's own route", () => {
+	test("an item with no binding names the element's own route", () => {
+		let unbound = 0;
+		for (const list of everyList()) {
+			for (const item of list) {
+				if (item.binding !== undefined) continue;
+				expect(item.accelerator).toBe(MENU_ELEMENT_ROUTE_HINT);
+				unbound++;
+			}
+		}
+		expect(unbound).toBeGreaterThan(0);
+	});
+
+	test("the recents row's one item is the unbound open", () => {
 		const open = recentsMenuItems("ses_1")[0];
 		expect(open?.id).toBe(MENU_OPEN_SESSION_ID);
 		expect(open?.accelerator).toBe(MENU_ELEMENT_ROUTE_HINT);
@@ -77,5 +98,45 @@ describe("the surfaces' item lists", () => {
 		expect(idle?.disabledHint).toBe(MENU_INTERRUPT_IDLE_HINT);
 		const [live] = transcriptMenuItems({ client: null, sessionID: "ses_1", running: true });
 		expect(live?.disabled).toBe(false);
+	});
+
+	/**
+	 * A transcript row's two native affordances (M5.2). The region's own menu has no
+	 * row, so both keep their place and say why, and a tool row with a text and an
+	 * absolute anchor enables both — the item is inert rather than absent either way.
+	 */
+	describe("a row's copy and open-in-editor items", () => {
+		const read = (input: string, anchor?: string): ToolRow => ({
+			id: "msg_a:t0",
+			created: 1,
+			seq: 1,
+			kind: ROW_KIND.tool,
+			name: "read",
+			input,
+			status: TOOL_STATUS.ok,
+			output: capPayload(""),
+			...(anchor === undefined ? {} : { anchor }),
+		});
+
+		test("the region's own menu shows both inert, each with its reason", () => {
+			const items = transcriptMenuItems({ client: null, sessionID: "ses_1", running: false });
+			const copy = items.find((item) => item.id === MENU_COPY_ID);
+			const editor = items.find((item) => item.id === MENU_EDITOR_ID);
+			expect(copy?.disabled).toBe(true);
+			expect(copy?.disabledHint).toBe(MENU_COPY_EMPTY_HINT);
+			expect(editor?.disabled).toBe(true);
+			expect(editor?.disabledHint).toBe(MENU_EDITOR_NO_TARGET_HINT);
+		});
+
+		test("a tool row with text and an absolute anchor enables both", () => {
+			const items = transcriptMenuItems({
+				client: null,
+				sessionID: "ses_1",
+				running: false,
+				row: read('{"path":"/a.ts"}', "/a.ts"),
+			});
+			expect(items.find((item) => item.id === MENU_COPY_ID)?.disabled).toBe(false);
+			expect(items.find((item) => item.id === MENU_EDITOR_ID)?.disabled).toBe(false);
+		});
 	});
 });

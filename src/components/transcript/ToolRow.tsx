@@ -1,6 +1,8 @@
 import { TOOL_STATUS_LABEL, TOOL_UNNAMED } from "@/constants/transcriptUi";
 import type { ToolRow as ToolRowModel } from "@/session/transcript";
 import { OutputBlock } from "./OutputBlock";
+import { CopyButton, EditorButton } from "./RowActionButtons";
+import { rowCopyText, rowEditorTarget } from "./rowCopy";
 import { ANCHOR_STYLE, HEAD_STYLE, META_STYLE, ROW_STYLE, rowIdentity } from "./rowStyles";
 
 /**
@@ -13,8 +15,14 @@ import { ANCHOR_STYLE, HEAD_STYLE, META_STYLE, ROW_STYLE, rowIdentity } from "./
  *
  * The output is the row's capped `Payload`, rendered by the block that owns the
  * render cap and the `(N more lines)` count (M2.4).
+ *
+ * The head also carries the row's two native affordances (M5.2) — copy its text,
+ * open the file it anchored on — both derived from the row by `rowCopy`, so the
+ * context menu's items and these buttons can never disagree.
  */
 export function ToolRow({ row }: { readonly row: ToolRowModel }) {
+	const text = rowCopyText(row);
+	const target = rowEditorTarget(row);
 	return (
 		<article {...rowIdentity(row.id)} style={ROW_STYLE}>
 			<header style={HEAD_STYLE}>
@@ -23,6 +31,8 @@ export function ToolRow({ row }: { readonly row: ToolRowModel }) {
 				<span style={META_STYLE} data-status={row.status}>
 					{TOOL_STATUS_LABEL[row.status]}
 				</span>
+				{target !== null && <EditorButton target={target} />}
+				{text !== null && <CopyButton text={text} />}
 			</header>
 			<OutputBlock output={row.output} />
 		</article>

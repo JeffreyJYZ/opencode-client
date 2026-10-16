@@ -14,7 +14,9 @@
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
-use tauri::{AppHandle, Runtime, WebviewUrl, WebviewWindow, WebviewWindowBuilder, WindowEvent};
+use tauri::{
+    AppHandle, Manager, Runtime, WebviewUrl, WebviewWindow, WebviewWindowBuilder, WindowEvent,
+};
 use tauri_plugin_window_state::{StateFlags, WindowExt};
 
 use crate::csp;
@@ -58,6 +60,12 @@ pub fn open<R: Runtime>(
     let clamped = Arc::new(AtomicBool::new(false));
     let target_window = window.clone();
     window.on_window_event(move |event| {
+        // A Finder drop never reaches the DOM (M5.2): the shell watches the window's
+        // own drag-drop event and hands the paths to the page, so the composer can
+        // attach them through M2.5's path.
+        if let WindowEvent::DragDrop(dropped) = event {
+            crate::native::handle_drop(target_window.app_handle(), dropped);
+        }
         let settled = matches!(event, WindowEvent::Moved(_) | WindowEvent::Resized(_));
         if settled && !clamped.swap(true, Ordering::SeqCst) {
             window_state::report(window_state::restore_on_screen(&target_window));

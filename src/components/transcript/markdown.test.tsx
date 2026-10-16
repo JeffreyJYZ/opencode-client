@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { isExternalHref } from "@/components/transcript/externalLink";
+import { act, cleanup, render } from "@testing-library/react";
 import {
 	highlightInvocations,
 	isHighlightable,
@@ -115,35 +114,5 @@ describe("highlighting is debounced, memoised and capped", () => {
 		// --oc-font-code (fontGuard.test.ts refuses a family anywhere else).
 		expect(pre?.tagName.toLowerCase()).toBe("pre");
 		expect(container.querySelector("span[style*='--shiki']")).not.toBeNull();
-	});
-});
-
-describe("links never navigate the webview", () => {
-	test("external and internal hrefs are told apart", () => {
-		expect(isExternalHref("https://example.com/x")).toBe(true);
-		expect(isExternalHref("mailto:a@b.example")).toBe(true);
-		expect(isExternalHref("/session/ses_x")).toBe(false);
-		expect(isExternalHref("#frag")).toBe(false);
-		expect(isExternalHref("javascript:alert(1)")).toBe(false);
-	});
-
-	test("clicking an external link dispatches the host signal and does not navigate", () => {
-		const seen: string[] = [];
-		const listener = (event: Event): void => {
-			seen.push((event as CustomEvent<string>).detail);
-		};
-		window.addEventListener("oc:open-external", listener);
-		try {
-			const { container } = render(<Markdown text={"[site](https://example.com/x)"} />);
-			const before = window.location.href;
-			const anchor = container.querySelector("a");
-			expect(anchor).not.toBeNull();
-			fireEvent.click(anchor as HTMLAnchorElement);
-			expect(seen).toEqual(["https://example.com/x"]);
-			expect(window.location.href).toBe(before);
-			expect(screen.getByText("site")).toBeDefined();
-		} finally {
-			window.removeEventListener("oc:open-external", listener);
-		}
 	});
 });

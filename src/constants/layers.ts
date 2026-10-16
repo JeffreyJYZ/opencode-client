@@ -10,4 +10,6 @@ export const LAYER = {
 	overlay: 50,
 	/** A context menu and its click-swallowing backdrop: above every overlay. */
 	contextMenu: 60,
+	/** The toast stack: above every menu, because it reports on what they did. */
+	toast: 70,
 } as const;

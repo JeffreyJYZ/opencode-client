@@ -29,6 +29,19 @@ export const MENU_OPEN_SESSION_ID = "menu.open-session";
 export const MENU_OPEN_SESSION_LABEL = "Open";
 
 /**
+ * The two native affordances a transcript row's menu carries (M5.2). Neither has a
+ * window chord — "copy *this* row" and "open *this* row's file" are about the row
+ * under the pointer — so each names the element's own route (`Enter` on the row's
+ * own button) in the same `accelerator` field the unbound item uses.
+ */
+export const MENU_COPY_ID = "menu.copy";
+export const MENU_COPY_LABEL = "Copy";
+export const MENU_COPY_EMPTY_HINT = "This row has nothing to copy";
+export const MENU_EDITOR_ID = "menu.open-in-editor";
+export const MENU_EDITOR_LABEL = "Open in editor";
+export const MENU_EDITOR_NO_TARGET_HINT = "This row names no file the editor can open";
+
+/**
  * The distance a menu keeps from the viewport edge, in pixels.
  *
  * This is the **viewport math** the placement clamps by, not theme spacing: the
