@@ -1,4 +1,4 @@
-import type { AgentInfo, ModelInfo } from "@opencode/client";
+import type { AgentInfo, ModelInfo, ModelRef } from "@opencode/client";
 import { COMPOSER_CONTROL_STYLE, COMPOSER_LINE_STYLE } from "@/components/composer/composerStyles";
 import {
 	COMPOSER_AGENT_LABEL,
@@ -8,6 +8,7 @@ import {
 	COMPOSER_THINKING_OFF,
 	COMPOSER_THINKING_ON,
 } from "@/constants/composer";
+import { modelOptionKey } from "@/session/composerReads";
 
 /**
  * The identity line (spec 020 §Prompt box: "agent · model · thinking mode", each a
@@ -24,7 +25,8 @@ import {
 
 export type ComposerIdentityProps = {
 	readonly agent: string | null;
-	readonly model: string | null;
+	/** The session's model (`session.get`): a `ModelRef`, so the picker knows the provider. */
+	readonly model: ModelRef | null;
 	readonly variant: string | null;
 	readonly agents: readonly AgentInfo[];
 	readonly models: readonly ModelInfo[];
@@ -34,7 +36,11 @@ export type ComposerIdentityProps = {
 };
 
 export function ComposerIdentity(props: ComposerIdentityProps) {
-	const current = props.models.find((model) => model.id === props.model);
+	// `modelOptionKey` is `providerID/id`: an `id` alone is not unique across providers,
+	// so both the key, the value and this lookup use the pair (see `composerReads.ts`).
+	const current = props.models.find(
+		(model) => model.providerID === props.model?.providerID && model.id === props.model?.id,
+	);
 	const variants = current?.variants ?? [];
 	return (
 		<div style={COMPOSER_LINE_STYLE}>
@@ -61,17 +67,17 @@ export function ComposerIdentity(props: ComposerIdentityProps) {
 					<select
 						aria-label={COMPOSER_MODEL_LABEL}
 						style={COMPOSER_CONTROL_STYLE}
-						value={props.model ?? ""}
+						value={props.model === null ? "" : modelOptionKey(props.model)}
 						onChange={(event) => {
 							const chosen = props.models.find(
-								(model) => model.id === event.target.value,
+								(model) => modelOptionKey(model) === event.target.value,
 							);
 							if (chosen !== undefined) props.onModel(chosen);
 						}}
 					>
 						<option value="">—</option>
 						{props.models.map((model) => (
-							<option key={model.id} value={model.id}>
+							<option key={modelOptionKey(model)} value={modelOptionKey(model)}>
 								{model.name}
 							</option>
 						))}
