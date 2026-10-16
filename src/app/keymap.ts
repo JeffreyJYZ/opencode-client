@@ -4,6 +4,7 @@ import {
 	SHORTCUT_SETTINGS,
 	SHORTCUT_TOGGLE_SIDEBAR,
 } from "@/constants/keys";
+import { overlayOpen } from "@/constants/overlay";
 
 /**
  * The window-level chords the registry declares but the tab strip does not own:
@@ -13,7 +14,9 @@ import {
  *
  * ⌘K is handled **even while a modal is open**, so it toggles its own palette
  * instead of being swallowed by the palette's `role="dialog"`; ⌘, and ⌘B are
- * suppressed behind an overlay, matching the strip (nothing must happen under one).
+ * suppressed behind an overlay, matching the strip and the transcript's band
+ * chords (nothing must happen under one). The one definition of that gate is
+ * `constants/overlay.ts`.
  */
 
 export type KeymapActions = {
@@ -21,9 +24,6 @@ export type KeymapActions = {
 	readonly onSettings: () => void;
 	readonly onToggleSidebar: () => void;
 };
-
-/** Any open overlay dialog: settings must not navigate out from under one. */
-const MODAL_SELECTOR = '[role="dialog"]';
 
 /** Handle one keydown; returns `true` when it consumed the event. */
 export function handleAppKey(
@@ -54,7 +54,7 @@ export function handleAppKey(
 /** Listen for the map's window chords; returns the uninstaller. */
 export function installAppKeys(actions: KeymapActions): () => void {
 	const onKeyDown = (event: KeyboardEvent) => {
-		handleAppKey(event, actions, document.querySelector(MODAL_SELECTOR) !== null);
+		handleAppKey(event, actions, overlayOpen());
 	};
 	window.addEventListener("keydown", onKeyDown);
 	return () => {

@@ -1,5 +1,6 @@
 import { type KeyEventLike, matchesBinding } from "@/constants/chords";
 import { SHORTCUT_BAND_NEXT, SHORTCUT_BAND_PREVIOUS } from "@/constants/keys";
+import { overlayOpen } from "@/constants/overlay";
 import { BAND_DIRECTION, type BandDirection } from "@/constants/scroll";
 import { ROW_KIND } from "@/constants/transcript";
 import { ROW_ID_ATTR } from "@/constants/transcriptUi";
@@ -84,12 +85,19 @@ export type BandActions = {
  * Listen for the band chords on `window`; returns the uninstaller. `read` is called
  * per press, so a transcript that grew never leaves the handler stale.
  *
- * **No modal guard**, deliberately: the app's other surface-matched chords — the
- * composer's ⌘↩ and `Esc`, a region's ⇧F10 — have none either, so this matches what
- * is there rather than inventing a rule for one chord.
+ * These are **window** chords, so they take the window chords' gate: **nothing
+ * happens while an overlay dialog is open**, exactly as `keymap.ts` suppresses ⌘,
+ * and ⌘B (its ⌘K is the one deliberate exception — it toggles the palette that
+ * would otherwise swallow it) and as the strip does. The *surface*-matched chords
+ * — the composer's ⌘↩/`Esc`, a region's ⇧F10 — need no gate and are **not** the
+ * precedent here: focus cannot reach their element through a modal, so they never
+ * see the press. One definition of the gate, `constants/overlay.ts`.
  */
 export function installBandKeys(read: () => BandSource, actions: BandActions): () => void {
 	const onKeyDown = (event: KeyboardEvent) => {
+		// Read per press, like the scroller and the bands: an overlay opened since the
+		// install still suppresses the chord, and nothing is captured at install time.
+		if (overlayOpen()) return;
 		const direction = bandDirectionFor(event);
 		if (direction === null || event.defaultPrevented) return;
 		const { scroller, bandIds } = read();

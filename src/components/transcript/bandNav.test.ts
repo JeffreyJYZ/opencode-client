@@ -8,21 +8,31 @@ import {
 } from "@/components/transcript/bandNav";
 import { KEY_MODIFIER_ALT_GLYPH, matchesBinding } from "@/constants/chords";
 import { SHORTCUT_BAND_NEXT, SHORTCUT_BAND_PREVIOUS } from "@/constants/keys";
+import { OVERLAY_SELECTOR } from "@/constants/overlay";
 import { BAND_DIRECTION } from "@/constants/scroll";
 import { ROW_KIND } from "@/constants/transcript";
-import { ROW_ID_ATTR } from "@/constants/transcriptUi";
+import { BAND_OFFSETS, BAND_START, type BandBox, bandBox } from "@/test/bandNav";
 import { textRow, toolRow, userRow } from "@/test/transcriptRows";
 
 /**
  * Band navigation (M2.23, spec 020 §Scroll). The search itself is proved on
  * **offsets**, with no DOM: the installer's job is only to read them off a real
- * container, which the last test does with a hand-set layout, since happy-dom has
- * none.
+ * container, which the installer tests do on the fixture in `src/test/bandNav.ts`,
+ * since happy-dom has no layout.
  */
 
 /** A keydown with the modifiers a band chord does (or does not) name. */
 function press(key: string, altKey: boolean, metaKey = false): KeyboardEvent {
 	return new KeyboardEvent("keydown", { key, altKey, metaKey, bubbles: true, cancelable: true });
+}
+
+/** The installer over a fixture box, with the container itself as the action. */
+function install(box: BandBox): () => void {
+	return installBandKeys(() => ({ scroller: box.scroller, bandIds: box.bandIds }), {
+		scrollTo: (offset) => {
+			box.scroller.scrollTop = offset;
+		},
+	});
 }
 
 describe("the band chords", () => {
@@ -84,45 +94,43 @@ describe("the band search", () => {
 
 describe("a press through the installer", () => {
 	test("moves the container to the band above and the band below", () => {
-		const scroller = document.createElement("main");
-		let top = 1000;
-		// happy-dom has no layout, so the container's own scroll position and the two
-		// rects are set to the numbers a real layout would have produced.
-		Object.defineProperty(scroller, "scrollTop", {
-			get: () => top,
-			set: (value: number) => {
-				top = value;
-			},
-			configurable: true,
-		});
-		Object.defineProperty(scroller, "getBoundingClientRect", { value: () => ({ top: 0 }) });
-		// A row's rect moves with the scroll position while its *content* offset does
-		// not: the two bands sit at 800 and 1300 in the container's own coordinates.
-		for (const [index, offset] of [800, 1300].entries()) {
-			const node = document.createElement("article");
-			node.setAttribute(ROW_ID_ATTR, `band_${index}`);
-			Object.defineProperty(node, "getBoundingClientRect", {
-				value: () => ({ top: offset - top }),
-			});
-			scroller.append(node);
-		}
-		// The reader is at 1000, between the two bands.
-		const bandIds = ["band_0", "band_1"];
-		expect(bandOffsets(scroller, bandIds)).toEqual([800, 1300]);
-		const uninstall = installBandKeys(() => ({ scroller, bandIds }), {
-			scrollTo: (offset) => {
-				scroller.scrollTop = offset;
-			},
-		});
+		const box = bandBox();
+		expect(bandOffsets(box.scroller, box.bandIds)).toEqual([...BAND_OFFSETS]);
+		const uninstall = install(box);
 		window.dispatchEvent(press("ArrowUp", true));
-		expect(scroller.scrollTop).toBe(800);
+		expect(box.position()).toBe(BAND_OFFSETS[0]);
 		window.dispatchEvent(press("ArrowDown", true));
-		expect(scroller.scrollTop).toBe(1300);
+		expect(box.position()).toBe(BAND_OFFSETS[1]);
 		// At the last band the down chord is inert, so the position does not move.
 		window.dispatchEvent(press("ArrowDown", true));
-		expect(scroller.scrollTop).toBe(1300);
+		expect(box.position()).toBe(BAND_OFFSETS[1]);
 		uninstall();
 		window.dispatchEvent(press("ArrowUp", true));
-		expect(scroller.scrollTop).toBe(1300);
+		expect(box.position()).toBe(BAND_OFFSETS[1]);
+	});
+
+	test("does nothing while an overlay dialog is open", () => {
+		// The overlay the app really renders: its three dialog components write
+		// `role="dialog"` themselves, so the fixture writes that attribute rather than
+		// deriving it from `OVERLAY_SELECTOR` — a selector proved against itself would
+		// pass even if it had drifted. This pins the two together.
+		expect(OVERLAY_SELECTOR).toBe('[role="dialog"]');
+		const box = bandBox();
+		const uninstall = install(box);
+		const dialog = document.createElement("div");
+		dialog.setAttribute("role", "dialog");
+		document.body.append(dialog);
+		// Neither moved nor consumed: the press belongs to the overlay.
+		const blocked = press("ArrowUp", true);
+		window.dispatchEvent(blocked);
+		expect(blocked.defaultPrevented).toBe(false);
+		expect(box.position()).toBe(BAND_START);
+		// The overlay closes: the same press now moves and is consumed.
+		dialog.remove();
+		const allowed = press("ArrowUp", true);
+		window.dispatchEvent(allowed);
+		expect(box.position()).toBe(BAND_OFFSETS[0]);
+		expect(allowed.defaultPrevented).toBe(true);
+		uninstall();
 	});
 });
