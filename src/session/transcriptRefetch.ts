@@ -9,7 +9,8 @@ import { rowsFromMessage } from "@/session/transcriptRows";
  * mapping to rows is `transcriptRows.ts`.
  *
  * The page is the **newest** messages, reversed into chronological order: a live
- * view needs its tail, and back-filling the head is M2.9's scroll work. A failed
+ * view needs its tail, and that window is all a repair claims to restore — nothing
+ * back-fills the head of a transcript. A failed
  * call returns `null` and changes nothing — the connection state owns the failure,
  * and an empty transcript is never the answer to "the refetch did not work".
  */

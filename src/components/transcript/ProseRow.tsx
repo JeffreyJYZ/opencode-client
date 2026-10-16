@@ -1,5 +1,6 @@
 import type { TextRow } from "@/session/transcript";
 import { Markdown } from "./Markdown";
+import { IngestElisionNote, PayloadElision } from "./PayloadElision";
 import { ROW_STYLE, rowIdentity } from "./rowStyles";
 
 /**
@@ -7,11 +8,18 @@ import { ROW_STYLE, rowIdentity } from "./rowStyles";
  * markdown (M2.3) at the interface size.
  *
  * The parse, the sanitisation and the block layout live in `Markdown`.
+ *
+ * A prose part over the ingest cap reaches this row **already trimmed**, with the
+ * count on its `Payload` (M2.4); the row says so rather than rendering a head as if
+ * it were the whole part (M2.3b). The text is shown whole — the store's head is all
+ * there is — so the count is a note, never a collapse.
  */
 export function ProseRow({ row }: { readonly row: TextRow }) {
 	return (
 		<article {...rowIdentity(row.id)} style={ROW_STYLE}>
 			<Markdown text={row.text.kept} />
+			<PayloadElision payload={row.text} shown={row.text.kept} />
+			{row.text.dropped > 0 && <IngestElisionNote />}
 		</article>
 	);
 }

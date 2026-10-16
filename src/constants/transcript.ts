@@ -73,7 +73,7 @@ export const NOTICE = {
 /** How many event ids one transcript remembers, for duplicate detection. */
 export const EVENT_ID_MEMORY = 128;
 
-/** How many messages one refetch asks for; the tail of a transcript (M2.9 owns back-fill). */
+/** How many messages one refetch asks for — the newest page a repair replaces a transcript with. */
 export const MESSAGE_PAGE_LIMIT = 50;
 
 /**

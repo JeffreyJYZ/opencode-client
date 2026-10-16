@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import { REASONING_LABEL } from "@/constants/transcriptUi";
 import type { TextRow } from "@/session/transcript";
+import { IngestElisionNote, PayloadElision } from "./PayloadElision";
 import { META_STYLE, ROW_STYLE, rowIdentity } from "./rowStyles";
 
 /**
@@ -10,6 +11,8 @@ import { META_STYLE, ROW_STYLE, rowIdentity } from "./rowStyles";
  * meta step, the text is italic and one step down, and a hairline sets it off.
  *
  * The text is still prose and still plain: M2.3 owns markdown, M2.4 owns caps.
+ * Reasoning is capped on ingest exactly as prose is, so it reports the trim the way
+ * `ProseRow` does — through `PayloadElision`, not a second note of its own.
  */
 
 const REASONING_STYLE: CSSProperties = {
@@ -27,6 +30,8 @@ export function ReasoningRow({ row }: { readonly row: TextRow }) {
 		<article {...rowIdentity(row.id)} style={REASONING_STYLE}>
 			<span style={META_STYLE}>{REASONING_LABEL}</span>
 			<p style={REASONING_TEXT}>{row.text.kept}</p>
+			<PayloadElision payload={row.text} shown={row.text.kept} />
+			{row.text.dropped > 0 && <IngestElisionNote />}
 		</article>
 	);
 }

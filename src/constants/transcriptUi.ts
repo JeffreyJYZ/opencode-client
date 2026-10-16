@@ -11,7 +11,7 @@
 /** The attribute carrying a row's store id, so append stability is proved on it. */
 export const ROW_ID_ATTR = "data-row";
 
-/** The attribute carrying a collapsed block's `(N more lines)` number (M2.4). */
+/** The attribute carrying a trimmed payload's `(N more lines)` number (M2.4, M2.3b). */
 export const MORE_LINES_ATTR = "data-more-lines";
 
 /** The transcript region's accessible name. */
