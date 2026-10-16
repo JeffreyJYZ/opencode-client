@@ -53,6 +53,7 @@ export const SIDEBAR_FIELD = {
 	tokensOut: "Tokens out",
 	cacheRead: "Cache read",
 	spend: "Spend",
+	config: "Config",
 } as const;
 
 /** The region's accessible name, and the resize handle's. */
@@ -91,4 +92,30 @@ export function subagentOpenLabel(title: string): string {
 
 export function subagentInterruptLabel(title: string): string {
 	return `${SIDEBAR_SUBAGENT_INTERRUPT} ${title}`;
+}
+
+/**
+ * An MCP row's detail (M2.20, spec 020 §Sidebar: "click opens a detail with
+ * connect/disconnect and the config path"): the word on the row's toggle, the
+ * word on each action, and the accessible name each control carries — the word,
+ * then the server's own name, so two servers are distinguishable and neither
+ * control is anonymous. The config field reuses `SIDEBAR_FIELD`, below.
+ */
+export const SIDEBAR_MCP_DETAILS = "Details";
+export const SIDEBAR_MCP_CONNECT = "Connect";
+export const SIDEBAR_MCP_DISCONNECT = "Disconnect";
+
+/** The config path is unresolvable — `config.get()` named no document path. */
+export const SIDEBAR_MCP_CONFIG_UNAVAILABLE = "Config path unavailable";
+
+export function mcpDetailsLabel(name: string): string {
+	return `${SIDEBAR_MCP_DETAILS} ${name}`;
+}
+
+export function mcpConnectLabel(name: string): string {
+	return `${SIDEBAR_MCP_CONNECT} ${name}`;
+}
+
+export function mcpDisconnectLabel(name: string): string {
+	return `${SIDEBAR_MCP_DISCONNECT} ${name}`;
 }

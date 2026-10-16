@@ -114,3 +114,9 @@ export const ROW_INTERRUPT_STYLE: CSSProperties = {
 	alignSelf: "flex-start",
 	fontSize: "var(--oc-font-size-meta)",
 };
+
+/** The small action control an expanded row offers (an MCP row's connect, M2.20). */
+export const ROW_ACTION_STYLE: CSSProperties = {
+	alignSelf: "flex-start",
+	fontSize: "var(--oc-font-size-meta)",
+};
