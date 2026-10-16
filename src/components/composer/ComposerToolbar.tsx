@@ -2,7 +2,11 @@ import {
 	ComposerIdentity,
 	type ComposerIdentityProps,
 } from "@/components/composer/ComposerIdentity";
-import { COMPOSER_CONTROL_STYLE, COMPOSER_LINE_STYLE } from "@/components/composer/composerStyles";
+import {
+	COMPOSER_CONTROL_STYLE,
+	COMPOSER_LINE_STYLE,
+	COMPOSER_SEND_GROUP_STYLE,
+} from "@/components/composer/composerStyles";
 import { Slot } from "@/components/Slot";
 import {
 	COMPOSER_INTERRUPT_LABEL,
@@ -22,6 +26,10 @@ import { SLOT } from "@/constants/slots";
  * turn (`running`), the label about the queue (`queued`, the transcript's own
  * `DELIVERY.queued`). A running turn with an empty queue is interruptible and not
  * queued, so it shows the button and no label.
+ *
+ * **Send sits at the row's end** (M2.30): the affordance group carries
+ * `marginLeft: auto`, so it shares the identity row when it fits and wraps
+ * below right-aligned when the long `providerID/id` option takes the row.
  */
 export type ComposerToolbarProps = {
 	readonly identity: ComposerIdentityProps;
@@ -37,7 +45,7 @@ export function ComposerToolbar(props: ComposerToolbarProps) {
 	return (
 		<div style={COMPOSER_LINE_STYLE}>
 			<ComposerIdentity {...props.identity} />
-			<span>
+			<span style={COMPOSER_SEND_GROUP_STYLE}>
 				{props.running ? (
 					<button
 						type="button"
@@ -57,9 +65,7 @@ export function ComposerToolbar(props: ComposerToolbarProps) {
 					</button>
 				)}
 				{props.queued ? (
-					<span title={COMPOSER_QUEUED_NOTE} style={COMPOSER_LINE_STYLE}>
-						{COMPOSER_QUEUED_LABEL}
-					</span>
+					<span title={COMPOSER_QUEUED_NOTE}>{COMPOSER_QUEUED_LABEL}</span>
 				) : null}
 			</span>
 			<Slot id={SLOT.composerToolbar} />
