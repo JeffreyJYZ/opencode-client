@@ -13,6 +13,13 @@ export const PLUGINS_TITLE = "Plugins";
 /** The section's `data-section` marker, like its neighbours'. */
 export const PLUGINS_SECTION = "plugins";
 
+/**
+ * The id the shell's own contribution carries (M4.17, spec 040 §Model): the app
+ * substrate registers through the same `register` a plugin writes to, from
+ * `shellBuiltins.tsx`, and the root renders it through the slot.
+ */
+export const SHELL_CONTRIBUTION_ID = "app.shell";
+
 export const PLUGINS_EMPTY_NOTE = "No plugins are installed.";
 
 /**

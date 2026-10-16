@@ -2,6 +2,7 @@ import type { CSSProperties } from "react";
 import { useSyncExternalStore } from "react";
 import { updateSettings } from "@/app/settings/store";
 import { useSettings } from "@/app/settings/useSettings";
+import { BuiltinAreaRows } from "@/components/BuiltinAreaRows";
 import { PluginInstallForm } from "@/components/PluginInstallForm";
 import { PluginPanels } from "@/components/PluginPanels";
 import { PluginRow } from "@/components/PluginRow";
@@ -68,6 +69,9 @@ export function PluginsSection() {
 				{PLUGINS_FAULT_COUNT(faults.length)}
 			</p>
 			<PluginInstallForm />
+			{/* The locked areas themselves (M4.17): built-in rows whose disable is
+			    refused, above the installed plugins. */}
+			<BuiltinAreaRows />
 			{installed.length === 0 ? (
 				<p style={NOTE_STYLE} data-plugin-empty>
 					{PLUGINS_EMPTY_NOTE}
