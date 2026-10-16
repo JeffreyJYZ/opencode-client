@@ -9,7 +9,6 @@ import {
 	APPEARANCE_THEME_FIELD_ID,
 	APPEARANCE_THEME_LABEL,
 	APPEARANCE_THEME_NOTE,
-	APPEARANCE_TITLE,
 	APPEARANCE_UNKNOWN_THEME,
 } from "@/constants/appearance";
 import { INPUT_STYLE, LABEL_STYLE, SECTION_STYLE } from "@/constants/settingsUi";
@@ -52,7 +51,6 @@ export function AppearanceSection() {
 	const chosen = stored ?? DEFAULT_THEME_ID;
 	return (
 		<section style={SECTION_STYLE} data-section={APPEARANCE_SECTION}>
-			<h2>{APPEARANCE_TITLE}</h2>
 			<label style={LABEL_STYLE} htmlFor={APPEARANCE_THEME_FIELD_ID}>
 				{APPEARANCE_THEME_LABEL}
 				<select

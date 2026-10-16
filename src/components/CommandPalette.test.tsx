@@ -6,6 +6,7 @@ import { openTab, resetTabs } from "@/app/tabs";
 import { entryOptionId } from "@/components/CommandPaletteRow";
 import { ROUTE_PATH } from "@/constants/routes";
 import { SESSION_PICKER_EVENT, SETTINGS_TAB_LABEL } from "@/constants/tabs";
+import { resetCommands } from "@/plugins/commands";
 import { openPalette, paletteClient, renderPalette } from "@/test/palette";
 import { pickerRow } from "@/test/picker";
 
@@ -13,6 +14,7 @@ import { pickerRow } from "@/test/picker";
 afterEach(cleanup);
 afterEach(resetTabs);
 afterEach(resetSettingsSections);
+afterEach(resetCommands);
 beforeEach(() => window.history.pushState(null, "", ROUTE_PATH.home));
 
 const PAGE = {

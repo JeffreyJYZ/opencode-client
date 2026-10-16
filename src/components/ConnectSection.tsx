@@ -7,7 +7,6 @@ import {
 	CONNECT_PASSWORD_LABEL,
 	CONNECT_SOURCE_TEXT,
 	CONNECT_STATE_TEXT,
-	CONNECT_TITLE,
 	CONNECT_URL_LABEL,
 	DISCONNECT_BUTTON_TEXT,
 } from "@/constants/connect";
@@ -51,7 +50,6 @@ export function ConnectSection() {
 	};
 	return (
 		<section style={SECTION_STYLE} data-section="connect">
-			<h2>{CONNECT_TITLE}</h2>
 			<p role="status" data-connection-state={connection.status}>
 				{CONNECT_STATE_TEXT[connection.status]}{" "}
 				{shownUrl === "" ? null : <code style={URL_STYLE}>{shownUrl}</code>}

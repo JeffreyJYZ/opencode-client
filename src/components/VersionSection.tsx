@@ -7,7 +7,6 @@ import {
 	UPDATE_STATUS_TEXT,
 	type UpdateStatus,
 	VERSION_LABEL,
-	VERSION_SECTION_LABEL,
 	VERSION_SOURCE_NOTE,
 } from "@/constants/version";
 import { checkForUpdate } from "@/updates/updater";
@@ -67,7 +66,6 @@ export function VersionSection() {
 
 	return (
 		<section style={SECTION_STYLE} data-section={SETTINGS_SECTION_ID.version}>
-			<h2>{VERSION_SECTION_LABEL}</h2>
 			<p style={ROW_STYLE}>
 				{VERSION_LABEL} <code data-app-version>{appPackage.version}</code>
 			</p>

@@ -1,8 +1,6 @@
-import { SidebarPanel } from "@/components/sidebar/SidebarPanel";
 import { EMPTY_STYLE, ROW_DETAIL_STYLE, ROW_STYLE } from "@/components/sidebar/sidebarStyles";
 import {
 	SIDEBAR_EMPTY,
-	SIDEBAR_PANEL_LABEL,
 	SIDEBAR_ROW_SEPARATOR,
 	SIDEBAR_SUBAGENT_ACTIVE,
 	SIDEBAR_UNTITLED,
@@ -11,9 +9,10 @@ import type { SubagentsPanelData } from "@/session/panelData";
 import type { SessionRow } from "@/session/useSessions";
 
 /**
- * The Subagents panel (spec 020 §Sidebar): the open session's children, from
+ * The Subagents panel body (spec 020 §Sidebar): the open session's children, from
  * `session.list({ parentID })` (`SubagentsPanelData.children`). A child with no
  * `outcome` on its row is still running; the row says so rather than hiding it.
+ * The host draws the frame and title (M4.11).
  */
 
 function rowLabel(row: SessionRow): string {
@@ -27,7 +26,7 @@ function rowState(row: SessionRow): string {
 
 export function SubagentsPanel({ data }: { readonly data: SubagentsPanelData }) {
 	return (
-		<SidebarPanel title={SIDEBAR_PANEL_LABEL.subagents}>
+		<>
 			{data.children.length === 0 ? (
 				<p style={EMPTY_STYLE}>{SIDEBAR_EMPTY}</p>
 			) : (
@@ -42,6 +41,6 @@ export function SubagentsPanel({ data }: { readonly data: SubagentsPanelData }) 
 					</div>
 				))
 			)}
-		</SidebarPanel>
+		</>
 	);
 }

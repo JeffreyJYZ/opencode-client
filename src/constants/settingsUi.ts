@@ -21,6 +21,17 @@ export const LABEL_STYLE: CSSProperties = {
 	color: "var(--oc-text-muted)",
 };
 
+/**
+ * The section heading (M4.11): the surface draws the registry's `label` as the
+ * section's `<h2>`, so a section body never carries its own title. A token, not a
+ * literal, so the heading follows the interface font size the user chose.
+ */
+export const SECTION_HEADING_STYLE: CSSProperties = {
+	margin: 0,
+	fontSize: "var(--oc-font-size-heading)",
+	color: "var(--oc-text)",
+};
+
 export const INPUT_STYLE: CSSProperties = {
 	background: "var(--oc-surface-raised)",
 	color: "var(--oc-text)",

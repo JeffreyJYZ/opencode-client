@@ -2,7 +2,11 @@ import { currentRoute } from "@/app/router";
 import { pushToast } from "@/components/toast/toastStore";
 import { TOAST_ROLE, type ToastRole } from "@/constants/native";
 import { ROUTE_KIND } from "@/constants/routes";
+import { openExternalUrl } from "@/native/openExternal";
+import { defaultDirectoryPicker } from "@/native/pickDirectory";
+import { createNativeFs, pluginDataRoot } from "@/native/pluginFs";
 import type { HostDeps } from "@/plugins/host";
+import type { NativeFs } from "@/plugins/services/native";
 import {
 	PLUGIN_NOTICE_KIND,
 	type PluginNoticeKind,
@@ -26,12 +30,17 @@ import type { TranscriptStore } from "@/session/transcriptStore";
  *   bundle's store, so a plugin gets what is rendered now.
  * - `storage` is the persisted `localStorage` backend.
  * - `notifier.show` is the app's toast host.
+ * - `native` is the shell's filesystem (M4.11): `fs` is the Tauri adapter
+ *   (`createNativeFs`), `dataRoot` is the shell's app data root
+ *   (`pluginDataRoot`), and `openExternal` / `pickDirectory` are the app's own
+ *   seams. The host scopes every path to the plugin's own
+ *   `plugin-data/<id>/` (`createPluginNative`), so this is the **real** bridge,
+ *   not a stub. It is **absent** — which the host turns into `native === null` —
+ *   only where there is no shell: the web build and the test process, where
+ *   `pluginDataRoot()` answers `null`.
  *
- * `native` is deliberately **absent**: the M5.2 bridge (`src/native/`) exposes
- * `openExternal`, `pickDirectory`, clipboard and notifications but **no**
- * filesystem commands and **no** data root, and `NativeDeps` requires both, so a
- * host built here has `native === null` — visible and inert, never a stub that
- * looks alive. `kit` is likewise left out (the app's React primitives are M4.11's).
+ * `kit` is not overridden: the host factory's own `PLUGIN_KIT` (empty) is what a
+ * host built here gets, so `host.ui.kit` stays empty until a row supplies one.
  */
 
 /** A notice kind's ARIA role: a toast/banner is `status`, a modal is `alert`. */
@@ -56,9 +65,17 @@ export const TOAST_NOTIFIER: PluginNotifier = {
 export type HostPortInput = {
 	readonly client: OpenCodeClient | null;
 	readonly transcripts: TranscriptStore;
+	/**
+	 * The app data root `native` scopes to. Production leaves it out so it is read
+	 * from the shell; `null` means "no shell, no `native`". The test seam.
+	 */
+	readonly nativeRoot?: string | null;
+	/** The filesystem behind `native`; production uses the Tauri adapter. Test seam. */
+	readonly nativeFs?: NativeFs;
 };
 
-export function buildHostPorts(input: HostPortInput): HostDeps {
+export async function buildHostPorts(input: HostPortInput): Promise<HostDeps> {
+	const root = input.nativeRoot === undefined ? await pluginDataRoot() : input.nativeRoot;
 	return {
 		client: input.client,
 		subscribe: subscribeToServerEvents,
@@ -68,5 +85,16 @@ export function buildHostPorts(input: HostPortInput): HostDeps {
 		},
 		storage: createLocalStorageBackend(),
 		notifier: TOAST_NOTIFIER,
+		native:
+			root === null || root === undefined
+				? undefined
+				: {
+						fs: input.nativeFs ?? createNativeFs(),
+						dataRoot: root,
+						openExternal: (url: string) => {
+							void openExternalUrl(url);
+						},
+						pickDirectory: defaultDirectoryPicker,
+					},
 	};
 }

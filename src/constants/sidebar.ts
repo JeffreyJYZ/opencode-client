@@ -26,6 +26,20 @@ export const SIDEBAR_PANEL_LABEL = {
 	files: "Files changed",
 } as const;
 
+/**
+ * The built-in panels' sort order (M4.11) — spec 020's list, Session first. Named
+ * rather than written at each registration, so the built-ins keep their order
+ * through the registry the same way a later plugin panel inserts by its
+ * neighbours. A panel with no `order` sorts after every ordered one.
+ */
+export const SIDEBAR_PANEL_ORDER = {
+	session: 0,
+	context: 1,
+	subagents: 2,
+	mcp: 3,
+	files: 4,
+} as const;
+
 /** The label a panel field carries, so a value is never shown unlabelled. */
 export const SIDEBAR_FIELD = {
 	directory: "Directory",

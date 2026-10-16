@@ -4,6 +4,7 @@ import { tabTitle } from "@/components/Tab";
 import { SHORTCUT_SETTINGS } from "@/constants/keys";
 import { PALETTE_KIND, PALETTE_KIND_LABEL, type PaletteKind } from "@/constants/palette";
 import { lastPathSegment, sessionTitle } from "@/pages/homeModel";
+import type { CommandContribution } from "@/plugins/commands";
 import type { CommandRow } from "@/session/useCommands";
 import type { SessionRow } from "@/session/useSessions";
 
@@ -14,6 +15,12 @@ import type { SessionRow } from "@/session/useSessions";
  *
  * The settings rows are built from the **section registry**, never a hardcoded
  * list (requirement 4); a section added in M3.5 appears here without a change.
+ *
+ * The command source has **two providers** (spec 010 §Desktop behaviours: the
+ * server's `command.list` *plus* plugin commands): `commands` is the server's,
+ * `pluginCommands` is the host's `commands.register` registry (M4.11). Both are
+ * rows of the same `command` kind; the controller tells them apart by the id it
+ * can run in-process.
  */
 
 /** One palette row. `ref` is the id the controller acts on for `kind`. */
@@ -32,6 +39,8 @@ export type PaletteSources = {
 	readonly tabs: readonly Tab[];
 	readonly sessions: readonly SessionRow[];
 	readonly commands: readonly CommandRow[];
+	/** The host's command registry — the palette's second command provider (M4.11). */
+	readonly pluginCommands: readonly CommandContribution[];
 	readonly sections: readonly SettingsSection[];
 };
 
@@ -78,6 +87,18 @@ export function buildEntries(sources: PaletteSources): PaletteEntry[] {
 			label: description === undefined || description === "" ? command.name : description,
 			detail: `/${command.name}`,
 			ref: command.name,
+		});
+	}
+	for (const command of sources.pluginCommands) {
+		entries.push({
+			// A distinct id prefix, so a plugin command and a server command of the
+			// same name are two rows rather than one React key.
+			id: `plugin:${command.id}`,
+			kind: PALETTE_KIND.command,
+			label: command.title,
+			detail: PALETTE_KIND_LABEL.command,
+			chord: command.keybinding,
+			ref: command.id,
 		});
 	}
 	return entries;

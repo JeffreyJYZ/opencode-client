@@ -1,8 +1,9 @@
-import { useMemo } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 import { useSettingsSections } from "@/app/settings/sections";
 import { useTabs } from "@/app/useTabs";
 import { buildEntries, type PaletteEntry } from "@/components/paletteModel";
 import { SESSION_PAGE_LIMIT } from "@/constants/sessions";
+import { listCommands, subscribeToCommands } from "@/plugins/commands";
 import { useClient } from "@/session/ClientProvider";
 import { useCommandsWithClient } from "@/session/useCommands";
 import { useSessionPages } from "@/session/useSessionPages";
@@ -16,8 +17,8 @@ import { useSessionPages } from "@/session/useSessionPages";
  * per open, the refetch the palette wants). Sessions follow the cursor, so a root
  * older than one page is findable by typing rather than truncated at the page size.
  *
- * Tabs and settings sections are in-memory registries, not server sources, so they
- * mount eagerly and are unaffected by the gate.
+ * Tabs, settings sections and the host's command registry are in-memory, not
+ * server sources, so they mount eagerly and are unaffected by the gate.
  */
 export type PaletteData = {
 	readonly entries: readonly PaletteEntry[];
@@ -32,9 +33,17 @@ export function usePaletteData(open: boolean, pageSize = SESSION_PAGE_LIMIT): Pa
 	const sections = useSettingsSections();
 	const pages = useSessionPages(open ? client : null, pageSize);
 	const { commands } = useCommandsWithClient(open ? client : null);
+	const pluginCommands = useSyncExternalStore(subscribeToCommands, listCommands);
 	const entries = useMemo(
-		() => buildEntries({ tabs: tabs.tabs, sessions: pages.rows, commands, sections }),
-		[tabs, pages.rows, commands, sections],
+		() =>
+			buildEntries({
+				tabs: tabs.tabs,
+				sessions: pages.rows,
+				commands,
+				pluginCommands,
+				sections,
+			}),
+		[tabs, pages.rows, commands, pluginCommands, sections],
 	);
 	return { entries, canLoadMore: pages.hasMore && !pages.loadingMore, loadMore: pages.loadMore };
 }

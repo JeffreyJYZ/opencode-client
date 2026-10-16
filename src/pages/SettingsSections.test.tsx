@@ -45,7 +45,7 @@ function headings(): (string | null)[] {
 describe("a plugin-contributed settings section", () => {
 	test("renders among the built-ins, in registry order", () => {
 		function Contributed() {
-			return <h2>{"Contributed"}</h2>;
+			return <p>{"Contributed"}</p>;
 		}
 		render(
 			<Providers>
@@ -74,7 +74,7 @@ describe("a plugin-contributed settings section", () => {
 
 	test("a contribution naming the manager's own id is refused; the manager stays on screen (M4.9)", () => {
 		function Hijack() {
-			return <h2>{"Hijacked"}</h2>;
+			return <p>{"Hijacked"}</p>;
 		}
 		render(
 			<Providers>

@@ -1,23 +1,21 @@
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { tabKey } from "@/app/tabModel";
-import { activateTabAndGo, openSessionAndGo, openSettingsAndGo } from "@/app/tabSync";
-import { getTabSnapshot } from "@/app/tabs";
 import { CommandPaletteDialog } from "@/components/CommandPaletteDialog";
+import { activateEntry } from "@/components/paletteActivate";
 import { filterEntries, type PaletteEntry } from "@/components/paletteModel";
 import { useFocusTrap } from "@/components/useFocusTrap";
 import { useMenuDismiss } from "@/components/useMenuDismiss";
 import { usePaletteData } from "@/components/usePaletteData";
-import { COMMAND_RUN_EVENT, PALETTE_KIND } from "@/constants/palette";
 import { PICKER_SEARCH_DEBOUNCE_MS } from "@/constants/picker";
 import { SESSION_PAGE_LIMIT } from "@/constants/sessions";
 import { COMMAND_PALETTE_EVENT, NEW_SESSION_EVENT, SESSION_PICKER_EVENT } from "@/constants/tabs";
 
 /**
  * The command palette (spec 010 §Desktop behaviours): ⌘K opens a list of the four
- * sources — settings sections, open tabs, sessions, `command.list` — filtered as
- * you type, ↑/↓ with no wrap, Enter activates and closes, Escape and a click
- * outside close, and focus returns to the opener.
+ * sources — settings sections, open tabs, sessions, commands (the server's
+ * `command.list` **and** the host's `commands.register` registry, M4.11) —
+ * filtered as you type, ↑/↓ with no wrap, Enter activates and closes, Escape and a
+ * click outside close, and focus returns to the opener.
  *
  * One overlay at a time with the picker and the new-session flow (named window
  * signals), so two dialogs never own `Escape`. Its data path is `usePaletteData`,
@@ -91,20 +89,7 @@ export function CommandPalette({ pageSize = SESSION_PAGE_LIMIT }: CommandPalette
 	}, [open, query, matches.length, canLoadMore, loadMore]);
 
 	const run = useCallback((entry: PaletteEntry) => {
-		if (entry.kind === PALETTE_KIND.tab) {
-			const tab = getTabSnapshot().tabs.find((candidate) => tabKey(candidate) === entry.ref);
-			if (tab !== undefined) activateTabAndGo(tab);
-		} else if (entry.kind === PALETTE_KIND.session) {
-			openSessionAndGo(entry.ref);
-		} else if (entry.kind === PALETTE_KIND.settings) {
-			openSettingsAndGo();
-		} else {
-			// A command's runner is M2.5's composer / M4.4's client commands; M1.6
-			// lists the row and names the signal, never a dead key.
-			window.dispatchEvent(
-				new CustomEvent(COMMAND_RUN_EVENT, { detail: { name: entry.ref } }),
-			);
-		}
+		activateEntry(entry);
 		setOpen(false);
 	}, []);
 

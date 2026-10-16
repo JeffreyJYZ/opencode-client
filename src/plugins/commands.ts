@@ -7,9 +7,10 @@ import { FAULT_AREAS, FAULT_REASONS, type FaultReason, recordFault } from "@/plu
  * command, optionally keybound. A refused contribution is inert — nothing is
  * listed, one `PluginFault` is recorded, nothing throws (spec 040 §The host).
  *
- * The palette reads this list through `listCommands`/`subscribeToCommands`; a
- * command's `keybinding` is the seam the keymap fills, not a binding this
- * registry installs.
+ * The palette reads this list through `listCommands`/`subscribeToCommands`
+ * (M4.11: `usePaletteData` subscribes and `CommandPalette` runs a row through
+ * `runCommand`), beside the server's own `command.list`; a command's `keybinding`
+ * is the seam the keymap fills, not a binding this registry installs.
  */
 
 export type CommandContribution = {
