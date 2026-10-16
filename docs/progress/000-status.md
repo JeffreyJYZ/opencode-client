@@ -6,7 +6,7 @@ Last updated: 2026-10-15 · Current focus: **M3 — Type and theme** (`M3.0`, th
 | --- | --- | --- |
 | M0 Foundations | 11 / 12 | `bun run verify` (now ending in `cargo check`) and `cargo test`; `bun tauri dev` opens a window with the target injected |
 | M1 Shell and home | 17 / 17 | home → session view end to end; restart restores tabs |
-| M2 Session view | 14 / 14 | a live session streams, interrupts, queues and replies from the keyboard |
+| M2 Session view | 14 / 16 | a live session streams, interrupts, queues and replies from the keyboard |
 | M3 Type and theme | 8 / 8 | both faces change live and survive a restart; theme applies and clears |
 | M4 Plugin host 0.1 | 18 / 22 | four example plugins install, work and uninstall through the documented API |
 | M5 Desktop polish | 5 / 5 | packaged app, updater, `verify-release` exits 0 |
@@ -63,6 +63,8 @@ Last updated: 2026-10-15 · Current focus: **M3 — Type and theme** (`M3.0`, th
 - [x] `M2.10` **The model picker keys by something unique** — `ComposerIdentity.tsx:74` uses `model.id` as both the React key and the `<select>` value and resolves with `find(model => model.id === value)`, so with two entries sharing an id the second is unselectable and the displayed selection can be wrong (found in the `M1.7` hand check: 161 duplicate-key errors at startup) — evidence: the colliding list reproduced and measured from the app own call, both entries of a colliding pair selectable
 - [x] `M2.11` **The agent picker has the same shape the model picker had** — `ComposerIdentity` keys the agent options by `agent.id` and values them by `agent.name`, so a shared `id` collides in the key while a shared `name` makes the choice ambiguous — found by `M2.10`, which named it rather than assuming it clean — evidence: measured from the server own agent list, with the picker correct for whichever field is not unique
 - [x] `M2.12` **The agent picker offers every agent the server knows, not the ones a session can use** — `readAgents` returns `Agent.list()` unfiltered, so subagents (`general`, `explore`) and hidden agents (`compaction`, `title`, `summary`) appear as choices: **10 offered against 5 selectable** (measured live; the row first said 7 / 2, inherited from a report); found by `M2.11`, which measured the list rather than trusting the shape — evidence: a live `agent.list` showing the offered set against the selectable one, the picker offering exactly the selectable set, and `src/test/composerProbe.ts` no longer modelling an agent shape the app cannot produce (a name where `agent.get` takes an id)
+- [ ] `M2.13` **The model picker shows a bare name, so two providers offering one model look identical** — the option text is `model.name` (`ComposerIdentity.tsx:88-89`) while its key and value are `providerID/id`, so the collision `M2.10` fixed underneath is still invisible on screen — found by the user, who asked to see the id with its provider — evidence: the option names its provider and its id, with two providers offering one id reading as two different entries
+- [ ] `M2.14` **The Thinking control sets effort, not thinking** — the button cycles `model.variants` (`ComposerIdentity.tsx:94-112`) and labels the result `Thinking: on`/`off`, so a model whose variants are `low`/`high`/`max` is a switch that can never show off while offering three budgets — found by the user — evidence: a real on/off toggle through the variant the model names for thinking off, and a model with no such variant whose control is disabled with the reason rather than cycling effort
 
 ## M3 — Type and theme
 
