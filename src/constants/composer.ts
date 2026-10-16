@@ -35,6 +35,8 @@ export const COMPOSER_ATTACH_REMOVE_LABEL = "Remove attachment";
 export const COMPOSER_ATTACH_UNSUPPORTED = "No path on the dropped file, so it cannot be sent";
 export const COMPOSER_ATTACH_TYPE = "text/uri-list";
 export const COMPOSER_ATTACH_FALLBACK_TYPE = "text/plain";
+/** The scheme a dropped uri may carry; the preview needs the plain path under it. */
+export const COMPOSER_FILE_SCHEME = "file://";
 
 /** The two triggers the menu answers to. */
 export const COMPOSER_SLASH_PREFIX = "/";

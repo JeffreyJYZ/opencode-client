@@ -1,4 +1,8 @@
-import { COMPOSER_ATTACH_FALLBACK_TYPE, COMPOSER_ATTACH_TYPE } from "@/constants/composer";
+import {
+	COMPOSER_ATTACH_FALLBACK_TYPE,
+	COMPOSER_ATTACH_TYPE,
+	COMPOSER_FILE_SCHEME,
+} from "@/constants/composer";
 import type { Attachment } from "@/session/promptTypes";
 
 /**
@@ -17,15 +21,15 @@ import type { Attachment } from "@/session/promptTypes";
 function attachmentFrom(uri: string, name?: string): Attachment | null {
 	const value = uri.trim();
 	if (value === "") return null;
-	const withoutScheme = value.startsWith(FILE_SCHEME) ? value.slice(FILE_SCHEME.length) : value;
+	const withoutScheme = value.startsWith(COMPOSER_FILE_SCHEME)
+		? value.slice(COMPOSER_FILE_SCHEME.length)
+		: value;
 	return {
 		uri: value,
 		name: name ?? withoutScheme.split("/").at(-1) ?? withoutScheme,
 		sendable: true,
 	};
 }
-
-const FILE_SCHEME = "file://";
 
 /** The shape of a drop this module reads — the DOM's own `DataTransfer`, narrowed. */
 export type DropData = {

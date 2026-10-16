@@ -3,6 +3,7 @@
 mod csp;
 mod menu;
 mod native;
+mod navigation;
 mod shell;
 mod target;
 mod updates;
@@ -12,7 +13,9 @@ mod window_state;
 #[cfg(test)]
 mod tests;
 
-use tauri::Url;
+/// The navigation guard lives in its own module; `tests.rs` and `shell` reach it
+/// here, so its move changed no caller.
+pub(crate) use navigation::is_allowed_navigation;
 
 /// The name the app shows: the window title, the application menu and the About
 /// panel. `tauri.conf.json`'s `productName` is the same string, so the menu a
@@ -30,36 +33,6 @@ const DEV_SCHEME: &str = "http";
 const DEV_HOST: &str = "localhost";
 /// The dev server's port. Kept in step with `devUrl` in `tauri.conf.json`.
 const DEV_PORT: u16 = 1420;
-
-/// Whether the webview may navigate to `url`.
-///
-/// The injected target is registered at document start on the main frame, so it
-/// is re-injected on **every** top-level load. Only the app's own document may
-/// therefore be navigated to: the production origin always, the dev server's
-/// origin only in a dev build, where the app is served by Vite rather than from
-/// the bundle. Everything else — an external link in rendered markdown, a
-/// redirect, `window.location = …` — is refused, so no foreign origin can
-/// receive `window.__OC_TARGET__`. External links opening in the OS browser is
-/// a separate task; a refusal here must simply leave the app where it is.
-///
-/// Dev-only residual risk: in a dev build whatever owns `localhost:1420` is
-/// trusted (`--strictPort` makes Vite fail on a busy port instead of
-/// substituting, and this arm is compiled out of a production build), so this
-/// cannot reach a released build.
-fn is_allowed_navigation(url: &Url, dev: bool) -> bool {
-    match url.scheme() {
-        // The production arm checks the host deliberately. A foreign `tauri://`
-        // authority such as `tauri://evil/index.html` is still served by this
-        // app's own asset handler, so the document it would receive is our own
-        // bundle, which already holds the credential: there is no live leak
-        // here. The pin exists because the guard's contract is "this app's own
-        // origin", and requiring `localhost` is the one condition that makes it
-        // exact.
-        APP_SCHEME => url.host_str() == Some("localhost"),
-        DEV_SCHEME => dev && url.host_str() == Some(DEV_HOST) && url.port() == Some(DEV_PORT),
-        _ => false,
-    }
-}
 
 /// Runs the shell. Called from `main.rs`.
 pub fn run() {
@@ -120,7 +93,8 @@ pub fn run() {
             native::fs::commands::native_write_text,
             native::fs::commands::native_list,
             native::fs::commands::native_remove,
-            native::fs::commands::native_mkdirp
+            native::fs::commands::native_mkdirp,
+            native::image::native_read_image
         ])
         .run(tauri::generate_context!())
         .expect("the opencode client shell failed to run");

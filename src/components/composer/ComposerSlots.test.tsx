@@ -60,6 +60,7 @@ function frame() {
 		onPick: () => {},
 		onHover: () => {},
 		attachments: [],
+		imagePreviews: [],
 		onRemoveAttachment: () => {},
 		onDrop: () => {},
 		onSend: () => {},
