@@ -6,7 +6,7 @@ Last updated: 2026-10-16 · Current focus: **M3 — Type and theme** (`M3.0`, th
 | --- | --- | --- |
 | M0 Foundations | 12 / 12 | `bun run verify` (now ending in `cargo check`) and `cargo test`; `bun tauri dev` opens a window with the target injected |
 | M1 Shell and home | 17 / 17 | home → session view end to end; restart restores tabs |
-| M2 Session view | 32 / 34 | a live session streams, interrupts, queues and replies from the keyboard |
+| M2 Session view | 33 / 34 | a live session streams, interrupts, queues and replies from the keyboard |
 | M3 Type and theme | 8 / 8 | both faces change live and survive a restart; theme applies and clears |
 | M4 Plugin host 0.1 | 22 / 22 | four example plugins install, work and uninstall through the documented API |
 | M5 Desktop polish | 5 / 5 | packaged app, updater, `verify-release` exits 0 |
@@ -85,7 +85,7 @@ Last updated: 2026-10-16 · Current focus: **M3 — Type and theme** (`M3.0`, th
 
 - [x] `M2.31` **A queued prompt is invisible after reload** — only the live `session.inbox.enqueued` event builds the queued row (`transcriptReducer.ts:74`); no load path reads the inbox, so opening a session with a queued prompt shows an empty transcript and no Queued label (measured: prompt seeded via API, page loaded after, "No messages yet") — found by the controller while proving M2.29 — evidence: a refetch against a pending inbox entry rendering the queued row, the later delivery updating it rather than doubling — **done**: the refetch lists the pending inbox alongside `message.list` and seeds one queued user row per pending user entry, keyed by inbox id — the later `delivered` frame updates it via `replaceRow` instead of doubling. Settled from the server source: the inbox table is pending-only (delivery/cancel delete the row), so the filter is `type === "user"` only — the brief's "other states" cannot occur. Evidence: `transcriptRefetchInbox.test.ts` (seed, skip non-user, inbox failure keeps messages, delivery updates rather than doubles); `bun run verify` exit 0 at the merge (`0b4346a`, **1021 pass / 0 fail**) and `bun run e2e` PASS
 
-- [ ] `M2.32` **Assistant prose carries no role head** — after M2.29 the user band reads as a band, but assistant prose still reads as "the page": nothing names who spoke. `TextRow` carries no agent (only the footer row does) — found by the user — evidence: each assistant prose row heads itself with its own agent name in the meta tone, absent where the part carried none
+- [x] `M2.32` **Assistant prose carries no role head** — after M2.29 the user band reads as a band, but assistant prose still reads as "the page": nothing names who spoke. `TextRow` carries no agent (only the footer row does) — found by the user — evidence: each assistant prose row heads itself with its own agent name in the meta tone, absent where the part carried none — **done**: `TextRow` gains one optional `agent?: string`, filled at both ingests — refetch from `message.agent`, the stream from the `steps` map (the text events themselves carry no agent, verified in a capture). `ProseRow` heads itself with the agent name only; no head when absent. `ReasoningRow` unchanged — its collapsed group already names itself, a second head would duplicate it. Evidence: split render tests (`proseRoleHead.test.tsx`); `bun run verify` exit 0 at the merge (`1de3172`, **1028 pass / 0 fail**) and `bun run e2e` PASS
 
 ## M3 — Type and theme
 
