@@ -7,8 +7,8 @@ Last updated: 2026-10-15 · Current focus: **M3 — Type and theme** (`M3.0`, th
 | M0 Foundations | 9 / 9 | `bun run verify` (now ending in `cargo check`) and `cargo test`; `bun tauri dev` opens a window with the target injected |
 | M1 Shell and home | 15 / 16 | home → session view end to end; restart restores tabs |
 | M2 Session view | 11 / 11 | a live session streams, interrupts, queues and replies from the keyboard |
-| M3 Type and theme | 7 / 7 | both faces change live and survive a restart; theme applies and clears |
-| M4 Plugin host 0.1 | 6 / 8 | four example plugins install, work and uninstall through the documented API |
+| M3 Type and theme | 7 / 8 | both faces change live and survive a restart; theme applies and clears |
+| M4 Plugin host 0.1 | 6 / 9 | four example plugins install, work and uninstall through the documented API |
 | M5 Desktop polish | 3 / 5 | packaged app, updater, `verify-release` exits 0 |
 
 ## M0 — Foundations
@@ -65,6 +65,7 @@ Last updated: 2026-10-15 · Current focus: **M3 — Type and theme** (`M3.0`, th
 - [x] `M3.3` Face picker: bundled + machine families by resolved name + generics; misspelt refused — evidence: a misspelt family cannot be selected
 - [x] `M3.4` Theme service: one `<style>` + `data-theme`, dark/light built-ins, plugin themes, fonts win — evidence: apply/clear a theme, fonts unchanged
 - [x] `M3.5` Settings **surface**, a tab while it is open (sections: Appearance, Typography, Server, Plugins) + plugin sections, four entries in, no nav entry of its own — evidence: no settings tab in the strip while closed; every section keyboard reachable
+- [ ] `M3.6` **Follow system** appearance — the Appearance control gains *Follow system*; the app applies the built-in dark/light per `prefers-color-scheme` and re-applies when the OS flips (the theme service owns the resolution + the listener; the resolution is a pure function of the media state) — evidence: flipping the OS appearance follows in both directions, and a named theme attaches no listener
 
 ## M4 — Plugin host `0.1`
 
@@ -76,6 +77,8 @@ Last updated: 2026-10-15 · Current focus: **M3 — Type and theme** (`M3.0`, th
 - [x] `M4.6` `scripts/build-plugins.ts` → `public/plugins/<id>/main.js`, bare-specifier check — evidence: build fails on a surviving bare import
 - [ ] `M4.7` Example plugins: `hello-world`, `theme-gruvbox`, `session-export`, `context-meter` — evidence: each installs, works, uninstalls cleanly
 - [ ] `M4.8` Generated in-app API reference from the SDK types + slot table — evidence: the page lists every registry and slot in code
+
+- [ ] `M4.9` Lock the built-in settings sections against plugin replacement — the registry reserves every built-in id, and a contribution naming one is refused **inert** with `FAULT_REASONS.lockedArea` — evidence: a plugin contributing `{ id: "plugins" }` leaves the manager on screen and the fault names the reserved id
 
 ## M5 — Desktop polish
 
@@ -179,6 +182,8 @@ What no agent can prove on this machine, in one place. A check is closed by a pe
 - `M1.7` injected-target precedence — **closed 2026-10-16, user-observed and controller-verified**: launched with `OPENCODE_SERVER_URL=http://127.0.0.1:5610` while `~/.local/state/opencode/service.json` named `127.0.0.1:49374`; the window showed **no sessions** (the isolated server has none) and `lsof` showed the app's own WKWebView (PID 87488) **established to 5610**, with **no webview connection at all** to `49374` (only the human's own CLI processes). The injected global wins in the real webview, from both ends.
 - `M1.6` `⌘,` — **closed 2026-10-16 by the user** (a real keypress, not a synthetic dispatch): `⌘,` opened Settings **as a tab** with the rest of the window unchanged, `⌘K` opened the command palette, `Esc` closed it. Chromium swallows the accelerator before the page sees it, which is why only a hand could settle this.
 - `M3.1`/`M3.2`/`M3.3`/`M3.4` — **closed 2026-10-16 by the user, in WKWebView** (the dev window, the real webview, not Chromium): the **Code** role's picker offered **all six** names — `GeistMono Nerd Font`, `GeistMono Nerd Font Mono`, `GeistMono Nerd Font Propo`, then `Geist Mono`, `ui-monospace`, `monospace` — so the machine's cask **does** resolve here (the families are proven by measuring a glyph advance in the running webview, which is exactly what Chromium could not settle); the **Interface** role's picker offered its four (`Geist`, `system-ui`, `ui-sans-serif`, `ui-rounded`), confirming the two roles are wired to different token stacks; and **light and dark both applied and stayed legible**.
+
+- `M3.6` **follow system** — choose *Follow system* in Appearance, then flip macOS appearance (System Settings → Appearance) with the window open: the app must follow in **both directions**. No agent can flip the OS for itself, so this closes by your hand.
 
 ## Defects found (not yet a row)
 
