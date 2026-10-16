@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { migrateDocument } from "@/app/settings/migrate";
 import type { SettingsDocument } from "@/app/settings/model";
-import { SETTING_KEYS, SETTINGS_DATA_VERSION } from "@/constants/settings";
+import { SETTING_KEYS, SETTINGS_BASE_VERSION } from "@/constants/settings";
 import { V3_DOCUMENT_JSON } from "@/test/settings";
 
 /**
@@ -19,11 +19,11 @@ function fixture(json: string): SettingsDocument {
 describe("migrateDocument — the version-3 path", () => {
 	test("the v3 blob gains the theme field as explicitly absent, keeping every other field", () => {
 		const captured = fixture(V3_DOCUMENT_JSON);
-		expect(captured[SETTING_KEYS.dataVersion]).toBe(SETTINGS_DATA_VERSION - 1);
+		expect(captured[SETTING_KEYS.dataVersion]).toBe(SETTINGS_BASE_VERSION + 3);
 		expect(SETTING_KEYS.theme in captured).toBe(false);
 		const outcome = migrateDocument(captured);
 		if (outcome.kind !== "ok") throw new Error("expected a migrated document");
-		expect(outcome.document[SETTING_KEYS.dataVersion]).toBe(SETTINGS_DATA_VERSION);
+		expect(outcome.document[SETTING_KEYS.dataVersion]).toBe(SETTINGS_BASE_VERSION + 5);
 		expect(outcome.document[SETTING_KEYS.theme]).toBeNull();
 		expect(outcome.document[SETTING_KEYS.transcriptScroll]).toEqual(
 			captured[SETTING_KEYS.transcriptScroll],
@@ -33,7 +33,7 @@ describe("migrateDocument — the version-3 path", () => {
 
 	test("a v3 blob already carrying a theme is not clobbered by the step", () => {
 		const outcome = migrateDocument({
-			[SETTING_KEYS.dataVersion]: SETTINGS_DATA_VERSION - 1,
+			[SETTING_KEYS.dataVersion]: SETTINGS_BASE_VERSION + 3,
 			[SETTING_KEYS.theme]: "gruvbox",
 		});
 		if (outcome.kind !== "ok") throw new Error("expected a migrated document");
@@ -42,7 +42,7 @@ describe("migrateDocument — the version-3 path", () => {
 
 	test("a v3 blob with a theme field of the wrong type still walks to this version", () => {
 		const outcome = migrateDocument({
-			[SETTING_KEYS.dataVersion]: SETTINGS_DATA_VERSION - 1,
+			[SETTING_KEYS.dataVersion]: SETTINGS_BASE_VERSION + 3,
 			[SETTING_KEYS.theme]: 7,
 		});
 		if (outcome.kind !== "ok") throw new Error("expected a migrated document");

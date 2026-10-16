@@ -1,9 +1,16 @@
 import type { CSSProperties } from "react";
 import { useSyncExternalStore } from "react";
+import { updateSettings } from "@/app/settings/store";
+import { useSettings } from "@/app/settings/useSettings";
 import { PluginInstallForm } from "@/components/PluginInstallForm";
 import { PluginPanels } from "@/components/PluginPanels";
 import { PluginRow } from "@/components/PluginRow";
-import { PLUGINS_FAULT_COUNT, PLUGINS_LOCKED_NOTE } from "@/constants/pluginManager";
+import {
+	PLUGINS_ENABLED_LABEL,
+	PLUGINS_ENABLED_NOTE,
+	PLUGINS_FAULT_COUNT,
+	PLUGINS_LOCKED_NOTE,
+} from "@/constants/pluginManager";
 import { PLUGINS_EMPTY_NOTE, PLUGINS_SECTION, PLUGINS_TITLE } from "@/constants/plugins";
 import { SECTION_STYLE } from "@/constants/settingsUi";
 import { listFaults, subscribeToFaults } from "@/plugins/faults";
@@ -29,7 +36,16 @@ const NOTE_STYLE: CSSProperties = {
 	margin: 0,
 };
 
+const SWITCH_STYLE: CSSProperties = {
+	display: "flex",
+	alignItems: "center",
+	gap: "var(--oc-space-2)",
+	color: "var(--oc-text)",
+	margin: 0,
+};
+
 export function PluginsSection() {
+	const { settings } = useSettings();
 	const { installed, loaded } = useSyncExternalStore(subscribeToPlugins, getPluginsSnapshot);
 	const faults = useSyncExternalStore(subscribeToFaults, listFaults);
 	const logs = useSyncExternalStore(subscribeToLogs, listLogs);
@@ -40,6 +56,15 @@ export function PluginsSection() {
 		<section style={SECTION_STYLE} data-section={PLUGINS_SECTION}>
 			<h2>{PLUGINS_TITLE}</h2>
 			<p style={NOTE_STYLE}>{PLUGINS_LOCKED_NOTE}</p>
+			<label style={SWITCH_STYLE} data-plugin-master-switch>
+				<input
+					type="checkbox"
+					checked={settings.pluginsEnabled}
+					onChange={(event) => updateSettings({ pluginsEnabled: event.target.checked })}
+				/>
+				<span>{PLUGINS_ENABLED_LABEL}</span>
+			</label>
+			<p style={NOTE_STYLE}>{PLUGINS_ENABLED_NOTE}</p>
 			<p style={NOTE_STYLE} data-plugin-fault-count={faults.length}>
 				{PLUGINS_FAULT_COUNT(faults.length)}
 			</p>

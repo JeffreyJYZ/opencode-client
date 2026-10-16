@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { updateSettings } from "@/app/settings/store";
 import { PluginsSection } from "@/components/PluginsSection";
 import {
 	PLUGINS_ACTION,
@@ -46,6 +47,9 @@ const registered = (): boolean =>
 afterEach(cleanup);
 
 beforeEach(() => {
+	// The master switch is off by default (spec 040 §Model); the row tests exercise
+	// the loader, so it is on here and each plugin's own flag gates it.
+	updateSettings({ pluginsEnabled: true });
 	resetInstalled();
 	clearFaults();
 	clearLogs();
@@ -54,6 +58,7 @@ beforeEach(() => {
 afterEach(() => {
 	disablePlugin("probe-section");
 	resetInstalled();
+	updateSettings({ pluginsEnabled: false });
 	clearFaults();
 });
 

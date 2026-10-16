@@ -1,4 +1,5 @@
-import { afterEach, beforeAll, describe, expect, test } from "bun:test";
+import { afterEach, beforeAll, beforeEach, describe, expect, test } from "bun:test";
+import { updateSettings } from "@/app/settings/store";
 import { runCommand } from "@/plugins/commands";
 import { listFaults } from "@/plugins/faults";
 import { listLogs } from "@/plugins/logs";
@@ -38,11 +39,18 @@ beforeAll(() => {
 	expect(built.exitCode, built.stderr.toString()).toBe(0);
 });
 
+beforeEach(() => {
+	// The master switch is off by default (spec 040 §Model); the examples exercise
+	// the loader, so it is on and each plugin's own `enabled` flag gates it.
+	updateSettings({ pluginsEnabled: true });
+});
+
 afterEach(() => {
 	for (const id of EXAMPLES) {
 		disablePlugin(id);
 		uninstallPlugin(id);
 	}
+	updateSettings({ pluginsEnabled: false });
 });
 
 describe("the example plugins", () => {

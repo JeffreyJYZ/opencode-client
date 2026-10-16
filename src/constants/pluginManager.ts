@@ -17,6 +17,15 @@ export const PLUGIN_INSTALLED_KEY = "plugins.installed";
 export const PLUGINS_LOCKED_NOTE =
 	"The plugin manager is a locked built-in area (spec 040 §Model): it is always present and cannot be disabled.";
 
+/**
+ * The master switch (M4.10, spec 040 §Model): the persisted `settings.pluginsEnabled`
+ * field, **off by default**. The label and the sentence beside it say what it does —
+ * gates *loading*, nothing more.
+ */
+export const PLUGINS_ENABLED_LABEL = "Enable plugins";
+export const PLUGINS_ENABLED_NOTE =
+	"Off by default (spec 040 §Model): while this is off, no installed plugin is loaded — nothing downstream is limited once it is on.";
+
 export const PLUGINS_INSTALL_TITLE = "Install a plugin";
 export const PLUGINS_MANIFEST_LABEL = "Manifest (plugin.json)";
 export const PLUGINS_SOURCE_LABEL = "Entry source (the built main.js)";

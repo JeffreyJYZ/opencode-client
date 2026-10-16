@@ -80,12 +80,25 @@ function v3ToV4(document: SettingsDocument): SettingsDocument {
 	return { ...document, [SETTING_KEYS.theme]: null };
 }
 
+/**
+ * The version-4 blob. Nothing in v4 carried the plugin master switch — the
+ * manager's setting lands with M4.10 — so the step introduces
+ * `settings.pluginsEnabled` as explicitly **off** (spec 040 §Model: "off by
+ * default") rather than leaving its meaning to a reader's default. Everything
+ * the blob carried is copied through untouched.
+ */
+function v4ToV5(document: SettingsDocument): SettingsDocument {
+	if (SETTING_KEYS.pluginsEnabled in document) return document;
+	return { ...document, [SETTING_KEYS.pluginsEnabled]: false };
+}
+
 /** Registry keyed by source version: `MIGRATIONS[from]` produces `from + 1`. */
 export const SETTINGS_MIGRATIONS: Readonly<Record<number, SettingsMigration>> = {
 	[SETTINGS_BASE_VERSION]: v0ToV1,
 	[SETTINGS_BASE_VERSION + 1]: v1ToV2,
 	[SETTINGS_BASE_VERSION + 2]: v2ToV3,
 	[SETTINGS_BASE_VERSION + 3]: v3ToV4,
+	[SETTINGS_BASE_VERSION + 4]: v4ToV5,
 };
 
 export type MigrationOutcome =

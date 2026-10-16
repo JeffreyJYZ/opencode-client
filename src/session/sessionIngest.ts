@@ -10,6 +10,7 @@ import {
 	applyFrameEffects,
 	SERVER_CONNECTED_EVENT,
 } from "@/session/ingestEffects";
+import { publishServerEvent } from "@/session/serverEvents";
 import { createStreamLiveness } from "@/session/streamLiveness";
 import type { TimerScheduler } from "@/session/timers";
 import type { TranscriptStore } from "@/session/transcriptStore";
@@ -105,6 +106,9 @@ export function createSessionIngest(options: SessionIngestOptions): SessionInges
 			})) {
 				if (signal.aborted) return;
 				liveness.active();
+				// The plugin host's tap (M4.10): the whole server stream, before the
+				// ingest's own session filter, so a plugin sees what the app does not hold.
+				publishServerEvent(event);
 				accept(event);
 			}
 		} catch (error) {

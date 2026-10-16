@@ -6,7 +6,7 @@ import { Shell } from "@/app/Shell";
 import { restoreSettings } from "@/app/settings/store";
 import { registerTopnavBuiltins } from "@/app/topnavBuiltins";
 import { OfflineBanner } from "@/components/OfflineBanner";
-import { startPluginManager } from "@/plugins/manager";
+import { startPluginManager } from "@/plugins/managerBoot";
 import "./theme/tokens.css";
 
 registerTopnavBuiltins();
