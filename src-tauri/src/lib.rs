@@ -101,3 +101,26 @@ pub fn run() {
         .run(tauri::generate_context!())
         .expect("the opencode client shell failed to run");
 }
+
+/// The id allowlist a manifest's `id` must satisfy — the Rust half of the one rule
+/// in `PLUGIN_ID_PATTERN` (`src/plugins/manifest.ts`), spec 040 §Manifest: one path
+/// component of `[A-Za-z0-9._-]` with no leading or trailing `.`. It is a plain
+/// scan rather than a `regex` dependency, so the crate gains no dependency; the
+/// shared corpus `src/plugins/plugin-id-cases.json` is what proves the two agree.
+pub const PLUGIN_ID_PATTERN: &str = "^[A-Za-z0-9_-]([A-Za-z0-9._-]*[A-Za-z0-9_-])?$";
+
+/// Whether `id` is a safe single path component. Every path the native bridge joins
+/// under `plugin-data/<id>/` is checked with this: `plugin-data` is the one
+/// capability of the consent list that is enforced for real (spec 040 §Capabilities),
+/// and a `..` in an id is the reason `safe_id` exists at all.
+pub fn safe_id(id: &str) -> bool {
+    let bytes = id.as_bytes();
+    if bytes.is_empty() {
+        return false;
+    }
+    let allowed = |byte: u8| byte.is_ascii_alphanumeric() || matches!(byte, b'_' | b'-' | b'.');
+    if !bytes.iter().all(|&byte| allowed(byte)) {
+        return false;
+    }
+    bytes[0] != b'.' && bytes[bytes.len() - 1] != b'.'
+}

@@ -22,7 +22,7 @@ The sketch: "this should be built from the ground up to be modular and plugin co
 | `apiVersion` | yes | The host API built against — currently `0.1`. A different **major** is refused; a different minor warns. |
 | `entry` | no | Defaults to `main.js`; must match the built file's name. |
 | `capabilities` | no | Declared labels: `plugin-data`, `net`, `window`, `shortcuts`, `invoke`, `fs-any`. Validated against the label list, shown at install. |
-| `engines.app` | no | App version range, e.g. `>=0.3.0`; `*` accepts anything. |
+| `engines.app` | **yes** | App version range, e.g. `>=0.3.0`; `*` accepts anything. **Required** since 2026-10-16 (`M4.1`): a plugin declares the app range it was built for, and the loader refuses a manifest without one — the row required it while this table said optional. |
 | `description`, `author`, `homepage` | no | Shown in the plugin manager. |
 
 Validated by zod in `src/plugins/manifest.ts`; a bad id or an unknown capability fails at install, not at first use.
