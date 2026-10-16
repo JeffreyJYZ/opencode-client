@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import type { SessionInboxInfo, V2Event } from "@opencode/client";
 import { cleanup, render, waitFor } from "@testing-library/react";
 import { resetActivity } from "@/app/sessionActivity";
 import { sessionTab } from "@/app/tabModel";
@@ -59,7 +60,26 @@ describe("useTranscript", () => {
 
 	test("a held tab's transcript renders once a frame arrives", async () => {
 		const stream = fakeStream();
-		const { client } = fakeClient(stream, {});
+		// The fake server is coherent: the prompt the stream enqueues is still
+		// pending in its inbox, so the `server.connected` repair seeds the same
+		// queued row the live frame builds — either order lands on one row.
+		const enqueued = frames.find(
+			(f) => f.type === "session.inbox.enqueued" && f.data.sessionID === session,
+		) as Extract<V2Event, { type: "session.inbox.enqueued" }>;
+		const pending: readonly SessionInboxInfo[] =
+			enqueued.data.item.type === "user"
+				? [
+						{
+							id: enqueued.data.inboxID,
+							sessionID: session,
+							time: { created: enqueued.created },
+							type: "user",
+							payload: { text: enqueued.data.item.payload.text },
+							delivery: enqueued.data.item.delivery,
+						} as SessionInboxInfo,
+					]
+				: [];
+		const { client } = fakeClient(stream, {}, {}, { [session]: pending });
 		openTab(sessionTab(session));
 		render(
 			<ClientProvider client={client} probe={async () => {}}>
@@ -67,11 +87,7 @@ describe("useTranscript", () => {
 			</ClientProvider>,
 		);
 		stream.push(frames.find((f) => f.type === "server.connected") as never);
-		stream.push(
-			frames.find(
-				(f) => f.type === "session.inbox.enqueued" && f.data.sessionID === session,
-			) as never,
-		);
+		stream.push(enqueued as never);
 		await waitFor(() =>
 			expect(document.querySelector('[data-testid="rows"]')?.textContent).toBe("1 user"),
 		);

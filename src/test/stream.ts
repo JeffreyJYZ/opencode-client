@@ -1,4 +1,9 @@
-import type { OpenCodeClient, SessionMessageInfo, V2Event } from "@opencode/client";
+import type {
+	OpenCodeClient,
+	SessionInboxInfo,
+	SessionMessageInfo,
+	V2Event,
+} from "@opencode/client";
 
 /**
  * The stream test double (spec 050 §Event ingest).
@@ -92,11 +97,12 @@ export function fakeStream(): FakeStream {
 	};
 }
 
-/** A client whose stream, `message.list` and `session.active` are the test's. */
+/** A client whose stream, `message.list`, pending inbox and `session.active` are the test's. */
 export function fakeClient(
 	stream: FakeStream,
 	messages: Record<string, { readonly data: readonly SessionMessageInfo[] }> = {},
 	active: Record<string, unknown> = {},
+	inbox: Record<string, readonly SessionInboxInfo[]> = {},
 ): { client: OpenCodeClient; listCalls: () => string[] } {
 	const calls: string[] = [];
 	const client = {
@@ -107,7 +113,12 @@ export function fakeClient(
 				return { data: [...(messages[query.sessionID]?.data ?? [])], cursor: {} };
 			},
 		},
-		session: { active: async () => active },
+		session: {
+			active: async () => active,
+			inbox: {
+				list: async (query: { sessionID: string }) => [...(inbox[query.sessionID] ?? [])],
+			},
+		},
 	} as unknown as OpenCodeClient;
 	return { client, listCalls: () => calls };
 }
