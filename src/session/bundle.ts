@@ -1,5 +1,6 @@
 import { createClient, type OpenCodeClient, probeConnection } from "@/session/client";
 import { type ConnectionStore, createConnectionStore } from "@/session/connection";
+import { createDockSignals, type DockSignals } from "@/session/dockSignal";
 import type { ActivitySink } from "@/session/ingestEffects";
 import { createSessionIngest, type SessionIngest } from "@/session/sessionIngest";
 import type { ResolvedTarget } from "@/session/target";
@@ -32,6 +33,8 @@ export type ClientBundle = {
 	readonly target: ResolvedTarget | null;
 	readonly connection: ConnectionStore;
 	readonly transcripts: TranscriptStore;
+	/** The permission/question docks' refetch cue (M2.6). */
+	readonly dockSignals: DockSignals;
 	readonly ingest: SessionIngest | null;
 };
 
@@ -57,6 +60,7 @@ export function buildBundle(
 		probe: client === null ? () => Promise.resolve() : () => (probe ?? probeConnection)(client),
 	});
 	const transcripts = createTranscriptStore();
+	const dockSignals = createDockSignals();
 	const ingest =
 		client === null
 			? null
@@ -68,6 +72,7 @@ export function buildBundle(
 					sessions: hooks.sessions,
 					onOutput: hooks.onOutput,
 					timers: hooks.timers,
+					signals: dockSignals,
 				});
-	return { client, target, connection, transcripts, ingest };
+	return { client, target, connection, transcripts, dockSignals, ingest };
 }
