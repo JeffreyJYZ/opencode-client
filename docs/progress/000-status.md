@@ -4,8 +4,8 @@ Last updated: 2026-10-15 · Current focus: **M3 — Type and theme** (`M3.0`, th
 
 | Milestone | Done / total | Gate |
 | --- | --- | --- |
-| M0 Foundations | 10 / 11 | `bun run verify` (now ending in `cargo check`) and `cargo test`; `bun tauri dev` opens a window with the target injected |
-| M1 Shell and home | 16 / 16 | home → session view end to end; restart restores tabs |
+| M0 Foundations | 10 / 12 | `bun run verify` (now ending in `cargo check`) and `cargo test`; `bun tauri dev` opens a window with the target injected |
+| M1 Shell and home | 16 / 17 | home → session view end to end; restart restores tabs |
 | M2 Session view | 14 / 14 | a live session streams, interrupts, queues and replies from the keyboard |
 | M3 Type and theme | 8 / 8 | both faces change live and survive a restart; theme applies and clears |
 | M4 Plugin host 0.1 | 18 / 22 | four example plugins install, work and uninstall through the documented API |
@@ -220,6 +220,8 @@ What no agent can prove on this machine, in one place. A check is closed by a pe
 - `M5.2` **live OS effects** (the code and the unit tests are in; the effects themselves need a person, because the WKWebView has no remote inspector and exposes no page elements to the accessibility tree): a markdown link opens in the OS browser; a `javascript:` link is **refused**, not opened; a transcript row **Open in editor** opens the file in Zed at its line; **Copy** reaches the clipboard and shows its toast; a turn ending with the window unfocused posts a **system notification**; and a real **Finder drop** attaches a file to the composer.
 
 ## Defects found (not yet a row)
+
+- **`2026-10-16` · `src-tauri/src/lib.rs:70-71` says the shell "holds no permission", which is imprecise** — the app own commands are in `generate_handler!`, so the comment reads stronger than the code; the scheme allowlist holds regardless, so there is no exploitable path (found by the shell review; informational, no row).
 
 - **`2026-10-16` · the composer's model picker logs duplicate React keys, and one of each colliding pair cannot be chosen.** Found during the `M1.7` hand check: the real webview logged **161** `Encountered two children with the same key` errors at startup, naming model ids in **mixed shapes** — `z-ai/glm-5.3-flash`, `nvidia/nemotron-3-ultra-550b-a55b`, `xiaomi/mimo-v2.6-pro`, `thinkingmachines/inkling-small` (provider-prefixed) beside `gpt-6-luna` and `gpt-5.6-luna` (bare). `src/components/composer/ComposerIdentity.tsx:74` uses `model.id` as **both the React key and the `<select>` value**, and its `onChange` resolves the choice with `find(model => model.id === value)` — so when two entries share an `id` the **second one is unselectable and the displayed selection can be the wrong entry**. The list is `client.model.list()` passed straight through (`src/session/composerReads.ts:43`), so the fix is to key *and* value by something unique rather than by `id` alone. **Reproduce before fixing**: a bare `GET /api/model` answers **11 entries with unique ids**, so the duplicate-bearing list comes from the app's own call — measure the duplicate count from that call, not from the warning count, because the 161 includes repeated dev renders.
 
