@@ -1,7 +1,7 @@
 /**
  * The `notify` service (spec 040 §The host): host-rendered notices. The rendering
- * is a port (`PluginNotifier`), because the toast/banner chrome is M5.2's; the
- * contract is here.
+ * is a port (`PluginNotifier`), because the toast/banner/modal chrome is the app's
+ * (M4.20); the contract is here.
  *
  * With no notifier installed, `toast`/`banner`/`modal` are no-ops and `confirm`
  * resolves `false` — it never hangs and never throws into the plugin, so a plugin
