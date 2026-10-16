@@ -1,7 +1,7 @@
 {
 	"$schema": "../gen/schemas/desktop-schema.json",
 	"identifier": "default",
-	"description": "The main window's permissions: core:default plus dialog:allow-open for M1.3's directory picker. The window-state plugin saves and restores Rust-side, so it needs no page-facing permission.",
+	"description": "The main window's permissions: core:default plus dialog:allow-open for M1.3's directory picker and updater:default for the settings section's update check. The window-state plugin saves and restores Rust-side, so it needs no page-facing permission.",
 	"windows": ["main"],
-	"permissions": ["core:default", "dialog:allow-open"]
+	"permissions": ["core:default", "dialog:allow-open", "updater:default"]
 }

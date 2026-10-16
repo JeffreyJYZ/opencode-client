@@ -7,6 +7,10 @@
 		"types": ["vite/client"],
 		"allowArbitraryExtensions": true,
 		"skipLibCheck": true,
+		/* `package.json` is statically imported as the one source of the app version
+		   (M5.3): the file itself is inlined at build time, so the number cannot
+		   drift from the one the bundle is stamped with. */
+		"resolveJsonModule": true,
 
 		/* Bundler mode */
 		"moduleResolution": "bundler",

@@ -18,11 +18,14 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { version = "2.7.3", features = [] }
 
 [dependencies]
-# The shell's whole dependency set: the runtime, the window-state plugin (size and
-# position persistence), and `serde`/`serde_json` to read the service registration
-# file and JSON-serialise the injected target. No updater, no deep links.
+# The shell's whole dependency set: the runtime, three Tauri plugins (window state
+# for size and position, dialog for the directory picker, updater for self-update),
+# and `serde`/`serde_json` to read the service registration file and
+# JSON-serialise the injected target. No deep links. Each plugin's JS half is
+# pinned to the same version in `package.json`.
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tauri = { version = "2.12.4", features = [] }
 tauri-plugin-dialog = "2"
+tauri-plugin-updater = "2.14.0"
 tauri-plugin-window-state = "2"

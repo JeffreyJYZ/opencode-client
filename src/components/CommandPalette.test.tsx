@@ -30,7 +30,7 @@ describe("CommandPalette", () => {
 		openTab(sessionTab("ses_1"));
 		renderPalette(client());
 		openPalette();
-		await waitFor(() => expect(screen.getAllByRole("option")).toHaveLength(5));
+		await waitFor(() => expect(screen.getAllByRole("option")).toHaveLength(6));
 		const text = screen
 			.getAllByRole("option")
 			.map((option) => option.textContent)
@@ -44,7 +44,7 @@ describe("CommandPalette", () => {
 	test("it filters as you type", async () => {
 		renderPalette(client());
 		const input = openPalette();
-		await waitFor(() => expect(screen.getAllByRole("option")).toHaveLength(4));
+		await waitFor(() => expect(screen.getAllByRole("option")).toHaveLength(5));
 		fireEvent.change(input, { target: { value: "beta" } });
 		await waitFor(() => expect(screen.getAllByRole("option")).toHaveLength(1));
 		expect(screen.getByRole("option").textContent).toContain("Beta");
@@ -53,7 +53,7 @@ describe("CommandPalette", () => {
 	test("↑/↓ move the highlight and never wrap past either end", async () => {
 		renderPalette(client());
 		const input = openPalette();
-		await waitFor(() => expect(screen.getAllByRole("option")).toHaveLength(4));
+		await waitFor(() => expect(screen.getAllByRole("option")).toHaveLength(5));
 		expect(input.getAttribute("aria-activedescendant")).toBe(entryOptionId("settings:connect"));
 		for (let index = 0; index < 8; index++) fireEvent.keyDown(input, { key: "ArrowDown" });
 		expect(input.getAttribute("aria-activedescendant")).toBe(entryOptionId("command:commit"));

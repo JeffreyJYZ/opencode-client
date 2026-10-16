@@ -19,7 +19,10 @@ afterEach(() => {
 describe("the settings-section registry", () => {
 	test("the built-in section is present with its label", () => {
 		const sections = getSettingsSections();
-		expect(sections.map((section) => section.id)).toEqual([SETTINGS_SECTION_ID.connect]);
+		expect(sections.map((section) => section.id)).toEqual([
+			SETTINGS_SECTION_ID.connect,
+			SETTINGS_SECTION_ID.version,
+		]);
 		expect(sections[0].label).toBe(CONNECT_TITLE);
 	});
 
@@ -33,10 +36,12 @@ describe("the settings-section registry", () => {
 		expect(getSettingsSections().map((section) => section.id)).toEqual([
 			"appearance",
 			SETTINGS_SECTION_ID.connect,
+			SETTINGS_SECTION_ID.version,
 		]);
 		dispose();
 		expect(getSettingsSections().map((section) => section.id)).toEqual([
 			SETTINGS_SECTION_ID.connect,
+			SETTINGS_SECTION_ID.version,
 		]);
 	});
 
@@ -45,6 +50,7 @@ describe("the settings-section registry", () => {
 		resetSettingsSections();
 		expect(getSettingsSections().map((section) => section.id)).toEqual([
 			SETTINGS_SECTION_ID.connect,
+			SETTINGS_SECTION_ID.version,
 		]);
 	});
 

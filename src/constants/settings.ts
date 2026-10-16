@@ -58,6 +58,7 @@ export const DEFAULT_LAST_ROUTE = ROUTE_PATH.home;
  */
 export const SETTINGS_SECTION_ID = {
 	connect: "connect",
+	version: "version",
 } as const;
 
 /** Sidebar defaults — spec 010 §Persistence's "visible + width"; M2.7 owns its UI. */

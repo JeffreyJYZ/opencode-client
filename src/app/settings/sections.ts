@@ -1,7 +1,9 @@
 import { type ComponentType, useSyncExternalStore } from "react";
 import { ConnectSection } from "@/components/ConnectSection";
+import { VersionSection } from "@/components/VersionSection";
 import { CONNECT_TITLE } from "@/constants/connect";
 import { SETTINGS_SECTION_ID } from "@/constants/settings";
+import { VERSION_SECTION_LABEL, VERSION_SECTION_ORDER } from "@/constants/version";
 
 /**
  * The settings-section registry (spec 010 §Routes: the settings surface).
@@ -73,6 +75,14 @@ const BUILTINS: readonly SettingsSection[] = [
 		label: CONNECT_TITLE,
 		component: ConnectSection,
 		order: DEFAULT_SECTION_ORDER,
+	},
+	{
+		// The app's own version, and the update check beside it (M5.3/M5.4). Last:
+		// it is the section a reader looks for once, not one they work in.
+		id: SETTINGS_SECTION_ID.version,
+		label: VERSION_SECTION_LABEL,
+		component: VersionSection,
+		order: VERSION_SECTION_ORDER,
 	},
 ];
 
