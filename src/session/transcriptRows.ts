@@ -1,12 +1,9 @@
-import type {
-	SessionMessageAssistant,
-	SessionMessageAssistantTool,
-	SessionMessageInfo,
-	ToolContent,
-} from "@opencode/client";
-import { DELIVERY, ROW_KIND, TOOL_ANCHOR_FIELD, TOOL_STATUS } from "@/constants/transcript";
-import { capInput, capPayload, capString } from "@/session/payloadCaps";
+import type { SessionMessageAssistant, SessionMessageInfo } from "@opencode/client";
+import { DELIVERY, FINISH_TOOL_CALLS, ROW_KIND } from "@/constants/transcript";
+import { capPayload, capString } from "@/session/payloadCaps";
+import { toolRow } from "@/session/toolRows";
 import type { TranscriptRow } from "@/session/transcript";
+import { footerID } from "@/session/transcriptFooter";
 
 /**
  * The server's own messages, mapped to the rows M2.2 renders (spec 050 §Event
@@ -23,44 +20,6 @@ import type { TranscriptRow } from "@/session/transcript";
  * (`src/session/payloadCaps.ts`) the stream's frames do: a refetch must not
  * re-inflate what the stream trimmed (M2.4).
  */
-
-function toolText(content: readonly ToolContent[]): string {
-	const parts: string[] = [];
-	for (const part of content) if (part.type === "text") parts.push(part.text);
-	return parts.join("\n");
-}
-
-function toolRow(part: SessionMessageAssistantTool): TranscriptRow {
-	const state = part.state;
-	const streaming = state.status === "streaming";
-	const input = streaming ? capString(state.input) : capInput(state.input);
-	const output =
-		state.status === "completed"
-			? capPayload(toolText(state.content))
-			: state.status === "error"
-				? capPayload(state.error.message)
-				: capPayload("");
-	const status =
-		state.status === "completed"
-			? TOOL_STATUS.ok
-			: state.status === "error"
-				? TOOL_STATUS.failed
-				: state.status === "streaming"
-					? TOOL_STATUS.streaming
-					: TOOL_STATUS.running;
-	const anchor = streaming ? undefined : state.input[TOOL_ANCHOR_FIELD];
-	return {
-		id: part.id,
-		created: part.time.created,
-		seq: 0,
-		kind: ROW_KIND.tool,
-		name: part.name,
-		input,
-		status,
-		output,
-		anchor: typeof anchor === "string" ? anchor : undefined,
-	};
-}
 
 function assistantRows(message: SessionMessageAssistant): TranscriptRow[] {
 	const rows: TranscriptRow[] = [];
@@ -93,14 +52,20 @@ function assistantRows(message: SessionMessageAssistant): TranscriptRow[] {
 			endedAt: partTime?.completed,
 		});
 	}
-	if (message.finish !== undefined) {
+	// The footer is the message's own four fields (M2.16), and a `tool-calls` message
+	// carries none — the same guard the stream's `step.ended` applies.
+	if (message.finish !== undefined && message.finish !== FINISH_TOOL_CALLS) {
+		const completed = message.time.completed;
 		rows.push({
-			id: `${message.id}:f`,
-			created: message.time.completed ?? message.time.created,
+			id: footerID(message.id),
+			created: completed ?? message.time.created,
 			seq: 0,
 			kind: ROW_KIND.footer,
-			finish: message.finish,
-			cost: message.cost,
+			agent: message.agent,
+			model: message.model,
+			durationMs:
+				completed === undefined ? undefined : Math.max(0, completed - message.time.created),
+			outputTokens: message.tokens?.output,
 		});
 	}
 	return rows;

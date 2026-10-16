@@ -24,7 +24,7 @@ export function formatTokens(value: number): string {
 	return `${(value / TOKEN_COMPACT_UNIT).toFixed(TOKEN_COMPACT_DECIMALS)}k`;
 }
 
-/** The cost, with the footer's own decimals so a figure reads the same anywhere. */
+/** The cost, with the shared cost decimals so a figure reads the same anywhere. */
 export function formatSpend(value: number): string {
 	return `${STATUSLINE_SPEND_PREFIX}${value.toFixed(COST_DECIMALS)}`;
 }

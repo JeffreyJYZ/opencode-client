@@ -97,8 +97,24 @@ export const DURATION_SECONDS_DECIMALS = 1;
 /** Between the two figures of a compound duration (`1m 5s`). */
 export const DURATION_PAIR_SEPARATOR = " ";
 
-/** Cost decimals in a footer (M2.8 owns the statusline's spend). */
+/** Cost decimals for the statusline's spend figure (M2.8). */
 export const COST_DECIMALS = 4;
+
+/**
+ * The per-prompt footer's four fields (M2.16; spec 020 §Transcript:
+ * `agent · model · duration · tok/s`). The separator and the two formatted fields
+ * live here so the line is composed from names, never literals.
+ */
+export const FOOTER_SEPARATOR = " · ";
+/** The footer's duration: seconds to one decimal, e.g. `2.1s`. */
+export const FOOTER_DURATION_UNIT = "s";
+export const FOOTER_DURATION_DECIMALS = 1;
+/** The footer's generation rate: `<n> tok/s`, one decimal, a gap before the unit. */
+export const FOOTER_RATE_UNIT = "tok/s";
+export const FOOTER_RATE_GAP = " ";
+export const FOOTER_RATE_DECIMALS = 1;
+/** Milliseconds in one second — a step's duration is an event-timestamp pair. */
+export const MS_PER_SECOND = 1000;
 
 /**
  * A collapsed output block's toggle: `(N more lines)` (M2.4). A prefix/suffix pair

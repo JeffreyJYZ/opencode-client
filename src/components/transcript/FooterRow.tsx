@@ -3,7 +3,8 @@ import { footerText } from "./rowModel";
 import { META_STYLE, ROW_STYLE, rowIdentity } from "./rowStyles";
 
 /**
- * The per-prompt footer: how the step finished, and what it cost.
+ * The per-prompt footer: the step's own agent, model, duration and generation rate
+ * (M2.16; spec 020 §Transcript).
  *
  * One row per assistant message, appended once by the store (`<messageID>:f`), so a
  * retried step updates its footer rather than stacking a second one.
