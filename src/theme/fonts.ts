@@ -62,6 +62,22 @@ export function clampFontSize(role: FontRole, size: number): number {
 	return Math.min(max, Math.max(min, Math.round(size)));
 }
 
+/** The role's bounded range, so a control never hard-codes the numbers. */
+export function fontSizeBounds(role: FontRole): { readonly min: number; readonly max: number } {
+	const { min, max } = ROLE_DEFAULTS[role];
+	return { min, max };
+}
+
+/** Whether two preferences would write the same four custom properties. */
+export function sameFontPreferences(a: FontPreferences, b: FontPreferences): boolean {
+	return (
+		a.ui.family === b.ui.family &&
+		a.ui.size === b.ui.size &&
+		a.code.family === b.code.family &&
+		a.code.size === b.code.size
+	);
+}
+
 /**
  * A family as CSS wants it: a single identifier is left bare, anything else is
  * quoted. Quoting a generic (`monospace`) would turn it into a family that never
