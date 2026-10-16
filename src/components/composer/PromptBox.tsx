@@ -3,13 +3,15 @@ import { PromptBoxView } from "@/components/composer/PromptBoxView";
 import { useComposerDrop } from "@/components/composer/useComposerDrop";
 import { useComposerEdits } from "@/components/composer/useComposerEdits";
 import { useComposerMenu } from "@/components/composer/useComposerMenu";
+import { hasQueuedPrompt } from "@/session/transcript";
 import { useComposerData } from "@/session/useComposerData";
 import { useSessionIdentity } from "@/session/useSessionIdentity";
+import { useTranscript } from "@/session/useTranscript";
 
 /**
- * The prompt box (spec 020 §Prompt box, row M2.5): three hooks and one view. The
- * edits own the text, the data owns the sources, the menu owns the highlight and the
- * keys, and `PromptBoxView` draws what they say.
+ * The prompt box (spec 020 §Prompt box, row M2.5): the edits own the text, the data
+ * owns the sources, the menu owns the highlight and the keys, the transcript owns
+ * the queue (M2.26), and `PromptBoxView` draws what they say.
  *
  * The rules are not in the JSX on purpose — the send path is `actions.ts`, the
  * keyboard order is `composerKeys.ts`, and the payload shape is
@@ -24,6 +26,9 @@ export type PromptBoxProps = {
 
 export function PromptBox({ sessionID, running }: PromptBoxProps) {
 	const identity = useSessionIdentity(sessionID);
+	// The queue's real state is the transcript's own `DELIVERY.queued` (M2.26) — the
+	// same store the page already holds, read here rather than kept as a second flag.
+	const queued = hasQueuedPrompt(useTranscript(sessionID));
 	const commandNames = useRef<readonly string[]>([]);
 	const edits = useComposerEdits(sessionID, commandNames);
 	// The shell's own drop (M5.2) appends through the same path the DOM drop uses.
@@ -45,6 +50,7 @@ export function PromptBox({ sessionID, running }: PromptBoxProps) {
 	return (
 		<PromptBoxView
 			running={running}
+			queued={queued}
 			sending={edits.sending}
 			error={edits.error}
 			text={edits.text}

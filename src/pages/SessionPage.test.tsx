@@ -78,10 +78,16 @@ describe("SessionPage", () => {
 		await waitFor(() => expect(screen.getByText(TRANSCRIPT_EMPTY_LABEL)).toBeDefined());
 
 		act(() => stream.push(enqueued));
-		await waitFor(() => expect(screen.getByText(RAIL_LABEL.queued)).toBeDefined());
+		// The rail, by its own attribute: the composer's toolbar says "Queued" too
+		// while a prompt is queued (M2.26), so the word alone is no longer unique.
+		await waitFor(() =>
+			expect(document.querySelector("[data-rail]")?.textContent).toBe(RAIL_LABEL.queued),
+		);
 
 		act(() => stream.push(delivered));
-		await waitFor(() => expect(screen.getByText(RAIL_LABEL.delivered)).toBeDefined());
+		await waitFor(() =>
+			expect(document.querySelector("[data-rail]")?.textContent).toBe(RAIL_LABEL.delivered),
+		);
 	});
 
 	test("the transcript box follows the tail, and a gesture offers the pill", async () => {

@@ -31,9 +31,10 @@ import type { Attachment } from "@/session/promptTypes";
  * keyboard rules are readable in one place.
  *
  * Three things it deliberately does **not** do: it never assembles a payload, never
- * decides whether a turn is running (the `running` prop is the store's), and never
- * renders the interrupt affordance while nothing runs — the button does not exist
- * when `running` is false, so pressing it is impossible rather than useless.
+ * decides whether a turn is running or a prompt queued (the `running` and `queued`
+ * props are the store's — M2.26), and never renders the interrupt affordance while
+ * nothing runs — the button does not exist when `running` is false, so pressing it
+ * is impossible rather than useless.
  *
  * M4.12 makes the frame itself a slot host's anchor: `composer.above` and
  * `composer.below` are siblings of the frame `<section>`, and `composer.toolbar`
@@ -43,6 +44,8 @@ import type { Attachment } from "@/session/promptTypes";
 
 export type PromptBoxViewProps = {
 	readonly running: boolean;
+	/** A prompt is queued in this session — the transcript's own state, not `running`. */
+	readonly queued: boolean;
 	readonly sending: boolean;
 	readonly error: string | null;
 	readonly text: string;
@@ -118,6 +121,7 @@ export function PromptBoxView(props: PromptBoxViewProps) {
 					<ComposerToolbar
 						identity={props.identity}
 						running={props.running}
+						queued={props.queued}
 						sending={props.sending}
 						onSend={props.onSend}
 						onInterrupt={props.onInterrupt}

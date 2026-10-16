@@ -33,6 +33,7 @@ function toolbar() {
 		<ComposerToolbar
 			identity={IDENTITY}
 			running={false}
+			queued={false}
 			sending={false}
 			onSend={() => {}}
 			onInterrupt={() => {}}
@@ -43,6 +44,7 @@ function toolbar() {
 function frame() {
 	const props: PromptBoxViewProps = {
 		running: false,
+		queued: false,
 		sending: false,
 		error: null,
 		text: "",
