@@ -2,6 +2,7 @@ import { type RefObject, useCallback, useLayoutEffect, useRef, useState } from "
 import type { TabScroll } from "@/app/settings/scroll";
 import { rememberTabScroll, tabScroll } from "@/app/settings/tabScroll";
 import { atTail, tailTop, viewportOf } from "./tailFollow";
+import { useRowsBelow } from "./useRowsBelow";
 import { useScrollWatch } from "./useScrollWatch";
 
 /**
@@ -28,6 +29,8 @@ export type TailFollowDeps = {
 export type TailFollow = {
 	readonly ref: RefObject<HTMLElement | null>;
 	readonly following: boolean;
+	/** How many rows are below the fold (M2.22): the pill's own count. */
+	readonly rowsBelow: number;
 	/** Put the reader back on the tail and start following it again. */
 	readonly jumpToLatest: () => void;
 };
@@ -122,5 +125,9 @@ export function useTailFollow(key: string, deps: TailFollowDeps = {}): TailFollo
 		place(PINNED);
 	}, [place, markFollowing]);
 
-	return { ref, following: followingNow, jumpToLatest };
+	// The pill's count (M2.22): measured only while the reader is scrolled away, so a
+	// view following the tail pays nothing for it.
+	const rowsBelow = useRowsBelow(ref, !followingNow);
+
+	return { ref, following: followingNow, rowsBelow, jumpToLatest };
 }

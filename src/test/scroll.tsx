@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { TabScroll } from "@/app/settings/scroll";
 import { JumpToLatest } from "@/components/transcript/JumpToLatest";
 import type { TailFollowDeps } from "@/components/transcript/useTailFollow";
@@ -33,6 +34,15 @@ export function layout(element: HTMLElement, scrollHeight: number, clientHeight:
 	Object.defineProperty(element, "clientHeight", { value: clientHeight, configurable: true });
 }
 
+/**
+ * What a real layout would have measured for this element's own box, in **viewport**
+ * coordinates — a row's top and bottom, or the scroller's visible edge (M2.22). Set
+ * rather than read, because happy-dom has no layout engine; the reads stay real.
+ */
+export function boxAt(element: Element, top: number, height: number): void {
+	element.getBoundingClientRect = () => ({ top, bottom: top + height }) as DOMRect;
+}
+
 /** The reader's distance from the tail — the number an append must not change. */
 export function distanceFromTail(box: HTMLElement): number {
 	return box.scrollHeight - box.scrollTop - box.clientHeight;
@@ -51,7 +61,7 @@ export function TailHarness({
 }: {
 	readonly tabKey: string;
 	readonly deps: TestStore;
-	readonly body: string;
+	readonly body: ReactNode;
 }) {
 	const follow = useTailFollow(tabKey, deps);
 	return (
@@ -59,7 +69,9 @@ export function TailHarness({
 			<main ref={follow.ref} data-testid="box" data-following={String(follow.following)}>
 				{body}
 			</main>
-			{!follow.following && <JumpToLatest onClick={follow.jumpToLatest} />}
+			{!follow.following && (
+				<JumpToLatest count={follow.rowsBelow} onClick={follow.jumpToLatest} />
+			)}
 		</>
 	);
 }
