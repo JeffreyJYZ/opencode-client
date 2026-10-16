@@ -44,6 +44,13 @@ export type KeyBinding = {
 	readonly description: string;
 };
 
+/**
+ * The two fields a chord is identified and matched by. A `KeyBinding` satisfies it,
+ * and a chord parsed from a label is **only** these two — so the algebra
+ * (`bindingChord`, `matchesBinding`) works on a label with no binding to hand.
+ */
+export type Chord = Pick<KeyBinding, "key" | "modifier">;
+
 /** A one-key chord's label: the modifier glyph plus the key. */
 export function chordLabel(key: string): string {
 	return `${KEY_MODIFIER_GLYPH}${key.toUpperCase()}`;
@@ -67,7 +74,7 @@ export function tabRangeLabel(): string {
 }
 
 /** A chord's unique identity: its modifier and its key, case-folded. */
-export function bindingChord(binding: KeyBinding): string {
+export function bindingChord(binding: Chord): string {
 	return `${binding.modifier}:${binding.key.toLowerCase()}`;
 }
 
@@ -104,7 +111,7 @@ export type KeyEventLike = {
  * map can never shadow each other. `none` tolerates Shift, because `⇧Esc` is the
  * same interrupt as `Esc` (M2.5) and nothing binds a bare shifted key.
  */
-export function matchesBinding(event: KeyEventLike, binding: KeyBinding): boolean {
+export function matchesBinding(event: KeyEventLike, binding: Chord): boolean {
 	if (event.key.toLowerCase() !== binding.key.toLowerCase()) return false;
 	const command = event.metaKey || event.ctrlKey;
 	const alt = event.altKey === true;
