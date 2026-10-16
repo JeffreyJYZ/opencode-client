@@ -65,7 +65,7 @@ Registries register **synchronously** and return a `Disposable`; services return
 | `opencode.on(event, handler)` | the server's event stream, filtered for you (`session.*`, `mcp.*`, `permission.*`, …); returns an unsubscribe | service |
 | `transcript.snapshot()` | the open session's rows, synchronously (what is rendered now) | service |
 | `storage.get/set/delete/keys` | your own key-value store, **capped and namespace-scoped per plugin id** (`src/plugins/services/storage.ts`; the cap is `PLUGIN_DATA_MAX_BYTES`) | service |
-| `native` | `pickDirectory`, `pickFiles`, `openExternal`, and path-scoped `read`/`write`/`list`/`remove`/`dataDir` under `plugin-data/<id>/`; `null` on web | service |
+| `native` | `pickDirectory`, `openExternal` (**`pickFiles` is named here and built nowhere** — the bridge offers only `pickDirectory`), and path-scoped `read`/`write`/`list`/`remove`/`dataDir` under `plugin-data/<id>/`; `null` on web | service |
 | `native.http` | **not built** — named here, implemented nowhere — an unrestricted request through the shell's `http_request`; rides `net` | service |
 | `notify.toast/banner/modal/confirm` | host-rendered notices | service |
 | `on(event, handler)` | app events: `turn-start`, `turn-end`, `chunk`, `session-changed`, `settings-changed`, `plugin-loaded`, `plugin-unloaded`, `theme-changed` | service |
