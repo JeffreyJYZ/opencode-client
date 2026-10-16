@@ -9,6 +9,7 @@ import type {
 	PermissionRequest,
 	SkillInfo,
 } from "@opencode/client";
+import { isSelectableAgent } from "@/session/agentSelection";
 
 /**
  * The composer's and the docks' **reads** (M2.5/M2.6), the read half of the seam in
@@ -36,8 +37,14 @@ export async function readCommands(client: OpenCodeClient): Promise<readonly Com
 	return read(async () => (await client.command.list()).data, []);
 }
 
+/**
+ * `agent.list()` — the agents a session can be switched to. The server sends every
+ * agent it knows (primary, subagent, hidden), so the filter is here, at the one seam
+ * the app reads agents through, and every consumer (the identity picker and the `@`
+ * menu) gets the same set. The rule is `isSelectableAgent` (M2.12).
+ */
 export async function readAgents(client: OpenCodeClient): Promise<readonly AgentInfo[]> {
-	return read(async () => (await client.agent.list()).data, []);
+	return read(async () => (await client.agent.list()).data.filter(isSelectableAgent), []);
 }
 
 export async function readModels(client: OpenCodeClient): Promise<readonly ModelInfo[]> {

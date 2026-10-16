@@ -1,6 +1,12 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { act, cleanup, fireEvent, screen, waitFor } from "@testing-library/react";
 import { PromptBox } from "@/components/composer/PromptBox";
+import { COMPOSER_AGENT_LABEL } from "@/constants/composer";
+import {
+	PROBE_AGENTS,
+	PROBE_SELECTABLE_AGENT_IDS,
+	PROBE_SESSION_AGENT_ID,
+} from "@/test/agentFixtures";
 import { promptField as area, renderComposer, menuRows as rows, typePrompt } from "@/test/composer";
 import { composerProbe } from "@/test/composerProbe";
 
@@ -80,5 +86,32 @@ describe("PromptBox's send path", () => {
 		renderComposer(<PromptBox sessionID="ses_test" running={false} />, probe);
 		act(() => fireEvent.keyDown(typePrompt("text"), { key: "Escape" }));
 		expect(probe.interrupts).toHaveLength(0);
+	});
+});
+
+describe("PromptBox's agent picker", () => {
+	/** The identity line's agent `<select>`, by its own label. */
+	function agentSelect(): HTMLSelectElement {
+		return screen.getByLabelText(COMPOSER_AGENT_LABEL) as HTMLSelectElement;
+	}
+
+	function offered(): string[] {
+		return [...agentSelect().options].map((option) => option.value);
+	}
+
+	test("offers exactly the agents a session can be switched to, never a subagent or a hidden one (M2.12)", async () => {
+		const probe = composerProbe({ commands: COMMANDS });
+		renderComposer(<PromptBox sessionID="ses_test" running={false} />, probe);
+		// The agent source arrives with the other three reads; the empty option is
+		// all that exists until then.
+		await waitFor(() => expect(agentSelect().options.length).toBeGreaterThan(1));
+		expect(offered()).toEqual(["", ...PROBE_SELECTABLE_AGENT_IDS]);
+		// The server sends subagents and hidden agents too; none may be a choice.
+		for (const agent of PROBE_AGENTS) {
+			if (PROBE_SELECTABLE_AGENT_IDS.includes(agent.id)) continue;
+			expect(offered()).not.toContain(agent.id);
+		}
+		// The session's own agent is an id, so it selects its entry and shows its name.
+		expect(agentSelect().value).toBe(PROBE_SESSION_AGENT_ID);
 	});
 });
