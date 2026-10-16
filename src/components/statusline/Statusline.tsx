@@ -1,5 +1,6 @@
 import { useActiveSessionId } from "@/app/useActiveSession";
 import { Slot } from "@/components/Slot";
+import { revealSubagentsPanel } from "@/components/statusline/revealSubagents";
 import { StatuslineSegment } from "@/components/statusline/StatuslineSegment";
 import { BAR_STYLE, GROUP_STYLE, HINT_STYLE } from "@/components/statusline/statuslineStyles";
 import { SLOT } from "@/constants/slots";
@@ -44,7 +45,7 @@ export function Statusline() {
 				{data.subagents > 0 ? (
 					<StatuslineSegment
 						label={`${STATUSLINE_SUBAGENT_PREFIX} ${data.subagents} ${STATUSLINE_SUBAGENT_SUFFIX}`}
-						copy={String(data.subagents)}
+						action={revealSubagentsPanel}
 						title={STATUSLINE_SEGMENT_TITLE.subagents}
 					/>
 				) : null}

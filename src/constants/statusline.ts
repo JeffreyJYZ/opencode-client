@@ -31,10 +31,10 @@ export const STATUSLINE_UNKNOWN = "…";
 export const TOKEN_COMPACT_UNIT = 1000;
 export const TOKEN_COMPACT_DECIMALS = 1;
 
-/** Each segment's tooltip/title: what a click copies. */
+/** Each segment's tooltip/title: what a click does — copy a value or open a panel. */
 export const STATUSLINE_SEGMENT_TITLE = {
 	location: "Copy the session directory",
-	subagents: "Copy the subagent count",
+	subagents: "Open the subagent list",
 	tokens: "Copy the session token count",
 	spend: "Copy the session spend",
 } as const;
