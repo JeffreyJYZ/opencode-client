@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import { updateSettings } from "@/app/settings/store";
 import { useSettings } from "@/app/settings/useSettings";
+import { FacePicker } from "@/components/FacePicker";
 import { FONT_ROLE } from "@/constants/settings";
 import { BUTTON_STYLE, INPUT_STYLE, LABEL_STYLE, SECTION_STYLE } from "@/constants/settingsUi";
 import {
@@ -26,7 +27,9 @@ import {
 
 /**
  * The typography section (M3.2): both roles' family and size, one live sample
- * per role, a reset, all persisted in the settings blob and applied live.
+ * per role, a reset, all persisted in the settings blob and applied live. The
+ * family control is the picker (M3.3), which refuses a family this app cannot
+ * resolve instead of storing it.
  *
  * The controls write through `updateSettings`, which is the single write path
  * and the thing that re-applies the fonts to the root — a component never calls
@@ -78,16 +81,11 @@ function RoleControls({ role, fonts }: { role: FontRole; fonts: FontPreferences 
 	};
 	return (
 		<div style={ROW_STYLE}>
-			<label style={LABEL_STYLE} htmlFor={ids.family}>
-				{labels.family}
-				<input
-					id={ids.family}
-					style={INPUT_STYLE}
-					value={preference.family}
-					autoComplete="off"
-					onChange={(event) => patch({ family: event.target.value })}
-				/>
-			</label>
+			<FacePicker
+				role={role}
+				value={preference.family}
+				onChange={(family) => patch({ family })}
+			/>
 			<div style={LABEL_STYLE}>
 				<label htmlFor={ids.size}>{`${labels.size} (${PX_UNIT})`}</label>
 				<input
