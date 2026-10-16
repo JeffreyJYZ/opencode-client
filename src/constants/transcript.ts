@@ -80,6 +80,13 @@ export const NOTICE = {
 /** How many event ids one transcript remembers, for duplicate detection. */
 export const EVENT_ID_MEMORY = 128;
 
+/**
+ * How many reasoning groups' expansion states the app remembers (M2.17). Keyed by
+ * the row id, which is `${messageID}:r${ordinal}` and so is session-scoped: the
+ * memory a session switch must survive is bounded by this, oldest dropped first.
+ */
+export const REASONING_EXPANSION_MEMORY = 256;
+
 /** How many messages one refetch asks for — the newest page a repair replaces a transcript with. */
 export const MESSAGE_PAGE_LIMIT = 50;
 

@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { cleanup, render, screen } from "@testing-library/react";
 import { TranscriptEntry } from "@/components/transcript/TranscriptEntry";
 import { DELIVERY, type Delivery, ROW_KIND } from "@/constants/transcript";
-import { RAIL_LABEL, REASONING_LABEL } from "@/constants/transcriptUi";
+import { RAIL_LABEL, REASONING_EXPANDED_ATTR, REASONING_LABEL } from "@/constants/transcriptUi";
 import { capPayload } from "@/session/payloadCaps";
 import type { ErrorRow, FooterRow, NoticeRow, TextRow, UserRow } from "@/session/transcript";
 
@@ -51,10 +51,14 @@ describe("the two text families", () => {
 		expect(screen.queryByText(REASONING_LABEL)).toBeNull();
 	});
 
-	test("reasoning carries a marker and its own text", () => {
-		render(<TranscriptEntry row={textRow(ROW_KIND.reasoning, "Let me think.", "msg_a:r0")} />);
-		expect(screen.getByText(REASONING_LABEL)).toBeDefined();
-		expect(screen.getByText("Let me think.")).toBeDefined();
+	test("reasoning is a collapsed group: the marker shows, the text does not", () => {
+		const { container } = render(
+			<TranscriptEntry row={textRow(ROW_KIND.reasoning, "Let me think.", "msg_a:r0")} />,
+		);
+		const toggle = container.querySelector(`[${REASONING_EXPANDED_ATTR}]`);
+		expect(toggle?.textContent).toContain(REASONING_LABEL);
+		expect(toggle?.getAttribute(REASONING_EXPANDED_ATTR)).toBe("false");
+		expect(screen.queryByText("Let me think.")).toBeNull();
 	});
 
 	test("the two families differ by the type scale, not by colour only", () => {
@@ -63,7 +67,7 @@ describe("the two text families", () => {
 			<TranscriptEntry row={textRow(ROW_KIND.reasoning, "r", "msg_b:r0")} />,
 		);
 		const proseSize = containerSize(prose);
-		const reasoningSize = containerSize(reasoning);
+		const reasoningSize = groupSize(reasoning);
 		expect(reasoningSize).toBe("var(--oc-font-size-meta)");
 		expect(proseSize).not.toBe(reasoningSize);
 	});
@@ -72,6 +76,12 @@ describe("the two text families", () => {
 /** The rendered text element's font size, whichever element carries the row's text. */
 function containerSize(container: HTMLElement): string {
 	const element = container.querySelector("article p") as HTMLElement;
+	return element.style.fontSize;
+}
+
+/** The collapsed group's own size: the summary line is the reasoning row's marker. */
+function groupSize(container: HTMLElement): string {
+	const element = container.querySelector(`[${REASONING_EXPANDED_ATTR}]`) as HTMLElement;
 	return element.style.fontSize;
 }
 

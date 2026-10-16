@@ -61,8 +61,41 @@ export const SHELL_STATUS_LABEL = {
 	killed: "Killed",
 } as const;
 
-/** The reasoning row's marker: a word in the type scale, so colour is not its only signal. */
-export const REASONING_LABEL = "Reasoning";
+/**
+ * The reasoning row's collapsed group (M2.17, spec 020 §Transcript):
+ * `+ Thought: <title> · <duration>`, expanded by a click — the text lives behind
+ * the summary, so the marker is the label word itself and colour is never its only
+ * signal. The `+` is the collapsed mark, the `-` the open one.
+ */
+export const REASONING_GROUP_MARK = "+";
+export const REASONING_GROUP_OPEN_MARK = "-";
+export const REASONING_LABEL = "Thought";
+/** Between the label and the summary's title. */
+export const REASONING_TITLE_SEPARATOR = ": ";
+/** Between the summary's title and its duration. */
+export const REASONING_SEPARATOR = " · ";
+/** The group's toggle carries its own state, so a proof reads it off the DOM. */
+export const REASONING_EXPANDED_ATTR = "data-reasoning-expanded";
+
+/**
+ * A reasoning group's duration (M2.17): the units and the thresholds between them,
+ * ported from the TUI's own scale so the same run reads the same in both apps.
+ */
+export const DURATION_UNIT = {
+	ms: "ms",
+	seconds: "s",
+	minutes: "m",
+	hours: "h",
+	days: "d",
+} as const;
+export const DURATION_MS = 1000;
+export const DURATION_MINUTE_MS = 60 * DURATION_MS;
+export const DURATION_HOUR_MS = 60 * DURATION_MINUTE_MS;
+export const DURATION_DAY_MS = 24 * DURATION_HOUR_MS;
+/** Seconds show one decimal; below a second the exact millisecond count is kept. */
+export const DURATION_SECONDS_DECIMALS = 1;
+/** Between the two figures of a compound duration (`1m 5s`). */
+export const DURATION_PAIR_SEPARATOR = " ";
 
 /** Cost decimals in a footer (M2.8 owns the statusline's spend). */
 export const COST_DECIMALS = 4;

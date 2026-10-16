@@ -1,13 +1,17 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { TranscriptView } from "@/components/transcript/TranscriptView";
 import { NOTICE, PAYLOAD_ELISION, ROW_KIND } from "@/constants/transcript";
-import { MORE_LINES_ATTR } from "@/constants/transcriptUi";
+import { MORE_LINES_ATTR, REASONING_EXPANDED_ATTR } from "@/constants/transcriptUi";
 import { EMPTY_PAYLOAD, growPayload, lineBreaks, type Payload } from "@/session/payloadCaps";
+import { resetReasoningExpansion } from "@/session/reasoningExpansion";
 import type { NoticeRow, TextRow, TranscriptRow } from "@/session/transcript";
 
 /** RTL installs auto-cleanup once per process; this importer adds its own. */
-afterEach(cleanup);
+afterEach(() => {
+	cleanup();
+	resetReasoningExpansion();
+});
 
 /**
  * A **text** row over the ingest cap (M2.3b): the count `OutputBlock` used to be the
@@ -70,8 +74,11 @@ describe("a text row the ingest trimmed", () => {
 		expect(container.querySelector("button")).toBeNull();
 	});
 
-	test("reasoning reports the same fact the same way", () => {
+	test("reasoning reports the same fact the same way, once its group is open", () => {
 		const { payload, container } = transcript(ROW_KIND.reasoning, 4000);
+		const toggle = container.querySelector(`[${REASONING_EXPANDED_ATTR}]`);
+		if (toggle === null) throw new Error("the reasoning row has no group toggle");
+		fireEvent.click(toggle);
 		expect(moreLines(container)).toBe(payload.dropped);
 		expect(screen.getByText(PAYLOAD_ELISION)).toBeDefined();
 	});
