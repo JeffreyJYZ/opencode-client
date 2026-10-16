@@ -8,7 +8,7 @@ Last updated: 2026-10-15 · Current focus: **M3 — Type and theme** (`M3.0`, th
 | M1 Shell and home | 16 / 16 | home → session view end to end; restart restores tabs |
 | M2 Session view | 13 / 14 | a live session streams, interrupts, queues and replies from the keyboard |
 | M3 Type and theme | 8 / 8 | both faces change live and survive a restart; theme applies and clears |
-| M4 Plugin host 0.1 | 18 / 19 | four example plugins install, work and uninstall through the documented API |
+| M4 Plugin host 0.1 | 18 / 18 | four example plugins install, work and uninstall through the documented API |
 | M5 Desktop polish | 5 / 5 | packaged app, updater, `verify-release` exits 0 |
 
 ## M0 — Foundations
