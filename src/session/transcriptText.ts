@@ -46,6 +46,7 @@ function textRow(
 	kind: "prose" | "reasoning",
 	text: Payload,
 	ended: boolean,
+	agent: string | undefined,
 ): TextRow {
 	return {
 		id,
@@ -54,10 +55,30 @@ function textRow(
 		kind,
 		text,
 		ended,
+		// Absent where the part carried none — never a placeholder (M2.32).
+		...(agent === undefined ? {} : { agent }),
 	};
 }
-function freshTextRow(event: TextEvent, id: string, kind: "prose" | "reasoning"): TextRow {
-	return textRow(event, id, kind, capPayload(""), false);
+/**
+ * A part's first frame. The text events carry no agent (measured: only
+ * `sessionID`, `assistantMessageID`, `ordinal`), so the head is read from the
+ * step's own start — the same source the footer reads — which the stream
+ * delivers before the part's frames.
+ */
+function freshTextRow(
+	transcript: Transcript,
+	event: TextEvent,
+	id: string,
+	kind: "prose" | "reasoning",
+): TextRow {
+	return textRow(
+		event,
+		id,
+		kind,
+		capPayload(""),
+		false,
+		transcript.steps.get(event.data.assistantMessageID)?.agent,
+	);
 }
 
 export function reduceText(transcript: Transcript, event: TextEvent): Transcript | null {
@@ -71,12 +92,12 @@ export function reduceText(transcript: Transcript, event: TextEvent): Transcript
 		case "session.reasoning.started":
 			// A repeated `started` keeps the text already streamed.
 			return existing === undefined
-				? upsertRow(transcript, freshTextRow(event, id, kind))
+				? upsertRow(transcript, freshTextRow(transcript, event, id, kind))
 				: null;
 		case "session.text.delta":
 		case "session.reasoning.delta": {
 			if (existing?.ended === true) return null;
-			const base = existing ?? freshTextRow(event, id, kind);
+			const base = existing ?? freshTextRow(transcript, event, id, kind);
 			return upsertRow(transcript, {
 				...base,
 				text: growPayload(base.text, event.data.delta),
@@ -84,7 +105,7 @@ export function reduceText(transcript: Transcript, event: TextEvent): Transcript
 		}
 		case "session.text.ended":
 		case "session.reasoning.ended": {
-			const base = existing ?? freshTextRow(event, id, kind);
+			const base = existing ?? freshTextRow(transcript, event, id, kind);
 			return upsertRow(transcript, {
 				...base,
 				text: capPayload(event.data.text),

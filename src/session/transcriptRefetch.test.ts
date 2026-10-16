@@ -66,6 +66,14 @@ describe("rowsFromMessage", () => {
 		});
 	});
 
+	test("an assistant message's text rows carry the message's agent", () => {
+		const message = one("assistant") as Extract<SessionMessageInfo, { type: "assistant" }>;
+		const rows = rowsFromMessage(message);
+		// The head's source is the message itself — the same read the footer makes.
+		expect(rows[0]).toMatchObject({ kind: ROW_KIND.reasoning, agent: message.agent });
+		expect(rows[1]).toMatchObject({ kind: ROW_KIND.prose, agent: message.agent });
+	});
+
 	test("a kind with no row here renders nothing", () => {
 		expect(rowsFromMessage(one("idle"))).toHaveLength(0);
 	});

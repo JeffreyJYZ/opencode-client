@@ -45,6 +45,9 @@ function assistantRows(message: SessionMessageAssistant): TranscriptRow[] {
 			seq: 0,
 			kind: isReasoning ? ROW_KIND.reasoning : ROW_KIND.prose,
 			text: capPayload(part.text),
+			// The prose row's own head (M2.32): the message's agent, the same
+			// source the footer row below reads.
+			agent: message.agent,
 			// `ended` is "this is the authoritative final text": a message the server
 			// has not completed (`time.completed` absent) may still be streaming, so
 			// its refetched parts keep accepting deltas.
