@@ -1,4 +1,5 @@
 import { GlobalRegistrator } from "@happy-dom/global-registrator";
+import { POLL_TIMEOUT_MS } from "@/test/budget";
 
 /** The origin the test window starts at, so a relative path can be navigated to. */
 const TEST_WINDOW_URL = "http://localhost/";
@@ -52,3 +53,17 @@ if (nodeName?.get !== undefined) {
 		},
 	});
 }
+
+/**
+ * The suite's polling budget (M1.4d), applied once here so no test file carries a
+ * number of its own — the constants and their reasoning are in `src/test/budget`.
+ *
+ * `@testing-library/react` is imported **dynamically**, after registration:
+ * `@testing-library/dom` binds its `screen` at module load
+ * (`typeof document !== "undefined" && document.body`), so a static import would
+ * hoist above `GlobalRegistrator.register()` and leave every test's `screen`
+ * unbound for the whole run. `configure` only writes the shared config object,
+ * which each wait reads when it runs.
+ */
+const { configure } = await import("@testing-library/react");
+configure({ asyncUtilTimeout: POLL_TIMEOUT_MS });

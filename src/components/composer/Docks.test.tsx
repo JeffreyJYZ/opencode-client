@@ -1,8 +1,9 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import type { FormInfo, PermissionRequest } from "@opencode/client";
-import { act, cleanup, fireEvent, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, screen } from "@testing-library/react";
 import { SessionComposer } from "@/components/composer/SessionComposer";
 import { COMPOSER_PROMPT_LABEL, DOCK_DECISION, DOCK_LABEL } from "@/constants/composer";
+import { flush } from "@/test/act";
 import { capturedDocks } from "@/test/capture";
 import { renderComposer } from "@/test/composer";
 import { type ComposerProbe, composerProbe } from "@/test/composerProbe";
@@ -24,12 +25,13 @@ const fixture = await capturedDocks();
 const pending = fixture.permissions[0] as PermissionRequest;
 const form = fixture.forms[0] as FormInfo;
 
-/** Render with one pending permission, and wait for the dock's own refetch to land. */
+/** Render with one pending permission, and flush the dock's own refetch. */
 async function renderWithPermission(
 	probe: ComposerProbe = composerProbe({ permissions: [pending] }),
 ): Promise<ComposerProbe> {
 	renderComposer(<SessionComposer sessionID={fixture.sessionID} running={false} />, probe);
-	await waitFor(() => expect(screen.getByLabelText(DOCK_LABEL.permission)).toBeDefined());
+	await flush();
+	expect(screen.getByLabelText(DOCK_LABEL.permission)).toBeDefined();
 	return probe;
 }
 
@@ -51,23 +53,29 @@ describe("the permission dock", () => {
 
 	test("`1`, `2` and `3` reply from the keyboard, and the list is refetched after", async () => {
 		const probe = await renderWithPermission();
+		// A reply is recorded synchronously inside the key handler — only the refetch
+		// that follows it is async — so this is an assertion, not a wait (M1.4d).
 		act(() => fireEvent.keyDown(dockKeys(), { key: "1" }));
-		await waitFor(() => expect(probe.permissionReplies).toHaveLength(1));
+		expect(probe.permissionReplies).toHaveLength(1);
 		expect(probe.permissionReplies[0]).toEqual({
 			sessionID: fixture.sessionID,
 			requestID: pending.id,
 			decision: "once",
 		});
+		// Settle the reply's own refetch: it clears `busy` (the dock's own guard on the
+		// next decision) and reads the list while the request is still pending.
+		await flush();
 		probe.setPermissions([]);
 		act(() => fireEvent.keyDown(dockKeys(), { key: "3" }));
-		await waitFor(() => expect(probe.permissionReplies).toHaveLength(2));
+		expect(probe.permissionReplies).toHaveLength(2);
 		expect((probe.permissionReplies[1] as { decision: string }).decision).toBe("reject");
+		await flush();
 	});
 
 	test("Esc is the third decision — `reject` — so the dock is never silently dismissed", async () => {
 		const probe = await renderWithPermission();
 		act(() => fireEvent.keyDown(dockKeys(), { key: "Escape" }));
-		await waitFor(() => expect(probe.permissionReplies).toHaveLength(1));
+		expect(probe.permissionReplies).toHaveLength(1);
 		expect((probe.permissionReplies[0] as { decision: string }).decision).toBe("reject");
 	});
 
@@ -80,10 +88,11 @@ describe("the permission dock", () => {
 		const probe = await renderWithPermission();
 		probe.setPermissions([]);
 		// The dock refetches after a reply — the server's list, not a local flag, is
-		// what closes it.
+		// what closes it. The chain is all microtasks, so a flush drains it.
 		act(() => fireEvent.keyDown(dockKeys(), { key: "2" }));
-		await waitFor(() => expect(screen.queryByLabelText(DOCK_LABEL.permission)).toBeNull());
-		await waitFor(() => expect(screen.getByLabelText(COMPOSER_PROMPT_LABEL)).toBeDefined());
+		await flush();
+		expect(screen.queryByLabelText(DOCK_LABEL.permission)).toBeNull();
+		expect(screen.getByLabelText(COMPOSER_PROMPT_LABEL)).toBeDefined();
 	});
 });
 
@@ -92,7 +101,8 @@ describe("the question dock", () => {
 		probe: ComposerProbe = composerProbe({ forms: [form] }),
 	): Promise<ComposerProbe> {
 		renderComposer(<SessionComposer sessionID={fixture.sessionID} running={false} />, probe);
-		await waitFor(() => expect(screen.getByLabelText(DOCK_LABEL.question)).toBeDefined());
+		await flush();
+		expect(screen.getByLabelText(DOCK_LABEL.question)).toBeDefined();
 		return probe;
 	}
 
@@ -102,12 +112,12 @@ describe("the question dock", () => {
 		act(() => fireEvent.change(input, { target: { value: "src/session" } }));
 		// Field 1 of 2: Enter advances to the multi-select.
 		act(() => fireEvent.keyDown(dockKeys(), { key: "Enter" }));
-		await waitFor(() => expect(screen.getByRole("listbox")).toBeDefined());
+		expect(screen.getByRole("listbox")).toBeDefined();
 		// On a multi-select Enter toggles the highlighted option; the submit button then
 		// sends both answers, which is the shape `form.reply` takes.
 		act(() => fireEvent.keyDown(dockKeys(), { key: "Enter" }));
 		act(() => fireEvent.click(screen.getByRole("button", { name: "Submit" })));
-		await waitFor(() => expect(probe.formReplies).toHaveLength(1));
+		expect(probe.formReplies).toHaveLength(1);
 		expect(probe.formReplies[0]).toEqual({
 			sessionID: fixture.sessionID,
 			formID: form.id,
@@ -118,7 +128,7 @@ describe("the question dock", () => {
 	test("Esc cancels the form, so the asker is told nobody answered", async () => {
 		const probe = await renderWithForm();
 		act(() => fireEvent.keyDown(dockKeys(), { key: "Escape" }));
-		await waitFor(() => expect(probe.formCancels).toHaveLength(1));
+		expect(probe.formCancels).toHaveLength(1);
 		expect(probe.formCancels[0]).toEqual({ sessionID: fixture.sessionID, formID: form.id });
 	});
 
