@@ -4,7 +4,7 @@ Last updated: 2026-10-15 · Current focus: **M3 — Type and theme** (`M3.0`, th
 
 | Milestone | Done / total | Gate |
 | --- | --- | --- |
-| M0 Foundations | 10 / 10 | `bun run verify` (now ending in `cargo check`) and `cargo test`; `bun tauri dev` opens a window with the target injected |
+| M0 Foundations | 10 / 11 | `bun run verify` (now ending in `cargo check`) and `cargo test`; `bun tauri dev` opens a window with the target injected |
 | M1 Shell and home | 16 / 16 | home → session view end to end; restart restores tabs |
 | M2 Session view | 14 / 14 | a live session streams, interrupts, queues and replies from the keyboard |
 | M3 Type and theme | 8 / 8 | both faces change live and survive a restart; theme applies and clears |
@@ -24,6 +24,7 @@ Last updated: 2026-10-15 · Current focus: **M3 — Type and theme** (`M3.0`, th
 - [x] `M0.6` Repository under git: `git init`, `.gitignore` verified, one initial commit of the scaffold + docs — evidence: `ebf7280` on `main`, 26 files, `git status --short` empty — **done**
 
 - [x] `M0.10` **The gate tests Rust too** — `verify` wraps `cargo check` but **not** `cargo test`, so the 74 Rust tests run in no gate and a Rust-only change is green by default; add the test half and keep it bounded — evidence: `bun run verify` fails on a deliberately broken Rust test and passes once it is fixed
+- [ ] `M0.11` **The gate scripts are type-checked by nothing** — no `tsc` project includes `scripts/`, so `check-file-length.ts`, `e2e.ts` and `verify-release.ts` run as transpiled JS with no check at all; the gate script that *runs* while checking the wrong thing is the same defect class as `slots.test.ts` own name-list check, one layer up — found by the session own review, not by an independent one — evidence: a project covering `scripts/**` that `tsc -b` reaches, proven by breaking one and watching the gate fail
 
 ## M1 — Shell and home
 

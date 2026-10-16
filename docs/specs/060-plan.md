@@ -51,6 +51,7 @@ Build order for specs [000](000-overview.md)–[050](050-opencode-integration.md
 | M0.5 | opencode client provider: `OpenCode.make`, target resolution, offline state + banner, `useClient` (the session list lands in M1.2, where it has a consumer) | kill the server → banner with the url; restart → recovers |
 | M0.6 | The repository under git: `git init`, `.gitignore` verified (build output, scratch, `.DS_Store`), one initial commit of the scaffold + docs, and the SDD scratch dir ignored | `git log --oneline -1` exists and `git status --short` is clean |
 | M0.10 | **The gate tests Rust too**: `bun run verify` runs `cargo test` beside `cargo check`, so a Rust-only change cannot pass the gate untested | `bun run verify` fails on a deliberately broken Rust test, and passes once it is fixed |
+| M0.11 | **The gate scripts are type-checked by nothing**: no `tsc` project includes `scripts/`, so `check-file-length.ts`, `e2e.ts` and `verify-release.ts` are transpiled by `bun` and never checked — a gate script that runs while checking the wrong thing stays green (found by the session own review, not by an independent one) | a project covering `scripts/**` that `tsc -b` reaches, proven by breaking a gate script and watching the gate fail |
 
 ### M1 — Shell and home
 
