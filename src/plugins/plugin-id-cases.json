@@ -1,0 +1,29 @@
+{
+	"pattern": "^[A-Za-z0-9_-]([A-Za-z0-9._-]*[A-Za-z0-9_-])?$",
+	"cases": [
+		{ "id": "hello-world", "valid": true },
+		{ "id": "theme-gruvbox", "valid": true },
+		{ "id": "session-export", "valid": true },
+		{ "id": "context-meter", "valid": true },
+		{ "id": "a", "valid": true },
+		{ "id": "A1", "valid": true },
+		{ "id": "a_b", "valid": true },
+		{ "id": "a.b", "valid": true },
+		{ "id": "_lead", "valid": true },
+		{ "id": "-lead", "valid": true },
+		{ "id": "9", "valid": true },
+		{ "id": "a..b", "valid": true },
+		{ "id": "", "valid": false },
+		{ "id": ".", "valid": false },
+		{ "id": "..", "valid": false },
+		{ "id": ".hidden", "valid": false },
+		{ "id": "trailing.", "valid": false },
+		{ "id": ".both.", "valid": false },
+		{ "id": "a/b", "valid": false },
+		{ "id": "a\\b", "valid": false },
+		{ "id": "a b", "valid": false },
+		{ "id": "a$", "valid": false },
+		{ "id": "café", "valid": false },
+		{ "id": "../../etc/passwd", "valid": false }
+	]
+}

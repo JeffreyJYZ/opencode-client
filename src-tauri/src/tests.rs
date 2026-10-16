@@ -71,3 +71,28 @@ fn every_other_scheme_is_refused_without_panicking() {
     assert!(!is_allowed_navigation(&url("javascript:alert(1)"), true));
     assert!(!is_allowed_navigation(&url("file:///etc/passwd"), true));
 }
+
+#[test]
+fn safe_ids_agree_with_the_shared_corpus() {
+    // The one rule both languages implement: `PLUGIN_ID_PATTERN` is the shared
+    // spelling and `plugin-id-cases.json` is the shared verdicts. The TS half is
+    // `src/plugins/manifest.test.ts`; a change to either side's allowlist fails one
+    // of the two tests, which is the drift guard spec 040 §Manifest asks for.
+    const CORPUS: &str = include_str!("../../src/plugins/plugin-id-cases.json");
+    let corpus: serde_json::Value = serde_json::from_str(CORPUS).expect("valid corpus json");
+    assert_eq!(
+        corpus["pattern"].as_str().expect("a pattern"),
+        super::PLUGIN_ID_PATTERN
+    );
+    let cases = corpus["cases"].as_array().expect("cases");
+    assert!(!cases.is_empty(), "the corpus must not be empty");
+    for case in cases {
+        let id = case["id"].as_str().expect("an id");
+        let valid = case["valid"].as_bool().expect("a validity");
+        assert_eq!(
+            super::safe_id(id),
+            valid,
+            "safe_id({id:?}) disagrees with the corpus"
+        );
+    }
+}

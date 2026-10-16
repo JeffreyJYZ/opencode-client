@@ -16,3 +16,13 @@ export const REFUSED: Disposable = {
 		// A refused contribution was never registered, so there is nothing to remove.
 	},
 };
+
+/**
+ * Whether a value is a handle (spec 040 §Entry file: `setup` returns nothing or a
+ * `Disposable`). A plugin's return value crosses the module boundary as `unknown`,
+ * so the loader checks the shape rather than trusting it.
+ */
+export function isDisposable(value: unknown): value is Disposable {
+	if (typeof value !== "object" || value === null) return false;
+	return typeof (value as { dispose?: unknown }).dispose === "function";
+}

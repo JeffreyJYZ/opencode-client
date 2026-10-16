@@ -18,6 +18,28 @@ export const FAULT_REASONS = {
 	protectedVariable: "protected-variable",
 	/** A settings section threw while rendering; the surface drops it and keeps the rest (M3.5). */
 	sectionThrew: "section-threw",
+	/** A manifest whose `id` is not one safe path component (M4.1). */
+	invalidId: "invalid-id",
+	/** A manifest declaring a capability outside the consent list (M4.1). */
+	unknownCapability: "unknown-capability",
+	/** A manifest built for a different host API **major** (M4.1). */
+	unsupportedApiVersion: "unsupported-api-version",
+	/** A manifest with no, or an unsatisfiable, `engines.app` (M4.1). */
+	enginesApp: "engines-app",
+	/** Any other manifest shape a plugin.json failed (M4.1). */
+	invalidManifest: "invalid-manifest",
+	/** A plugin entry that did not import (M4.2). */
+	importFailed: "import-failed",
+	/** A plugin entry that still carries a bare specifier; a built entry must import nothing (M4.2). */
+	bareSpecifier: "bare-specifier",
+	/** A plugin entry imported without the host globals it was built to expect (M4.2). */
+	missingGlobals: "missing-globals",
+	/** A plugin entry that exports no `setup` function (M4.2). */
+	noSetup: "no-setup",
+	/** A plugin `setup` threw while registering (M4.2). */
+	setupThrew: "setup-threw",
+	/** A plugin's `dispose` threw while the loader was closing its instance (M4.2). */
+	disposeThrew: "dispose-threw",
 } as const;
 
 export type FaultReason = (typeof FAULT_REASONS)[keyof typeof FAULT_REASONS];
@@ -28,6 +50,8 @@ export const FAULT_AREAS = {
 	routes: "routes",
 	themes: "themes",
 	settings: "settings",
+	/** A manifest refused, or a plugin entry refused at load (M4.1, M4.2). */
+	plugins: "plugins",
 } as const;
 
 export type FaultArea = (typeof FAULT_AREAS)[keyof typeof FAULT_AREAS];
