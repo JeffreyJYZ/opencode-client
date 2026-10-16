@@ -49,6 +49,11 @@ export type TextRow = RowBase & {
 	 * (`created` → `endedAt`), never an invented one.
 	 */
 	readonly endedAt?: number;
+	/**
+	 * The agent that spoke (M2.32): the prose row's own head, agent name only. From
+	 * the part's message or its step; absent means no head, reasoning rows do not print it.
+	 */
+	readonly agent?: string;
 };
 
 /** One tool call. A subagent call is this row with a child session in its input (M2.2). */

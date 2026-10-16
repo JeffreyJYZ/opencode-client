@@ -62,11 +62,14 @@ function textOf(row: TranscriptRow | undefined): string {
 }
 
 /**
- * The row's text as prose renders it (M2.3). This capture's only markdown is
- * inline code, so the shown text is the source with its backticks removed.
+ * The row's text as prose renders it (M2.3): the source with its inline-code
+ * backticks removed — headed by the row's own agent (M2.32), which `ProseRow`
+ * prints in a block above the text, so the node's `textContent` is their
+ * concatenation. This capture's only markdown is inline code.
  */
 function shownText(row: TranscriptRow | undefined): string {
-	return textOf(row).replace(/`/g, "").trim();
+	const head = row !== undefined && isTextRow(row) && row.agent !== undefined ? row.agent : "";
+	return `${head}${textOf(row).replace(/`/g, "").trim()}`;
 }
 
 describe("TranscriptView", () => {
