@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { useSyncExternalStore } from "react";
 import { getSlotContributions, subscribeToRegistry } from "@/plugins/registry";
 import type { SlotName } from "@/plugins/slots";
@@ -17,5 +18,30 @@ export function Slot({ id }: { readonly id: SlotName }) {
 				<entry.component key={entry.id} />
 			))}
 		</>
+	);
+}
+
+/**
+ * A slot host that needs a container of its own (M4.12): it renders the styled
+ * element **only while the slot has a contribution**, so a mount that wants a
+ * toolbar row leaves no empty node — and no stray margin — when nothing is
+ * registered. `data-slot` names the region, the way `data-route`/`data-row` do.
+ */
+export function SlotRegion({
+	id,
+	style,
+}: {
+	readonly id: SlotName;
+	readonly style?: CSSProperties;
+}) {
+	const filled = useSyncExternalStore(
+		subscribeToRegistry,
+		() => getSlotContributions(id).length > 0,
+	);
+	if (!filled) return null;
+	return (
+		<div data-slot={id} style={style}>
+			<Slot id={id} />
+		</div>
 	);
 }

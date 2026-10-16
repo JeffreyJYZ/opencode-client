@@ -1,6 +1,8 @@
 import { useActiveSessionId } from "@/app/useActiveSession";
+import { Slot } from "@/components/Slot";
 import { StatuslineSegment } from "@/components/statusline/StatuslineSegment";
 import { BAR_STYLE, GROUP_STYLE, HINT_STYLE } from "@/components/statusline/statuslineStyles";
+import { SLOT } from "@/constants/slots";
 import {
 	STATUSLINE_HINT,
 	STATUSLINE_LABEL,
@@ -27,6 +29,7 @@ export function Statusline() {
 	return (
 		<footer role="contentinfo" aria-label={STATUSLINE_LABEL} style={BAR_STYLE}>
 			<div style={GROUP_STYLE}>
+				<Slot id={SLOT.statuslineLeft} />
 				{data.directory === null ? (
 					<span style={HINT_STYLE}>{STATUSLINE_UNKNOWN}</span>
 				) : (
@@ -62,6 +65,7 @@ export function Statusline() {
 				<span style={HINT_STYLE}>
 					{data.running ? STATUSLINE_HINT.running : STATUSLINE_HINT.idle}
 				</span>
+				<Slot id={SLOT.statuslineRight} />
 			</div>
 		</footer>
 	);

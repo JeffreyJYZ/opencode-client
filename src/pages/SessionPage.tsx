@@ -1,8 +1,11 @@
+import type { CSSProperties } from "react";
 import { SessionComposer } from "@/components/composer/SessionComposer";
+import { SlotRegion } from "@/components/Slot";
 import { JumpToLatest } from "@/components/transcript/JumpToLatest";
 import { TranscriptView } from "@/components/transcript/TranscriptView";
 import { useTailFollow } from "@/components/transcript/useTailFollow";
 import { ROUTE_KIND } from "@/constants/routes";
+import { SLOT } from "@/constants/slots";
 import { SESSION_PAGE_STYLE, SESSION_VIEW_STYLE } from "@/constants/styles";
 import { useClient } from "@/session/ClientProvider";
 import type { TranscriptRow } from "@/session/transcript";
@@ -32,6 +35,21 @@ import { useTranscript } from "@/session/useTranscript";
 const NO_ROWS: readonly TranscriptRow[] = [];
 
 /**
+ * The session's toolbar row (M4.12), above the transcript. It is a `SlotRegion`,
+ * so it is absent — not an empty bar — while nothing is registered for
+ * `session.toolbar`.
+ */
+const TOOLBAR_STYLE: CSSProperties = {
+	display: "flex",
+	alignItems: "center",
+	gap: "var(--oc-space-2)",
+	width: "100%",
+	maxWidth: "var(--oc-content-max-width)",
+	margin: "0 auto",
+	padding: "var(--oc-space-2) var(--oc-space-4) 0",
+};
+
+/**
  * The page is a column (`SESSION_VIEW_STYLE`) whose transcript cell grows, so the
  * input slot sits under the transcript and stays put while the transcript is longer
  * than the window.
@@ -44,6 +62,7 @@ export function SessionPage({ id }: { readonly id: string }) {
 	const client = useClient();
 	return (
 		<div style={SESSION_VIEW_STYLE}>
+			<SlotRegion id={SLOT.sessionToolbar} style={TOOLBAR_STYLE} />
 			<main
 				ref={follow.ref}
 				data-route={ROUTE_KIND.session}
