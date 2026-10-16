@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { requestSessionPicker } from "@/app/tabSync";
 import { getTabSnapshot, resetTabs } from "@/app/tabs";
 import { SessionPicker } from "@/components/SessionPicker";
@@ -26,7 +26,6 @@ const THREE: PickerPage = {
 	],
 	cursor: { next: "c2" },
 };
-const THREE_MORE: PickerPage = { ...THREE, cursor: { next: "c2" } };
 const ONE: PickerPage = { data: [pickerRow("ses_a", "Alpha", "/dev/a")], cursor: { next: "c2" } };
 
 function renderPicker(page: PickerPage) {
@@ -107,7 +106,7 @@ describe("SessionPicker keyboard and dismissal", () => {
 	});
 
 	test("Tab is trapped: Shift+Tab from the field wraps to the last control", async () => {
-		renderPicker(THREE_MORE);
+		renderPicker(THREE);
 		const input = openInput();
 		await waitFor(() => expect(screen.getAllByRole("option")).toHaveLength(3));
 		await waitFor(() => expect(screen.getByText(PICKER_LOAD_MORE_LABEL)).toBeDefined());
@@ -144,7 +143,8 @@ describe("SessionPicker keyboard and dismissal", () => {
 		renderPicker(THREE);
 		openInput();
 		await waitFor(() => expect(screen.getByRole("dialog")).toBeDefined());
-		window.dispatchEvent(new CustomEvent(NEW_SESSION_EVENT));
-		await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+		// `act` flushes the close in this commit; a bare dispatch only schedules it.
+		await act(async () => window.dispatchEvent(new CustomEvent(NEW_SESSION_EVENT)));
+		expect(screen.queryByRole("dialog")).toBeNull();
 	});
 });
