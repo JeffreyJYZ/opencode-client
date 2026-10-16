@@ -24,7 +24,7 @@ export const REFERENCE = {
 		},
 		{
 			"name": "ui",
-			"signature": "{ register(contribution: SlotRegistration): Disposable; readonly kit: Readonly<Record<string, unknown>>; }",
+			"signature": "{ register(contribution: SlotRegistration): Disposable; readonly kit: Readonly<Partial<AppKit>>; }",
 			"kind": "registry"
 		},
 		{

@@ -74,7 +74,7 @@ export type Host = {
 	readonly signal: AbortSignal;
 	readonly ui: {
 		register(contribution: SlotRegistration): Disposable;
-		/** The app's primitives; the seam M4.7/M4.8 fill. */
+		/** The app's primitives (`src/app/hostKit.ts`, M4.21); `{}` where the app supplies none. */
 		readonly kit: PluginKit;
 	};
 	readonly commands: {
