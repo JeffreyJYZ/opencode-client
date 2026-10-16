@@ -1,6 +1,7 @@
-import type { CSSProperties } from "react";
+import { type CSSProperties, useEffect, useMemo } from "react";
 import { SessionComposer } from "@/components/composer/SessionComposer";
 import { SlotRegion } from "@/components/Slot";
+import { installBandKeys, userBandIds } from "@/components/transcript/bandNav";
 import { JumpToLatest } from "@/components/transcript/JumpToLatest";
 import { TranscriptView } from "@/components/transcript/TranscriptView";
 import { useTailFollow } from "@/components/transcript/useTailFollow";
@@ -27,6 +28,13 @@ import { useTranscript } from "@/session/useTranscript";
  * `useTailFollow` follows, and the pill is rendered **over** it only while the
  * reader is not following. The remembered position is keyed by the **tab**
  * (`useTailFollow(id, …)`), never by the route or a session id.
+ *
+ * M2.23 adds the band chords: the page owns both halves the handler needs — the
+ * rows and the scroller ref — so `installBandKeys` is wired here, over the band ids
+ * the store's own `ROW_KIND.user` rows give. A jump writes `scrollTop` directly
+ * rather than through the hook, so the scroll event it causes reads as the reader's
+ * own gesture (which `useScrollWatch` has just armed): jumping up unpins follow,
+ * and a jump that lands on the tail re-pins.
  *
  * `NO_ROWS` is one module-level array: a fresh `[]` per render would be a new prop
  * on every pass and would defeat `TranscriptView`'s memoised entries.
@@ -60,6 +68,18 @@ export function SessionPage({ id }: { readonly id: string }) {
 	const follow = useTailFollow(id);
 	const running = transcript?.running ?? false;
 	const client = useClient();
+	const rows = transcript?.rows ?? NO_ROWS;
+	// The bands, memoised on the row list: a press must read the transcript as it is
+	// now, and the handler is re-installed only when the bands actually change.
+	const bandIds = useMemo(() => userBandIds(rows), [rows]);
+	useEffect(() => {
+		return installBandKeys(() => ({ scroller: follow.ref.current, bandIds }), {
+			scrollTo: (offset) => {
+				const scroller = follow.ref.current;
+				if (scroller !== null) scroller.scrollTop = offset;
+			},
+		});
+	}, [bandIds, follow.ref]);
 	return (
 		<div style={SESSION_VIEW_STYLE}>
 			<SlotRegion id={SLOT.sessionToolbar} style={TOOLBAR_STYLE} />
@@ -70,12 +90,7 @@ export function SessionPage({ id }: { readonly id: string }) {
 				data-following={follow.following}
 				style={SESSION_PAGE_STYLE}
 			>
-				<TranscriptView
-					rows={transcript?.rows ?? NO_ROWS}
-					sessionID={id}
-					running={running}
-					client={client}
-				/>
+				<TranscriptView rows={rows} sessionID={id} running={running} client={client} />
 			</main>
 			{!follow.following && <JumpToLatest onClick={follow.jumpToLatest} />}
 			<SessionComposer sessionID={id} running={running} />

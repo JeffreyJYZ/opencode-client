@@ -18,3 +18,15 @@ export const JUMP_LATEST_LABEL = "Jump to latest";
 
 /** The attribute the pill carries, so a proof finds it by identity, not by words. */
 export const JUMP_LATEST_ATTR = "data-jump-latest";
+
+/**
+ * Which way a band jump goes (M2.23's `⌥↑`/`⌥↓`): `previous` is the band above,
+ * `next` the band below. Named here with the rest of the scroll model, so the
+ * handler's two directions are not two booleans.
+ */
+export const BAND_DIRECTION = {
+	previous: "previous",
+	next: "next",
+} as const;
+
+export type BandDirection = (typeof BAND_DIRECTION)[keyof typeof BAND_DIRECTION];
