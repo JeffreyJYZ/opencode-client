@@ -1,4 +1,10 @@
-import { COMPOSER_LABEL, COMPOSER_PROMPT_LABEL, COMPOSER_SEND_LABEL } from "@/constants/composer";
+import {
+	COMPOSER_ATTACH_TYPE,
+	COMPOSER_ATTACH_UNSUPPORTED,
+	COMPOSER_LABEL,
+	COMPOSER_PROMPT_LABEL,
+	COMPOSER_SEND_LABEL,
+} from "@/constants/composer";
 import { E2E_SESSION_DIR } from "@/constants/e2e";
 import { ROUTE_KIND } from "@/constants/routes";
 import { TARGET_GLOBAL } from "@/constants/server";
@@ -39,6 +45,47 @@ export function homeChecks(targetUrl: string): Check[] {
 	];
 }
 
+/** The drop target — the composer's own prompt field, by its named label. */
+const FIELD = `textarea[aria-label="${COMPOSER_PROMPT_LABEL}"]`;
+
+/**
+ * The composer's drop rules (M5.2, requirement 5). This is the **DOM** route, which is
+ * the one the web build has; a Finder drop goes through the shell instead and is proven
+ * only in the built app. Each expression returns a promise, because a drop's attachment
+ * lands on a re-render the proof has to let flush before it looks.
+ */
+export function composerDropChecks(): Check[] {
+	return [
+		{
+			label: "a dropped path attaches, named from its last segment",
+			expression: `(async () => {
+				const field = document.querySelector(${JSON.stringify(FIELD)});
+				if (!(field instanceof HTMLTextAreaElement)) return false;
+				const data = new DataTransfer();
+				data.setData(${JSON.stringify(COMPOSER_ATTACH_TYPE)}, "file:///tmp/e2e-drop.txt");
+				field.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer: data }));
+				await new Promise((resolve) => setTimeout(resolve, 80));
+				return document.body.innerText.includes("e2e-drop.txt");
+			})()`,
+		},
+		{
+			label: "a drop with no path says so and keeps the draft",
+			expression: `(async () => {
+				const field = document.querySelector(${JSON.stringify(FIELD)});
+				if (!(field instanceof HTMLTextAreaElement)) return false;
+				const value = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value").set;
+				value.call(field, "keep me");
+				field.dispatchEvent(new Event("input", { bubbles: true }));
+				const data = new DataTransfer();
+				data.items.add(new File(["x"], "no-path.txt", { type: "text/plain" }));
+				field.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer: data }));
+				await new Promise((resolve) => setTimeout(resolve, 80));
+				return document.body.innerText.includes(${JSON.stringify(COMPOSER_ATTACH_UNSUPPORTED)}) && field.value === "keep me";
+			})()`,
+		},
+	];
+}
+
 /** A session's own surface: the transcript region, and a composer with a send affordance. */
 export function sessionChecks(sessionID: string): Check[] {
 	return [
@@ -50,5 +97,6 @@ export function sessionChecks(sessionID: string): Check[] {
 			label: "the composer exists with a send affordance",
 			expression: `(() => { const box = document.querySelector('[aria-label="${COMPOSER_LABEL}"]'); if (!box) return false; if (!box.querySelector('textarea[aria-label="${COMPOSER_PROMPT_LABEL}"]')) return false; return [...box.querySelectorAll('button')].some((b) => b.textContent.trim() === ${JSON.stringify(COMPOSER_SEND_LABEL)}); })()`,
 		},
+		...composerDropChecks(),
 	];
 }

@@ -16,13 +16,14 @@ export const SETTINGS_STORAGE_KEY = "settings";
 
 /**
  * The version this build writes. v2 added `settings.server` (spec 050 §Target and
- * auth); **v3 adds `settings.transcriptScroll`** (M2.9); **v4 adds
- * `settings.theme`** (M3.4, the theme service's stored choice). A step per
- * version keeps the invariant `storage.test.ts` asserts — a migrated document
- * has exactly the keys this writer produces — and a field an older build does
- * not know is copied through untouched (spec 010 §Persistence).
+ * auth); v3 added `settings.transcriptScroll` (M2.9); v4 added `settings.theme`
+ * (M3.4); **v5 adds `settings.pluginsEnabled`** (M4.10, spec 040 §Model — the
+ * plugin master switch, off by default). A step per version keeps the invariant
+ * `storage.test.ts` asserts — a migrated document has exactly the keys this
+ * writer produces — and a field an older build does not know is copied through
+ * untouched (spec 010 §Persistence).
  */
-export const SETTINGS_DATA_VERSION = 4;
+export const SETTINGS_DATA_VERSION = 5;
 
 /**
  * The version a blob with no version field is read as: the pre-versioning shape,
@@ -45,6 +46,7 @@ export const SETTING_KEYS = {
 	recentDirectories: "recentDirectories",
 	server: "server",
 	transcriptScroll: "transcriptScroll",
+	pluginsEnabled: "pluginsEnabled",
 } as const;
 
 /** The key the version-0 blob held the active tab under (v1 nests it in `tabs`). */

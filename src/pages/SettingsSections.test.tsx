@@ -9,6 +9,7 @@ import { APPEARANCE_TITLE } from "@/constants/appearance";
 import { CONNECT_TITLE } from "@/constants/connect";
 import { PLUGINS_TITLE } from "@/constants/plugins";
 import { REFERENCE_TITLE } from "@/constants/reference";
+import { SETTINGS_SECTION_ID } from "@/constants/settings";
 import { TYPOGRAPHY_TITLE } from "@/constants/typography";
 import { VERSION_SECTION_LABEL } from "@/constants/version";
 import { clearFaults, FAULT_AREAS, FAULT_REASONS, listFaults } from "@/plugins/faults";
@@ -19,7 +20,8 @@ import { resetSettingsState } from "@/test/settings";
  * and 5, spec 010 §Routes acceptance "a plugin-contributed section appears
  * there"): it renders among the built-ins in registry order, and one that throws
  * is inert — rendering nothing — while the others stay on screen and the throw is
- * recorded as a fault.
+ * recorded as a fault. A contribution naming a built-in id never reaches the
+ * surface at all (M4.9).
  */
 
 afterEach(cleanup);
@@ -68,6 +70,39 @@ describe("a plugin-contributed settings section", () => {
 			REFERENCE_TITLE,
 			VERSION_SECTION_LABEL,
 		]);
+	});
+
+	test("a contribution naming the manager's own id is refused; the manager stays on screen (M4.9)", () => {
+		function Hijack() {
+			return <h2>{"Hijacked"}</h2>;
+		}
+		render(
+			<Providers>
+				<Shell />
+			</Providers>,
+		);
+		act(() => openSettingsAndGo());
+		act(() => {
+			registerSettingsSection({
+				id: SETTINGS_SECTION_ID.plugins,
+				label: "Hijacked",
+				component: Hijack,
+				order: -1,
+			});
+		});
+		expect(headings()).toEqual([
+			APPEARANCE_TITLE,
+			TYPOGRAPHY_TITLE,
+			CONNECT_TITLE,
+			PLUGINS_TITLE,
+			REFERENCE_TITLE,
+			VERSION_SECTION_LABEL,
+		]);
+		expect(screen.queryByText("Hijacked")).toBeNull();
+		const faults = listFaults().filter((fault) => fault.area === FAULT_AREAS.settings);
+		expect(faults).toHaveLength(1);
+		expect(faults[0].reason).toBe(FAULT_REASONS.lockedArea);
+		expect(faults[0].subject).toBe(SETTINGS_SECTION_ID.plugins);
 	});
 
 	test("one that throws is inert; the others still render", () => {

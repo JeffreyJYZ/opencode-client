@@ -93,6 +93,21 @@ export const ELISION_STYLE: CSSProperties = {
 };
 
 /**
+ * A row's own affordance (M5.2): the copy and "open in editor" buttons. A bare
+ * control in the meta step with a hairline edge, so it reads as an action beside the
+ * row's words rather than as another word of them.
+ */
+export const ACTION_STYLE: CSSProperties = {
+	...META_STYLE,
+	background: "transparent",
+	border: "var(--oc-hairline) solid var(--oc-border)",
+	borderRadius: "var(--oc-radius)",
+	cursor: "pointer",
+	padding: "0 var(--oc-space-2)",
+	outlineColor: "var(--oc-focus)",
+};
+
+/**
  * A row's identity, written to the DOM as `data-row`.
  *
  * One call site for every family, so no component derives an id of its own and

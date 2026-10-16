@@ -2,6 +2,7 @@
 
 mod csp;
 mod menu;
+mod native;
 mod shell;
 mod target;
 mod updates;
@@ -64,6 +65,13 @@ fn is_allowed_navigation(url: &Url, dev: bool) -> bool {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
+        // The three native integrations (M5.2). The page reaches the clipboard
+        // through the plugin's own JS half (`clipboard-manager:allow-write-text`);
+        // the opener and the notification are driven from Rust only, so the page
+        // holds no permission for them and cannot bypass `native::open_url`.
+        .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_clipboard_manager::init())
+        .plugin(tauri_plugin_notification::init())
         // The window state is restored **by hand** in `setup` below, so the clamp
         // runs against exactly what the plugin applied instead of racing the
         // handler Tauri queues on the main thread for `on_window_ready` (which
@@ -102,6 +110,18 @@ pub fn run() {
             let _window = shell::open(app.handle(), target.as_ref())?;
             Ok(())
         })
+        .invoke_handler(tauri::generate_handler![
+            native::open_external,
+            native::open_in_editor,
+            native::notify_turn_end,
+            native::fs::commands::native_data_root,
+            native::fs::commands::native_realpath,
+            native::fs::commands::native_read_text,
+            native::fs::commands::native_write_text,
+            native::fs::commands::native_list,
+            native::fs::commands::native_remove,
+            native::fs::commands::native_mkdirp
+        ])
         .run(tauri::generate_context!())
         .expect("the opencode client shell failed to run");
 }

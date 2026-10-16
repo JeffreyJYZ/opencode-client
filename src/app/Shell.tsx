@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { App } from "@/app/App";
+import { installExternalLinks } from "@/app/externalLinks";
 import { installAppKeys } from "@/app/keymap";
 import { toggleSidebar } from "@/app/settings/sidebarActions";
 import { installTabKeyboard } from "@/app/tabKeys";
@@ -13,11 +14,13 @@ import {
 	useTabRouteSync,
 } from "@/app/tabSync";
 import { getTabSnapshot } from "@/app/tabs";
+import { useTurnEndNotification } from "@/app/turnEndNotification";
 import { CommandPalette } from "@/components/CommandPalette";
 import { SessionPicker } from "@/components/SessionPicker";
 import { Sidebar } from "@/components/sidebar/Sidebar";
 import { Statusline } from "@/components/statusline/Statusline";
 import { TopNav } from "@/components/TopNav";
+import { ToastHost } from "@/components/toast/ToastHost";
 import { SHELL_BODY_STYLE, SHELL_MAIN_STYLE, SHELL_ROW_STYLE } from "@/constants/styles";
 import { NewSessionFlow } from "@/pages/NewSessionFlow";
 
@@ -40,6 +43,10 @@ import { NewSessionFlow } from "@/pages/NewSessionFlow";
 
 export function Shell() {
 	useTabRouteSync();
+	// The shell's native integrations (M5.2): the external-link hand-off and the
+	// unfocused turn-end notification. Both are inert without a shell to hand to.
+	useTurnEndNotification();
+	useEffect(() => installExternalLinks(), []);
 	useEffect(() => {
 		return installTabKeyboard(getTabCount, {
 			onNewSession: requestNewSession,
@@ -70,6 +77,7 @@ export function Shell() {
 			<NewSessionFlow />
 			<SessionPicker />
 			<CommandPalette />
+			<ToastHost />
 		</>
 	);
 }

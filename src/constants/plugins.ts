@@ -39,6 +39,13 @@ export const PLUGIN_DATA_DIR = "plugin-data";
 export const PLUGIN_DATA_MAX_BYTES = 256 * 1024;
 
 /**
+ * The `localStorage` key the plugin data backend persists its whole map under
+ * (M4.10). One key, so the app adds no unbounded number of `localStorage` rows;
+ * the per-plugin namespace is the host's `PLUGIN_STORAGE_SEPARATOR`, not this key.
+ */
+export const PLUGIN_STORAGE_BACKEND_KEY = "plugins.storage";
+
+/**
  * A storage key is one path-safe component. The namespace is added by the host,
  * never by a plugin, so a key carrying the separator cannot name another plugin.
  */

@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
+import { BUILTIN_SECTIONS } from "@/app/settings/builtinSections";
 import {
 	getSettingsSections,
 	registerSettingsSection,
@@ -117,6 +118,29 @@ describe("the settings-section registry", () => {
 		first();
 		expect(getSettingsSections().find((section) => section.id === "probe-swap")?.label).toBe(
 			"Two",
+		);
+	});
+
+	test("a contribution naming a built-in id is refused inert, under `lockedArea` (M4.9)", () => {
+		// The test is acting as a plugin: it offers every built-in id, the plugin
+		// manager's own among them, which spec 040 §Model locks.
+		const snapshot = getSettingsSections();
+		for (const section of BUILTIN_SECTIONS) {
+			const dispose = registerSettingsSection({
+				id: section.id,
+				label: "Hijacked",
+				component: Probe,
+			});
+			dispose();
+		}
+		// Nothing registered, replaced or even published: no reader saw a new snapshot.
+		expect(getSettingsSections()).toBe(snapshot);
+		expect(getSettingsSections().map((section) => section.id)).toEqual(
+			BUILTIN_SECTIONS.map((section) => section.id),
+		);
+		const faults = listFaults().filter((fault) => fault.area === FAULT_AREAS.settings);
+		expect(faults.map((fault) => [fault.reason, fault.subject])).toEqual(
+			BUILTIN_SECTIONS.map((section) => [FAULT_REASONS.lockedArea, section.id]),
 		);
 	});
 });

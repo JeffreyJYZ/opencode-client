@@ -9,6 +9,8 @@ import {
 	requestCommandPalette,
 } from "@/app/tabSync";
 import { boundItem, type MenuItem } from "@/components/contextmenu/menuItems";
+import { copyToClipboard, openEditorTarget } from "@/components/transcript/rowActions";
+import { rowCopyText, rowEditorTarget } from "@/components/transcript/rowCopy";
 import {
 	SHORTCUT_CLOSE_OTHERS,
 	SHORTCUT_CLOSE_TAB,
@@ -18,12 +20,19 @@ import {
 	SHORTCUT_TOGGLE_SIDEBAR,
 } from "@/constants/keys";
 import {
+	MENU_COPY_EMPTY_HINT,
+	MENU_COPY_ID,
+	MENU_COPY_LABEL,
+	MENU_EDITOR_ID,
+	MENU_EDITOR_LABEL,
+	MENU_EDITOR_NO_TARGET_HINT,
 	MENU_ELEMENT_ROUTE_HINT,
 	MENU_INTERRUPT_IDLE_HINT,
 	MENU_OPEN_SESSION_ID,
 	MENU_OPEN_SESSION_LABEL,
 } from "@/constants/menu";
 import { interruptSession } from "@/session/actions";
+import type { TranscriptRow } from "@/session/transcript";
 
 /**
  * The four surfaces' item lists (M5.1 requirement 1). Each builder returns rows of
@@ -75,13 +84,22 @@ export function recentsMenuItems(id: string): readonly MenuItem[] {
  * item is the same `interruptSession` call `Esc` and the composer make. Idle, the
  * item keeps its place and its chord and says why it cannot act, rather than
  * disappearing or calling the server for nothing.
+ *
+ * The row's two native affordances (M5.2) follow it, built from the **row itself**
+ * (`rowCopy`), so the menu and the row's own buttons cannot disagree. Both keep
+ * their place when they cannot act and say why — the region's own menu, which has no
+ * row, shows both inert rather than a shorter list.
  */
 export function transcriptMenuItems(input: {
 	readonly client: OpenCodeClient | null;
 	readonly sessionID: string;
 	readonly running: boolean;
+	/** The row the menu is about; `null` for the region's own menu. */
+	readonly row?: TranscriptRow | null;
 }): readonly MenuItem[] {
-	const { client, sessionID, running } = input;
+	const { client, sessionID, running, row = null } = input;
+	const text = row === null ? null : rowCopyText(row);
+	const target = row === null ? null : rowEditorTarget(row);
 	return [
 		boundItem(
 			SHORTCUT_INTERRUPT,
@@ -90,6 +108,26 @@ export function transcriptMenuItems(input: {
 			},
 			{ disabled: !running, disabledHint: MENU_INTERRUPT_IDLE_HINT },
 		),
+		{
+			id: MENU_COPY_ID,
+			label: MENU_COPY_LABEL,
+			accelerator: MENU_ELEMENT_ROUTE_HINT,
+			disabled: text === null,
+			disabledHint: MENU_COPY_EMPTY_HINT,
+			run: () => {
+				if (text !== null) void copyToClipboard(text);
+			},
+		},
+		{
+			id: MENU_EDITOR_ID,
+			label: MENU_EDITOR_LABEL,
+			accelerator: MENU_ELEMENT_ROUTE_HINT,
+			disabled: target === null,
+			disabledHint: MENU_EDITOR_NO_TARGET_HINT,
+			run: () => {
+				if (target !== null) void openEditorTarget(target);
+			},
+		},
 		...appMenuItems(),
 	];
 }

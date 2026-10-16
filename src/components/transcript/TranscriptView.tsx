@@ -64,7 +64,11 @@ function rowTarget(event: ReactMouseEvent<HTMLElement>): string {
 
 export function TranscriptView({ rows, sessionID, running, client = null }: TranscriptViewProps) {
 	const menu = useContextMenu();
-	const items = transcriptMenuItems({ client, sessionID, running });
+	// The menu's target is the row's own id (or the region): the row it names is what
+	// the native items act on (M5.2), and the region's own menu has none.
+	const targetRow =
+		menu.target === null ? null : (rows.find((row) => row.id === menu.target) ?? null);
+	const items = transcriptMenuItems({ client, sessionID, running, row: targetRow });
 	// The region is always alive; a row target stops being.
 	useCloseWhenTargetGone(
 		menu,

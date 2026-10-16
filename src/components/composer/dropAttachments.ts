@@ -53,3 +53,21 @@ export function attachmentsFromDrop(data: DropData): readonly Attachment[] {
 	}
 	return names;
 }
+
+/**
+ * The same entries from the **absolute paths** the shell hands over (M5.2).
+ *
+ * A Finder drop is handled by the OS, not by the webview's `DataTransfer`, so the
+ * paths arrive as plain strings from the shell. Every one of them is a path, so
+ * every entry is sendable — and it goes through `attachmentFrom`, the one function
+ * that decides what an attachment is, so the native and the DOM route cannot
+ * disagree about the name or the scheme.
+ */
+export function attachmentsFromPaths(paths: readonly string[]): readonly Attachment[] {
+	const entries: Attachment[] = [];
+	for (const path of paths) {
+		const entry = attachmentFrom(path);
+		if (entry !== null) entries.push(entry);
+	}
+	return entries;
+}

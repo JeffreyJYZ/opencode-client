@@ -12,13 +12,29 @@ import { isComponent } from "@/plugins/validation";
  * replaced. An unknown kind or a malformed entry is inert plus a `PluginFault`.
  *
  * The kinds are the spec's own tuple: `message`, `markdown`, `reasoning`, `tool`,
- * `marker`. The row components read `rendererFor(kind)`; M2.2's defaults stand
- * when nothing is registered.
+ * `marker`. The registry holds **only overrides**: `rendererFor` returns `null` when
+ * a kind has none, and the transcript — not the row components — is what reads it
+ * (`TranscriptEntry`, mapping its row kinds onto these five through
+ * `components/transcript/rowRenderers.ts`). With nothing registered the transcript
+ * keeps its built-in row, so M2.2's defaults are byte-for-byte what renders.
  */
 
-export const RENDERER_KINDS = ["message", "markdown", "reasoning", "tool", "marker"] as const;
+export const RENDERER_KIND = {
+	/** A user prompt. */
+	message: "message",
+	/** Assistant prose, rendered as markdown. */
+	markdown: "markdown",
+	reasoning: "reasoning",
+	/** A tool or shell call. */
+	tool: "tool",
+	/** A small labelled row: an error, a notice, the per-prompt footer. */
+	marker: "marker",
+} as const;
 
-export type RendererKind = (typeof RENDERER_KINDS)[number];
+export type RendererKind = (typeof RENDERER_KIND)[keyof typeof RENDERER_KIND];
+
+/** The tuple form, for the runtime check below. */
+export const RENDERER_KINDS: readonly RendererKind[] = Object.values(RENDERER_KIND);
 
 const KNOWN_KINDS: ReadonlySet<string> = new Set<string>(RENDERER_KINDS);
 

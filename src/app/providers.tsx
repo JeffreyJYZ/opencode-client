@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { AppPorts } from "@/app/AppPorts";
 import { SettingsNotice } from "@/components/SettingsNotice";
 import { ClientProvider } from "@/session/ClientProvider";
 
@@ -23,7 +24,11 @@ export function Providers({ children }: { readonly children: ReactNode }) {
 	return (
 		<>
 			<SettingsNotice />
-			<ClientProvider>{children}</ClientProvider>
+			<ClientProvider>
+				{/* Publishes the client/stream/transcript to the plugin loader (M4.10). */}
+				<AppPorts />
+				{children}
+			</ClientProvider>
 		</>
 	);
 }

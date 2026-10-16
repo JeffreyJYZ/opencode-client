@@ -62,7 +62,8 @@ Opens by default on launch when no tab is restored — the sketch's "homepage sh
 - **Context menus** (right-click): tab (close, close others, rename, copy directory), recent row (open, copy path, delete session), transcript row (copy text, copy code, expand/collapse, open file at path), sidebar panel (collapse, detach later).
 - **Hover affordances** the TUI cannot have: copy buttons on code blocks and tool output, "expand/collapse all" on long outputs, per-row timestamps on hover, a jump-to-latest pill while scrolled up.
 - **Resizable panes**: sidebar width by drag on its edge, persisted; transcript area takes the rest; minimum widths so nothing collapses to zero.
-- **Native integrations**: directory/file pickers, open-in-editor (a row's path with the OS default handler), copy-to-clipboard with a toast, system notifications on turn end while the window is unfocused, drag-and-drop files onto the prompt box to attach.
+- **Native integrations**: directory/file pickers, open-in-editor (the path of a row **at its line**, in the machine editor by name — `zed` here, one constant kept in step between the shell and the page; the OS default handler cannot carry a line, which is the point of the action), copy-to-clipboard with a toast, system notifications on turn end while the window is unfocused, drag-and-drop files onto the prompt box to attach.
+- **External links** open **only** for the schemes the shell allowlists — `http`, `https`, `mailto`; anything else (notably `javascript:`) is refused and logged, never handed to the OS.
 - **Self-update** through the Tauri updater on the desktop build; the web build shows its own version only.
 - **Never a silent failure**: every server error surfaces as a toast or an inline row (`Prompt not sent`, `Interrupt failed`), never only in the console.
 

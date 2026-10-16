@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { updateSettings } from "@/app/settings/store";
 import { clearFaults, FAULT_AREAS, FAULT_REASONS, listFaults } from "@/plugins/faults";
 import { getInstalled, resetInstalled } from "@/plugins/installed";
 import { clearLogs, listLogs } from "@/plugins/logs";
@@ -45,6 +46,9 @@ const marker = (): boolean =>
 	getSlotContributions("topnav.right").some((entry) => entry.id === "probe-manager.marker");
 
 beforeEach(() => {
+	// The master switch is off by default (spec 040 §Model) and this file exercises
+	// the loader, so it is on here; the per-plugin `enabled` flag is what gates.
+	updateSettings({ pluginsEnabled: true });
 	globals[TRACE] = [];
 	clearFaults();
 	clearLogs();
@@ -54,6 +58,7 @@ beforeEach(() => {
 afterEach(() => {
 	disablePlugin("probe-manager");
 	resetInstalled();
+	updateSettings({ pluginsEnabled: false });
 	clearFaults();
 });
 

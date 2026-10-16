@@ -5,7 +5,12 @@ import { resetSettings } from "@/app/settings/store";
 import type { Tab } from "@/app/tabModel";
 import { getTabSnapshot, resetTabs } from "@/app/tabs";
 import { ROUTE_PATH } from "@/constants/routes";
-import { SETTING_KEYS, SETTINGS_DATA_VERSION, SETTINGS_STORAGE_KEY } from "@/constants/settings";
+import {
+	SETTING_KEYS,
+	SETTINGS_BASE_VERSION,
+	SETTINGS_DATA_VERSION,
+	SETTINGS_STORAGE_KEY,
+} from "@/constants/settings";
 
 /**
  * Settings fixtures: the *shapes* a stored blob really takes, kept in one place
@@ -36,16 +41,30 @@ export const TOO_NEW_DOCUMENT_JSON = '{"dataVersion":99,"tabs":{"tabs":[],"activ
 
 /**
  * A version-3 blob — **derived, not captured**: the current writer's fields minus
- * `settings.theme` (which v3 had no notion of), restamped to 3. The captured v1
- * blob above is the migration path's real fixture; this one exists so the v3 → v4
- * step has a shape to walk, and it says so here rather than passing for a payload
- * some release wrote.
+ * every field a later version added (`theme`, M3.4; `pluginsEnabled`, M4.10),
+ * restamped to 3. The captured v1 blob above is the migration path's real fixture;
+ * this one exists so the v3 → v4 step has a shape to walk, and it says so here
+ * rather than passing for a payload some release wrote.
  */
 export const V3_DOCUMENT_JSON: string = JSON.stringify({
 	...Object.fromEntries(
-		Object.entries(freshDocument()).filter(([key]) => key !== SETTING_KEYS.theme),
+		Object.entries(freshDocument()).filter(
+			([key]) => key !== SETTING_KEYS.theme && key !== SETTING_KEYS.pluginsEnabled,
+		),
 	),
-	[SETTING_KEYS.dataVersion]: SETTINGS_DATA_VERSION - 1,
+	[SETTING_KEYS.dataVersion]: SETTINGS_BASE_VERSION + 3,
+});
+
+/**
+ * A version-4 blob — **derived, not captured**: the current writer's fields minus
+ * the one field v5 added (`pluginsEnabled`), restamped to 4, so the v4 → v5 step
+ * has a shape to walk (M4.10).
+ */
+export const V4_DOCUMENT_JSON: string = JSON.stringify({
+	...Object.fromEntries(
+		Object.entries(freshDocument()).filter(([key]) => key !== SETTING_KEYS.pluginsEnabled),
+	),
+	[SETTING_KEYS.dataVersion]: SETTINGS_BASE_VERSION + 4,
 });
 
 /** A map-backed storage, so a test never touches the run's real `localStorage`. */

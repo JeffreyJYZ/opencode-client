@@ -46,6 +46,8 @@ export type SettingsData = {
 	readonly server: ServerTarget | null;
 	/** Where each tab's transcript was left (M2.9), keyed by the **tab**, not a session. */
 	readonly transcriptScroll: TabScrollMap;
+	/** The plugin master switch (M4.10, spec 040 §Model): off by default. */
+	readonly pluginsEnabled: boolean;
 };
 
 /**
@@ -68,9 +70,10 @@ export const DEFAULT_SETTINGS: SettingsData = {
 	recentDirectories: [],
 	server: null,
 	transcriptScroll: NO_TAB_SCROLL,
-	// `theme` is last on purpose: this literal's key order is the order the
-	// migration chain produces, and `storage.test.ts` compares the two (M3.4).
+	// The tail's order is the migration chain's: v3→v4 appends `theme`, v4→v5
+	// appends `pluginsEnabled`, and `storage.test.ts` compares the two key orders.
 	theme: null,
+	pluginsEnabled: false,
 };
 
 /** A document holding the defaults at the current version. */
@@ -93,6 +96,7 @@ export function settingsFromDocument(document: SettingsDocument): SettingsData {
 		recentDirectories: normalizeDirectories(document[SETTING_KEYS.recentDirectories]),
 		server: normalizeServer(document[SETTING_KEYS.server]),
 		transcriptScroll: normalizeTabScroll(document[SETTING_KEYS.transcriptScroll]),
+		pluginsEnabled: document[SETTING_KEYS.pluginsEnabled] === true,
 	};
 }
 

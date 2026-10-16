@@ -35,7 +35,9 @@ The sketch's "clicking a session goes to a ui similar to tui": a transcript that
 
 ## Transcript
 
-Row kinds, each one row-shaped and memoised on its parts:
+Row kinds, each one row-shaped and memoised on its parts.
+
+The **renderer kinds** a plugin may override are five (spec 040 §The host): `message`, `markdown`, `reasoning`, `tool`, `marker`. The eight row kinds map onto them as **`user`→`message`, `prose`→`markdown`, `reasoning`→`reasoning`, `tool`→`tool`, `shell`→`tool`, and `error`/`notice`/`footer`→`marker`** — the published correspondence the transcript dispatch reads (`M4.13`), written down so a plugin author and the code agree without anyone re-deriving it.
 
 | Row | Shows | Desktop extras |
 | --- | --- | --- |
