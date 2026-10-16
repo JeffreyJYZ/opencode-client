@@ -55,7 +55,15 @@ export function ComposerIdentity(props: ComposerIdentityProps) {
 					>
 						<option value="">—</option>
 						{props.agents.map((agent) => (
-							<option key={agent.id} value={agent.name}>
+							// Key, value and what a switch sends are all `agent.id`. The
+							// session's own `agent` (`session.get`) is an id, and the server
+							// resolves a switch with `Agent.select(id)` (`ID.make(agent)` into
+							// the agent map), so the id is the field the wire means; `name` is
+							// only the label. Keying by one field and valuing by another is
+							// incoherent either way: a shared `id` collides in the key, and a
+							// shared `name` gives two options one value, so the second entry
+							// cannot be chosen at all.
+							<option key={agent.id} value={agent.id}>
 								{agent.name}
 							</option>
 						))}
