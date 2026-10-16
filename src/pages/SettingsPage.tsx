@@ -3,9 +3,11 @@ import { useEffect, useRef } from "react";
 import { useSettingsSections } from "@/app/settings/sections";
 import { closeSettingsSurface } from "@/app/tabSync";
 import { SettingsSectionBoundary } from "@/components/SettingsSectionBoundary";
+import { Slot } from "@/components/Slot";
 import { KEY_ESCAPE } from "@/constants/keys";
 import { ROUTE_KIND } from "@/constants/routes";
 import { SECTION_HEADING_STYLE, SURFACE_STYLE } from "@/constants/settingsUi";
+import { SLOT } from "@/constants/slots";
 import { SETTINGS_TAB_LABEL } from "@/constants/tabs";
 
 /**
@@ -58,6 +60,8 @@ export function SettingsPage() {
 					<Section />
 				</SettingsSectionBoundary>
 			))}
+			{/* After every registered section (M4.12): an empty slot adds no node. */}
+			<Slot id={SLOT.settingsSections} />
 		</main>
 	);
 }

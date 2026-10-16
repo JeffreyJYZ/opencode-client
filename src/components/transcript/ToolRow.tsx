@@ -1,7 +1,7 @@
 import { TOOL_STATUS_LABEL, TOOL_UNNAMED } from "@/constants/transcriptUi";
 import type { ToolRow as ToolRowModel } from "@/session/transcript";
 import { OutputBlock } from "./OutputBlock";
-import { CopyButton, EditorButton } from "./RowActionButtons";
+import { RowActions } from "./RowActionButtons";
 import { rowCopyText, rowEditorTarget } from "./rowCopy";
 import { ANCHOR_STYLE, HEAD_STYLE, META_STYLE, ROW_STYLE, rowIdentity } from "./rowStyles";
 
@@ -31,8 +31,7 @@ export function ToolRow({ row }: { readonly row: ToolRowModel }) {
 				<span style={META_STYLE} data-status={row.status}>
 					{TOOL_STATUS_LABEL[row.status]}
 				</span>
-				{target !== null && <EditorButton target={target} />}
-				{text !== null && <CopyButton text={text} />}
+				<RowActions text={text} target={target} />
 			</header>
 			<OutputBlock output={row.output} />
 		</article>

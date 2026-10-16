@@ -17,10 +17,12 @@ import { getTabSnapshot } from "@/app/tabs";
 import { useTurnEndNotification } from "@/app/turnEndNotification";
 import { CommandPalette } from "@/components/CommandPalette";
 import { SessionPicker } from "@/components/SessionPicker";
+import { Slot } from "@/components/Slot";
 import { Sidebar } from "@/components/sidebar/Sidebar";
 import { Statusline } from "@/components/statusline/Statusline";
 import { TopNav } from "@/components/TopNav";
 import { ToastHost } from "@/components/toast/ToastHost";
+import { SLOT } from "@/constants/slots";
 import { SHELL_BODY_STYLE, SHELL_MAIN_STYLE, SHELL_ROW_STYLE } from "@/constants/styles";
 import { NewSessionFlow } from "@/pages/NewSessionFlow";
 
@@ -77,6 +79,9 @@ export function Shell() {
 			<NewSessionFlow />
 			<SessionPicker />
 			<CommandPalette />
+			{/* A plugin's window-level overlay (M4.12), beside the three built-ins —
+			    not instead of them. An empty slot renders nothing. */}
+			<Slot id={SLOT.overlays} />
 			<ToastHost />
 		</>
 	);

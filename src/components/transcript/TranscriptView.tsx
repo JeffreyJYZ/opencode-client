@@ -12,7 +12,9 @@ import {
 	useCloseWhenTargetGone,
 	useContextMenu,
 } from "@/components/contextmenu/useContextMenu";
+import { Slot } from "@/components/Slot";
 import { TRANSCRIPT_REGION_TARGET } from "@/constants/menu";
+import { SLOT } from "@/constants/slots";
 import { ROW_ID_ATTR, TRANSCRIPT_EMPTY_LABEL, TRANSCRIPT_LABEL } from "@/constants/transcriptUi";
 import type { TranscriptRow } from "@/session/transcript";
 import { META_STYLE } from "./rowStyles";
@@ -108,6 +110,8 @@ export function TranscriptView({ rows, sessionID, running, client = null }: Tran
 				) : (
 					rows.map((row) => <TranscriptEntry key={row.id} row={row} />)
 				)}
+				{/* The transcript's footer (M4.12): after the rows, inside the region. */}
+				<Slot id={SLOT.transcriptFooter} />
 			</section>
 			{menu.point !== null ? (
 				<ContextMenu items={items} at={menu.point} onClose={menu.close} />
