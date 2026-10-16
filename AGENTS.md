@@ -7,6 +7,7 @@ Live repo: the opencode **desktop client** (Tauri 2 + React). Abandoned sibling 
 - Specs `docs/specs/000-overview.md` … `060-plan.md`; **060 is the plan and the source of every task id** (`M0.1`, `M2.5`, …). A new spec takes the next free number; never renumber an existing one.
 - Progress `docs/progress/000-status.md`, convention in `docs/progress/README.md`. **A landed task updates its row in the same turn, with the evidence the row names** — a claim is not evidence; an unrun task stays `doing`.
 - Specs hold intent and acceptance; progress holds state. No status markers inside `docs/specs/`.
+- **A closed plan row does not mean the spec clause it names is met.** A row's acceptance column is often thinner than the spec sentence it claims, so `M2.2` read "reasoning (expandable while streaming)" while nothing collapsed, `M2.7` read "Subagents, MCP" while those panels' rows did nothing, and the suite was green throughout — nine such gaps, found 2026-10-16 by an independent spec-vs-code review and recorded as `M2.16`–`M2.26`. When verifying a row, read the **spec's own acceptance**, never the row's summary.
 - The server API surface is `docs/opencode-api.md` (client methods, 132 routes, event names, payload traps). Check it before writing a call; never talk to a raw route when the pinned client exposes the method.
 - An "open question" in a spec is resolved by editing it to `decided`, with the date — never by leaving both.
 
