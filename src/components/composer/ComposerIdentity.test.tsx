@@ -6,12 +6,16 @@ import { COMPOSER_MODEL_LABEL } from "@/constants/composer";
 import { modelOptionKey } from "@/session/composerReads";
 
 /**
- * The identity line's model picker (row M2.10). The two entries that matter are the
- * ones sharing an `id` across providers: `id` alone is not unique (`composerReads.ts`
- * §`modelOptionKey`), so the picker must key **and** value by the `providerID/id` pair.
- * A duplicate key is a React warning; the real defect is that `find(id === value)`
- * returns the first match, which makes the second entry unselectable and can show the
- * wrong entry as selected.
+ * The identity line's model picker (rows M2.10, M2.13). The two entries that matter are
+ * the ones sharing an `id` across providers: `id` alone is not unique
+ * (`composerReads.ts` §`modelOptionKey`), so the picker must key **and** value by the
+ * `providerID/id` pair. A duplicate key is a React warning; the real defect is that
+ * `find(id === value)` returns the first match, which makes the second entry
+ * unselectable and can show the wrong entry as selected.
+ *
+ * M2.13 makes the option's **text** that same pair, so the collision is visible on
+ * screen: a bare `name` cannot tell `cat-jam-free` under `opencode` from the same id
+ * under `zzz`, which is exactly the collision M2.10 fixed underneath.
  */
 
 afterEach(cleanup);
@@ -91,7 +95,14 @@ describe("ComposerIdentity's model picker", () => {
 		renderIdentity([OPENCODE_CAT, ZZZ_CAT], { id: "cat-jam-free", providerID: "zzz" });
 		const shown = select().options[select().selectedIndex];
 		expect(select().value).toBe(modelOptionKey(ZZZ_CAT));
-		expect(shown?.text).toBe("Colliding cat");
+		expect(shown?.text).toBe(modelOptionKey(ZZZ_CAT));
+	});
+
+	test("each entry's text is its own provider/id, so the colliding pair reads differently", () => {
+		renderIdentity([OPENCODE_CAT, ZZZ_CAT], null);
+		const texts = [...select().options].map((option) => option.text).slice(1);
+		expect(texts).toEqual([modelOptionKey(OPENCODE_CAT), modelOptionKey(ZZZ_CAT)]);
+		expect(texts[0]).not.toBe(texts[1]);
 	});
 
 	test("both entries of the pair are selectable, each sending its own provider", () => {
@@ -106,6 +117,6 @@ describe("ComposerIdentity's model picker", () => {
 		const beta = model("opencode", "beta", "Beta");
 		renderIdentity([alpha, beta], { id: "beta", providerID: "opencode" });
 		expect(optionValues()).toEqual(["", modelOptionKey(alpha), modelOptionKey(beta)]);
-		expect(select().options[select().selectedIndex]?.text).toBe("Beta");
+		expect(select().options[select().selectedIndex]?.text).toBe(modelOptionKey(beta));
 	});
 });

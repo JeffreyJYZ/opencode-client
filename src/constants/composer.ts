@@ -70,6 +70,17 @@ export const COMPOSER_THINKING_LABEL = "Thinking";
 export const COMPOSER_THINKING_ON = "on";
 export const COMPOSER_THINKING_OFF = "off";
 
+/**
+ * The variant ids a model itself names for thinking **off** (M2.14). The Thinking
+ * control is a binary toggle, not a cycle over `model.variants`: those are effort
+ * budgets (`low`/`high`/`max`), which are not this control. *off* is one of these ids,
+ * *on* is anything else (including no override at all).
+ */
+export const COMPOSER_THINKING_OFF_VARIANTS: readonly string[] = ["off", "none"];
+
+/** Why the Thinking control is disabled: the model offers no variant that means off (M2.14). */
+export const COMPOSER_THINKING_DISABLED = "This model has no thinking-off variant";
+
 /** The footer line that names the keys a dock answers to. */
 export const COMPOSER_DOCK_KEYS = {
 	permission: "1 once · 2 always · 3 reject · esc reject",

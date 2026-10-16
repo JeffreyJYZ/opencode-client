@@ -4,8 +4,10 @@ import {
 	COMPOSER_AGENT_LABEL,
 	COMPOSER_IDENTITY_SEPARATOR,
 	COMPOSER_MODEL_LABEL,
+	COMPOSER_THINKING_DISABLED,
 	COMPOSER_THINKING_LABEL,
 	COMPOSER_THINKING_OFF,
+	COMPOSER_THINKING_OFF_VARIANTS,
 	COMPOSER_THINKING_ON,
 } from "@/constants/composer";
 import { modelOptionKey } from "@/session/composerReads";
@@ -21,6 +23,12 @@ import { modelOptionKey } from "@/session/composerReads";
  * Enter) and a webview renders it as the platform's own menu — the right shape for
  * a control whose job is "pick one of a known list", and one that cannot invent a
  * focus trap of its own next to the composer's menu.
+ *
+ * The thinking control is a **binary toggle**, not a cycle over `model.variants`
+ * (M2.14): *off* selects the variant the model itself names for thinking off
+ * (`COMPOSER_THINKING_OFF_VARIANTS`), *on* clears the override; a model with no such
+ * variant shows the control disabled with the reason, so effort budgets
+ * (`low`/`high`/`max`) are never smuggled through it.
  */
 
 export type ComposerIdentityProps = {
@@ -37,11 +45,19 @@ export type ComposerIdentityProps = {
 
 export function ComposerIdentity(props: ComposerIdentityProps) {
 	// `modelOptionKey` is `providerID/id`: an `id` alone is not unique across providers,
-	// so both the key, the value and this lookup use the pair (see `composerReads.ts`).
+	// so the key, the value, this lookup **and the option's own text** all use the pair
+	// (see `composerReads.ts`). Key/value/text are one string on purpose — the friendly
+	// `name` is dropped, because a bare name cannot tell two providers' same `id` apart.
 	const current = props.models.find(
 		(model) => model.providerID === props.model?.providerID && model.id === props.model?.id,
 	);
-	const variants = current?.variants ?? [];
+	const offVariant = current?.variants.find((variant) =>
+		COMPOSER_THINKING_OFF_VARIANTS.includes(variant.id),
+	);
+	// *off* is the variant the model itself names for thinking off; anything else —
+	// including no override at all — is *on*.
+	const thinkingOff =
+		props.variant !== null && COMPOSER_THINKING_OFF_VARIANTS.includes(props.variant);
 	return (
 		<div style={COMPOSER_LINE_STYLE}>
 			<span>
@@ -86,7 +102,7 @@ export function ComposerIdentity(props: ComposerIdentityProps) {
 						<option value="">—</option>
 						{props.models.map((model) => (
 							<option key={modelOptionKey(model)} value={modelOptionKey(model)}>
-								{model.name}
+								{modelOptionKey(model)}
 							</option>
 						))}
 					</select>
@@ -95,18 +111,23 @@ export function ComposerIdentity(props: ComposerIdentityProps) {
 				<button
 					type="button"
 					style={COMPOSER_CONTROL_STYLE}
-					disabled={variants.length === 0}
-					title={COMPOSER_THINKING_LABEL}
+					disabled={offVariant === undefined}
+					title={
+						offVariant === undefined
+							? COMPOSER_THINKING_DISABLED
+							: COMPOSER_THINKING_LABEL
+					}
 					onClick={() => {
-						// The thinking mode is the model's own variant: cycling it is the only
-						// switch the pinned server exposes for it (`session.switchModel`).
-						const at = variants.findIndex((variant) => variant.id === props.variant);
-						const next = variants[(at + 1) % variants.length];
-						props.onVariant(next === undefined ? null : next.id);
+						// A binary toggle through the variant the model itself names for thinking
+						// off (`off`/`none`): *off* selects that variant, *on* clears the override
+						// so the model's own default applies. Never a cycle over `variants` —
+						// those are effort budgets (`low`/`high`/`max`), which this control is not.
+						if (offVariant === undefined) return;
+						props.onVariant(thinkingOff ? null : offVariant.id);
 					}}
 				>
 					{`${COMPOSER_THINKING_LABEL}: ${
-						props.variant === null ? COMPOSER_THINKING_OFF : COMPOSER_THINKING_ON
+						thinkingOff ? COMPOSER_THINKING_OFF : COMPOSER_THINKING_ON
 					}`}
 				</button>
 			</span>
