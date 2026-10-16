@@ -40,8 +40,8 @@ export const E2E_TARGET_URL_ENV = "E2E_TARGET_URL";
 
 /** What a green run does prove — printed with the verdict, so the line is honest. */
 export const E2E_COVERS =
-	"the shell boots, uses the injected target, renders home with a session fetched over that target, shows a session's transcript region, and has a composer with a send affordance; no page errors";
+	"the shell boots, uses the injected target, renders home with a session fetched over that target, shows a session's transcript region, has a composer with a send affordance, and attaches a dropped path (else reports an unsupported drop) without touching the draft; no page errors";
 
 /** What a green run does **not** prove — named so nobody reads the pass as more. */
 export const E2E_NOT_COVERS =
-	"any model turn or streaming, the docks, keyboard chords, the Tauri shell/webview, themes, plugins, or a packaged build";
+	"any model turn or streaming, the docks, keyboard chords, the Tauri shell/webview (including its own Finder drag-drop), native clipboard/editor/notification, themes, plugins, or a packaged build";

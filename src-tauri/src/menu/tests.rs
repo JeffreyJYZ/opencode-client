@@ -68,6 +68,29 @@ fn an_id_this_shell_does_not_own_names_no_action() {
 }
 
 #[test]
+fn the_help_items_are_the_shells_own_and_are_unique() {
+    // M5.2's Help submenu: neither item is an `Action` (nothing is raised for the
+    // page), so the id must not round-trip to one, and no two items may share an id
+    // — `handle` finds an item by its id, so a duplicate would open the wrong link.
+    let mut ids: Vec<&str> = super::HELP_ITEMS.iter().map(|(id, _, _)| *id).collect();
+    for id in &ids {
+        assert!(id.starts_with("help."), "{id} names no submenu");
+        assert_eq!(Action::from_id(id), None, "{id} is an Action after all");
+    }
+    let count = ids.len();
+    ids.sort_unstable();
+    ids.dedup();
+    assert_eq!(ids.len(), count, "two Help items share an id");
+}
+
+#[test]
+fn every_help_item_names_a_url_the_opener_accepts() {
+    for (id, _, url) in super::HELP_ITEMS {
+        assert!(crate::native::is_openable_url(url), "{id} names {url}");
+    }
+}
+
+#[test]
 fn the_event_name_is_the_one_the_page_listens_for() {
     assert_eq!(MENU_EVENT, "oc:menu");
 }

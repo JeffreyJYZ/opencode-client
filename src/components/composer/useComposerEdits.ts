@@ -1,16 +1,14 @@
-import type { DragEvent as ReactDragEvent, RefObject } from "react";
+import type { RefObject } from "react";
 import { useCallback, useRef, useState } from "react";
 import { clientCommand } from "@/app/clientCommands";
-import { attachmentsFromDrop } from "@/components/composer/dropAttachments";
+import {
+	type ComposerAttachments,
+	useComposerAttachments,
+} from "@/components/composer/useAttachments";
 import { useComposerCommandSignal } from "@/components/composer/useComposerCommandSignal";
-import { COMPOSER_ATTACH_UNSUPPORTED } from "@/constants/composer";
 import type { ComposerEntry } from "@/session/composerEntries";
 import { entryEffect, type MenuToken } from "@/session/composerMenuModel";
-import {
-	mentionsStillValid,
-	serverCommandInvocation,
-	unsendableAttachment,
-} from "@/session/promptPayload";
+import { mentionsStillValid, serverCommandInvocation } from "@/session/promptPayload";
 import type { Attachment, ComposerMention } from "@/session/promptTypes";
 import { useComposerSend } from "@/session/useComposerSend";
 
@@ -36,7 +34,10 @@ export type ComposerEdits = {
 	readonly onCaret: () => void;
 	readonly areaRef: React.RefObject<HTMLTextAreaElement | null>;
 	readonly attachments: readonly Attachment[];
-	readonly onDrop: (event: ReactDragEvent<HTMLElement>) => void;
+	/** The same drop handler the hook owns and the view installs (M5.2). */
+	readonly onDrop: ComposerAttachments["onDrop"];
+	/** Attach files the shell handed over (M5.2): a Finder drop never reaches the DOM. */
+	readonly attachFiles: (attachments: readonly Attachment[]) => void;
 	readonly onRemoveAttachment: (uri: string) => void;
 	readonly error: string | null;
 	readonly sending: boolean;
@@ -58,12 +59,11 @@ export function useComposerEdits(
 ): ComposerEdits {
 	const [text, setText] = useState("");
 	const [caret, setCaret] = useState(0);
-	const [attachments, setAttachments] = useState<readonly Attachment[]>([]);
 	const [mentions, setMentions] = useState<readonly ComposerMention[]>([]);
-	const [attachError, setAttachError] = useState<string | null>(null);
 	const areaRef = useRef<HTMLTextAreaElement | null>(null);
 	const textRef = useRef(text);
 	textRef.current = text;
+	const files = useComposerAttachments();
 	const {
 		send,
 		interrupt: sendInterrupt,
@@ -89,14 +89,10 @@ export function useComposerEdits(
 
 	const trySend = useCallback(async () => {
 		const body = textRef.current.trim();
-		const unsendable = unsendableAttachment(attachments);
-		if (unsendable !== null) {
-			setAttachError(COMPOSER_ATTACH_UNSUPPORTED);
-			return;
-		}
-		if (body === "" && attachments.length === 0) return;
+		if (files.rejectUnsendable()) return;
+		if (body === "" && files.attachments.length === 0) return;
 		clearError();
-		setAttachError(null);
+		files.clearUnsupported();
 		const invocation = serverCommandInvocation(body, serverCommands.current ?? []);
 		const accepted =
 			invocation === null
@@ -104,23 +100,15 @@ export function useComposerEdits(
 						sessionID,
 						text: body,
 						mentions: mentionsStillValid(textRef.current, mentions),
-						attachments,
+						attachments: files.attachments,
 					})
 				: await runCommand({ sessionID, name: invocation.name, text: invocation.text });
 		if (!accepted) return;
 		setText("");
 		setCaret(0);
 		setMentions([]);
-		setAttachments([]);
-	}, [attachments, clearError, mentions, runCommand, send, serverCommands, sessionID]);
-
-	const onDrop = useCallback((event: ReactDragEvent<HTMLElement>) => {
-		event.preventDefault();
-		const dropped = attachmentsFromDrop(event.dataTransfer);
-		if (dropped.length === 0) return;
-		setAttachments((current) => [...current, ...dropped]);
-		if (unsendableAttachment(dropped) !== null) setAttachError(COMPOSER_ATTACH_UNSUPPORTED);
-	}, []);
+		files.clear();
+	}, [clearError, files, mentions, runCommand, send, serverCommands, sessionID]);
 
 	return {
 		text,
@@ -129,11 +117,11 @@ export function useComposerEdits(
 		setCaret,
 		onCaret: () => setCaret(areaRef.current?.selectionStart ?? 0),
 		areaRef,
-		attachments,
-		onDrop,
-		onRemoveAttachment: (uri) =>
-			setAttachments((current) => current.filter((entry) => entry.uri !== uri)),
-		error: attachError ?? error,
+		attachments: files.attachments,
+		onDrop: files.onDrop,
+		attachFiles: files.attach,
+		onRemoveAttachment: files.remove,
+		error: files.unsupported ?? error,
 		sending,
 		applyEntry,
 		trySend,

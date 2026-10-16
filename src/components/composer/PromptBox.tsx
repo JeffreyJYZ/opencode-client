@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { PromptBoxView } from "@/components/composer/PromptBoxView";
+import { useComposerDrop } from "@/components/composer/useComposerDrop";
 import { useComposerEdits } from "@/components/composer/useComposerEdits";
 import { useComposerMenu } from "@/components/composer/useComposerMenu";
 import { useComposerData } from "@/session/useComposerData";
@@ -25,6 +26,8 @@ export function PromptBox({ sessionID, running }: PromptBoxProps) {
 	const identity = useSessionIdentity(sessionID);
 	const commandNames = useRef<readonly string[]>([]);
 	const edits = useComposerEdits(sessionID, commandNames);
+	// The shell's own drop (M5.2) appends through the same path the DOM drop uses.
+	useComposerDrop(edits.attachFiles);
 	const data = useComposerData(sessionID, edits.text, edits.caret, identity.directory);
 	commandNames.current = data.commands.map((command) => command.name);
 	const menu = useComposerMenu({

@@ -46,6 +46,13 @@ export type ToolStatus = (typeof TOOL_STATUS)[keyof typeof TOOL_STATUS];
 export const TOOL_ANCHOR_FIELD = "path";
 
 /**
+ * The input key that carries the line a tool read from (M5.2): `read`'s own
+ * `offset`. Absent for a call that touched a whole file (`edit`, `write`), which is
+ * why `rowEditorTarget` falls back to `DEFAULT_EDITOR_LINE` rather than inventing one.
+ */
+export const TOOL_LINE_FIELD = "offset";
+
+/**
  * What the ingest did with one frame (spec 050 §Event ingest): `refused` is a
  * session this app does not hold, `duplicate` an event id or `durable.seq` it has
  * already applied, `ignored` a type no row comes from, `reduced` a real change.

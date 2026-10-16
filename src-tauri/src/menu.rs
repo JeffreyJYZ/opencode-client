@@ -8,15 +8,17 @@
 //! reload that depends on the page's script still running is useless in exactly
 //! the case one reaches for it.
 //!
-//! The Help submenu the spec names (Docs, Report issue) is **absent**: both items
-//! hand a url to the OS browser, and the shell has no url opener until M5.2 wires
-//! one. An item that does nothing is worse than a missing one.
+//! The Help submenu the spec names (Docs, Report issue) is here now that M5.2 wired
+//! the shell's URL opener: both items hand a url to `native::open_url`, the one
+//! place that decides what may leave the app. They are deliberately **not** members
+//! of [`Action`] — an action is raised for the page, and these never are.
 
 use tauri::menu::{
     AboutMetadata, IsMenuItem, Menu, MenuBuilder, MenuItem, MenuItemBuilder, SubmenuBuilder,
 };
 use tauri::{AppHandle, Emitter, Manager, Runtime};
 
+use crate::native::links;
 use crate::version::{PACKAGE_JSON, version_from_json};
 
 mod action;
@@ -29,6 +31,13 @@ pub const MENU_EVENT: &str = "oc:menu";
 
 /// Reloading the window is the shell's job: a wedged page cannot answer.
 const RELOAD_JS: &str = "window.location.reload();";
+
+/// The Help submenu's two ids and their urls. Neither is an [`Action`]: the shell
+/// performs them itself, and the page never sees them.
+const HELP_ITEMS: [(&str, &str, &str); 2] = [
+    ("help.docs", "Docs", links::DOCS_URL),
+    ("help.report-issue", "Report issue", links::ISSUES_URL),
+];
 
 /// Build the menu bar. The first submenu is the application menu macOS expects:
 /// without it the system has nowhere to put Services, Hide or the About panel,
@@ -62,7 +71,11 @@ pub fn build<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<Menu<R>> {
         .separator()
         .item(&item(app, Action::Reload)?)
         .build()?;
-    let submenus: [&dyn IsMenuItem<R>; 3] = [&application, &file, &view];
+    let help = SubmenuBuilder::new(app, "Help")
+        .item(&MenuItemBuilder::with_id(HELP_ITEMS[0].0, HELP_ITEMS[0].1).build(app)?)
+        .item(&MenuItemBuilder::with_id(HELP_ITEMS[1].0, HELP_ITEMS[1].1).build(app)?)
+        .build()?;
+    let submenus: [&dyn IsMenuItem<R>; 4] = [&application, &file, &view, &help];
     MenuBuilder::new(app).items(&submenus).build()
 }
 
@@ -76,6 +89,10 @@ fn item<R: Runtime>(app: &AppHandle<R>, action: Action) -> tauri::Result<MenuIte
 /// Act on a menu item. `false` means the id was not this shell's, so the caller
 /// can say so rather than swallowing it.
 pub fn handle<R: Runtime>(app: &AppHandle<R>, id: &str) -> bool {
+    if let Some((_, _, url)) = HELP_ITEMS.iter().find(|(item_id, _, _)| *item_id == id) {
+        let _ = crate::native::open_url(app, url);
+        return true;
+    }
     let Some(action) = Action::from_id(id) else {
         return false;
     };
