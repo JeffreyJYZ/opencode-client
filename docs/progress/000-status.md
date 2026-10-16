@@ -6,7 +6,7 @@ Last updated: 2026-10-16 · Current focus: **M3 — Type and theme** (`M3.0`, th
 | --- | --- | --- |
 | M0 Foundations | 12 / 12 | `bun run verify` (now ending in `cargo check`) and `cargo test`; `bun tauri dev` opens a window with the target injected |
 | M1 Shell and home | 17 / 17 | home → session view end to end; restart restores tabs |
-| M2 Session view | 32 / 33 | a live session streams, interrupts, queues and replies from the keyboard |
+| M2 Session view | 32 / 34 | a live session streams, interrupts, queues and replies from the keyboard |
 | M3 Type and theme | 8 / 8 | both faces change live and survive a restart; theme applies and clears |
 | M4 Plugin host 0.1 | 22 / 22 | four example plugins install, work and uninstall through the documented API |
 | M5 Desktop polish | 5 / 5 | packaged app, updater, `verify-release` exits 0 |
@@ -84,6 +84,8 @@ Last updated: 2026-10-16 · Current focus: **M3 — Type and theme** (`M3.0`, th
 - [x] `M2.30` **The composer toolbar orphans its Send** — the identity line wraps so the model select takes a full row and Send sits alone at bottom-left (live screenshot) — found by the user — evidence: identity controls and Send share one wrapping line with Send pinned to the row's end — **done**: the toolbar keeps its one wrapping flex line; the Send/Interrupt group gets `COMPOSER_SEND_GROUP_STYLE` with `marginLeft: auto` — end-pinned on the shared row, right-aligned when wrapped below, no absolute positioning. The Queued label's nested line-style span is flattened into the group; the plugin slot stays a direct line item; the long `providerID/id` text is untouched. Evidence: `ComposerToolbarLayout.test.tsx` (6 cases at a 320px frame with the long model id, asserting the flex contract from rendered output — happy-dom does no layout, stated in the test header); `bun run verify` exit 0 at the merge (`c449284`, **1017 pass / 0 fail**) and `bun run e2e` PASS
 
 - [x] `M2.31` **A queued prompt is invisible after reload** — only the live `session.inbox.enqueued` event builds the queued row (`transcriptReducer.ts:74`); no load path reads the inbox, so opening a session with a queued prompt shows an empty transcript and no Queued label (measured: prompt seeded via API, page loaded after, "No messages yet") — found by the controller while proving M2.29 — evidence: a refetch against a pending inbox entry rendering the queued row, the later delivery updating it rather than doubling — **done**: the refetch lists the pending inbox alongside `message.list` and seeds one queued user row per pending user entry, keyed by inbox id — the later `delivered` frame updates it via `replaceRow` instead of doubling. Settled from the server source: the inbox table is pending-only (delivery/cancel delete the row), so the filter is `type === "user"` only — the brief's "other states" cannot occur. Evidence: `transcriptRefetchInbox.test.ts` (seed, skip non-user, inbox failure keeps messages, delivery updates rather than doubles); `bun run verify` exit 0 at the merge (`0b4346a`, **1021 pass / 0 fail**) and `bun run e2e` PASS
+
+- [ ] `M2.32` **Assistant prose carries no role head** — after M2.29 the user band reads as a band, but assistant prose still reads as "the page": nothing names who spoke. `TextRow` carries no agent (only the footer row does) — found by the user — evidence: each assistant prose row heads itself with its own agent name in the meta tone, absent where the part carried none
 
 ## M3 — Type and theme
 
