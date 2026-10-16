@@ -1,5 +1,6 @@
 import type { V2Event } from "@opencode/client";
 import { INGEST_OUTCOME, type IngestOutcome } from "@/constants/transcript";
+import { emitFrameAppEvents } from "@/session/appEventEmitters";
 import { durableSeqOf, sessionIDOf } from "@/session/eventEnvelope";
 import { emptyTranscript, type Transcript, type TranscriptRow } from "@/session/transcript";
 import { remember } from "@/session/transcriptEdits";
@@ -25,6 +26,11 @@ import { reduceTranscript } from "@/session/transcriptReducer";
  * - **Never replay.** `resync` replaces the rows and resets the watermark and the id
  *   memory, so a repaired transcript is the server's own state and the next frame
  *   cannot re-apply something the repair already contains.
+ *
+ * A reduced frame is also the moment three app events fire (M4.14): `turn-start` and
+ * `turn-end` when the running flag really flips, `chunk` when a delta became a row —
+ * `appEventEmitters.ts` owns that, because the store is the one place the previous
+ * flag and the reduced frame are both in hand.
  */
 
 export type TranscriptStore = {
@@ -88,6 +94,7 @@ export function createTranscriptStore(): TranscriptStore {
 		if (next === null) return INGEST_OUTCOME.ignored;
 		held.set(sessionID, remember(next, event.id, seq));
 		notify();
+		emitFrameAppEvents(event, sessionID, current.running, next.running);
 		return INGEST_OUTCOME.reduced;
 	}
 

@@ -1,4 +1,6 @@
+import { APP_EVENT } from "@/constants/plugins";
 import { DEFAULT_THEME_ID, THEME_ATTRIBUTE, THEME_STYLE_ID, type Theme } from "@/constants/theme";
+import { emitAppEvent } from "@/plugins/appEvents";
 import { type Disposable, REFUSED } from "@/plugins/disposable";
 import { FAULT_AREAS, FAULT_REASONS, type FaultReason, recordFault } from "@/plugins/faults";
 import { sanitizeVariables, writeThemeDom } from "@/theme/dom";
@@ -29,6 +31,10 @@ import {
  * M3.6 adds the follow-system mode. The service owns **when** the system's
  * appearance is watched — only while that preference is in force — and
  * `theme/followSystem.ts` owns the media edge; an explicit theme stops the watch.
+ *
+ * A theme that goes into force is also the `theme-changed` emitter (M4.14), from
+ * `putInForce` — the one place a theme becomes active, reached by a pick, a clear
+ * and the follow-system flip alike.
  */
 
 export { getTheme, listThemes, subscribeToThemes } from "@/theme/registry";
@@ -78,6 +84,7 @@ function putInForce(id: string): boolean {
 	writeThemeDom(applied, theme);
 	active = theme;
 	notify();
+	emitAppEvent(APP_EVENT.themeChanged, { id: theme.id });
 	return true;
 }
 

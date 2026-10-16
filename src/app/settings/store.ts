@@ -1,9 +1,4 @@
-import {
-	getLastOpenedSessionId,
-	hydrateLastOpenedSession,
-	subscribeLastOpened,
-} from "@/app/lastOpened";
-import { currentRoute, routeToPath, subscribeToRoute } from "@/app/router";
+import { hydrateLastOpenedSession } from "@/app/lastOpened";
 import { applyAppearance } from "@/app/settings/appearance";
 import { restoreLandingRoute } from "@/app/settings/landing";
 import {
@@ -14,23 +9,28 @@ import {
 	type SettingsNotice,
 	settingsFromDocument,
 } from "@/app/settings/model";
-import { pruneTabScroll } from "@/app/settings/scroll";
 import {
 	browserStorage,
 	readStoredSettings,
 	type SettingsStorage,
 	writeStoredSettings,
 } from "@/app/settings/storage";
-import { sameTabs } from "@/app/settings/tabState";
-import { tabKey } from "@/app/tabModel";
-import { hydrateTabState, serializeTabState, subscribeToTabs } from "@/app/tabs";
+import { createSettingsSync } from "@/app/settings/sync";
+import { hydrateTabState } from "@/app/tabs";
+import { APP_EVENT } from "@/constants/plugins";
 import { SETTING_KEYS, SETTINGS_DATA_VERSION, SETTINGS_STORAGE_KEY } from "@/constants/settings";
+import { emitAppEvent } from "@/plugins/appEvents";
 
 /**
  * The settings store: one in-memory document, one write path, one restore. No
  * React in it — `useSettings.ts` subscribes (the same shape `tabs.ts` uses).
  * The strip and the route are *read* from their own stores and written here, so
  * there is exactly one serializer for the blob (spec 010 §Persistence).
+ *
+ * `settings-changed` is emitted from the one write path (`publish`, M4.14), so a
+ * plugin hears about every persisted change: a field the user set and a tab, route
+ * or "last opened" the app folded in alike. The bridge that reads those three other
+ * stores is `settings/sync.ts`; this file is the document and the write path.
  */
 
 export type SettingsSnapshot = {
@@ -44,8 +44,8 @@ let snapshot: SettingsSnapshot = { settings: DEFAULT_SETTINGS, notice: null };
 let restored = false;
 /** A newer build's blob is on disk: this session reads defaults and never writes. */
 let suspended = false;
-const disposers: Array<() => void> = [];
 const listeners = new Set<() => void>();
+const sync = createSettingsSync({ current: getSettings, apply });
 
 export function getSettingsSnapshot(): SettingsSnapshot {
 	return snapshot;
@@ -64,6 +64,7 @@ export function subscribeSettings(listener: () => void): () => void {
 
 function publish(settings: SettingsData): void {
 	snapshot = { settings, notice: snapshot.notice };
+	emitAppEvent(APP_EVENT.settingsChanged, settings);
 	for (const listener of [...listeners]) listener();
 }
 
@@ -81,33 +82,6 @@ function apply(fields: Partial<SettingsData>): void {
 /** The public action the new-session flow (and M2.7/M3.2) call. */
 export function updateSettings(fields: Partial<SettingsData>): void {
 	apply(fields);
-}
-
-function installSync(): void {
-	disposers.push(subscribeToTabs(syncTabs));
-	disposers.push(subscribeToRoute(syncRoute));
-	disposers.push(subscribeLastOpened(syncLastOpened));
-}
-
-function syncTabs(): void {
-	const tabs = serializeTabState();
-	// A closed tab releases its remembered position (M2.9): the blob holds one for exactly the strip's keys.
-	const scroll = pruneTabScroll(getSettings().transcriptScroll, tabs.tabs.map(tabKey));
-	const tabsChanged = !sameTabs(tabs, snapshot.settings.tabs);
-	if (!tabsChanged && scroll === getSettings().transcriptScroll) return;
-	apply(tabsChanged ? { tabs, transcriptScroll: scroll } : { transcriptScroll: scroll });
-}
-
-function syncRoute(): void {
-	const path = routeToPath(currentRoute());
-	if (path === snapshot.settings.lastRoute) return;
-	apply({ lastRoute: path });
-}
-
-function syncLastOpened(): void {
-	const id = getLastOpenedSessionId();
-	if (id === snapshot.settings.lastOpened) return;
-	apply({ lastOpened: id });
 }
 
 /**
@@ -134,12 +108,12 @@ export function restoreSettings(store: SettingsStorage | null = browserStorage()
 	hydrateTabState(snapshot.settings.tabs);
 	hydrateLastOpenedSession(snapshot.settings.lastOpened);
 	restoreLandingRoute(snapshot.settings.lastRoute, snapshot.settings.tabs);
-	installSync();
+	sync.install();
 }
 
 /** The tests' reset; production never calls it. */
 export function resetSettings(): void {
-	for (const dispose of disposers.splice(0)) dispose();
+	sync.dispose();
 	if (storage !== null) storage.remove(SETTINGS_STORAGE_KEY);
 	storage = null;
 	document = freshDocument();

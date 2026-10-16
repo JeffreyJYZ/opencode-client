@@ -1,4 +1,5 @@
-import { APP_VERSION } from "@/constants/plugins";
+import { APP_EVENT, APP_VERSION } from "@/constants/plugins";
+import { emitAppEvent } from "@/plugins/appEvents";
 import type { ModuleImporter } from "@/plugins/blobModule";
 import { installRuntimeGlobals } from "@/plugins/globals";
 import { createHostFactory, type HostFactory } from "@/plugins/host";
@@ -17,6 +18,10 @@ import { prepare, start } from "@/plugins/loadSteps";
  * then the instance already running under that id is disposed, then the new
  * `setup` runs — so a reload whose new source is refused leaves the old instance
  * running untouched.
+ *
+ * The loader is where `plugin-loaded` and `plugin-unloaded` fire (M4.14): an
+ * instance's `setup` returning and its `dispose` running are the two moments, and a
+ * reload emits both — the old instance unloaded, the new one loaded.
  */
 
 export type PluginRequest = {
@@ -75,8 +80,11 @@ export function createLoader(options: LoaderOptions): Loader {
 	}
 
 	function retire(id: string): void {
-		running.get(id)?.dispose();
+		const instance = running.get(id);
+		if (instance === undefined) return;
+		instance.dispose();
 		running.delete(id);
+		emitAppEvent(APP_EVENT.pluginUnloaded, { id });
 	}
 
 	async function activate(request: PluginRequest): Promise<LoadOutcome> {
@@ -88,6 +96,7 @@ export function createLoader(options: LoaderOptions): Loader {
 		const started = start(prepared.prepared);
 		if (!started.ok) return started.outcome;
 		running.set(id, started.instance);
+		emitAppEvent(APP_EVENT.pluginLoaded, { id });
 		notify();
 		return { status: LOADED, id, warnings: prepared.prepared.warnings };
 	}

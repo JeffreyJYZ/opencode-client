@@ -5,8 +5,10 @@
  *
  * The vocabulary is open on purpose — the names above are what the app emits, and
  * a subscription to a name nothing emits is simply never called, so a typo is
- * inert rather than a throw. `emitAppEvent` is the app's half; M4.5 and the
- * surfaces that produce these events call it.
+ * inert rather than a throw. `emitAppEvent` is the app's half, and every emitter is
+ * a production caller: the transcript store (`turn-start`, `turn-end`, `chunk`), the
+ * router (`session-changed`), the settings store (`settings-changed`), the theme
+ * service (`theme-changed`) and the loader (`plugin-loaded`, `plugin-unloaded`).
  */
 
 export type AppEventHandler = (payload: unknown) => void;
