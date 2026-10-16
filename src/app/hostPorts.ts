@@ -1,17 +1,15 @@
 import { currentRoute } from "@/app/router";
+import { pushBanner } from "@/components/notify/bannerStore";
+import { pushModal, requestConfirm } from "@/components/notify/modalStore";
 import { pushToast } from "@/components/toast/toastStore";
-import { TOAST_ROLE, type ToastRole } from "@/constants/native";
+import { TOAST_ROLE } from "@/constants/native";
 import { ROUTE_KIND } from "@/constants/routes";
 import { openExternalUrl } from "@/native/openExternal";
 import { defaultDirectoryPicker } from "@/native/pickDirectory";
 import { createNativeFs, pluginDataRoot } from "@/native/pluginFs";
 import type { HostDeps } from "@/plugins/host";
 import type { NativeFs } from "@/plugins/services/native";
-import {
-	PLUGIN_NOTICE_KIND,
-	type PluginNoticeKind,
-	type PluginNotifier,
-} from "@/plugins/services/notify";
+import { PLUGIN_NOTICE_KIND, type PluginNotifier } from "@/plugins/services/notify";
 import { createLocalStorageBackend } from "@/plugins/services/storageBackend";
 import type { OpenCodeClient } from "@/session/client";
 import { subscribeToServerEvents } from "@/session/serverEvents";
@@ -29,7 +27,9 @@ import type { TranscriptStore } from "@/session/transcriptStore";
  * - `transcript` reads the **open session** synchronously from the route and the
  *   bundle's store, so a plugin gets what is rendered now.
  * - `storage` is the persisted `localStorage` backend.
- * - `notifier.show` is the app's toast host.
+ * - `notifier` is the app's notice sinks (`APP_NOTIFIER`): `toast`, `banner` and
+ *   `modal` each reach their own chrome, and `confirm` opens the modal and
+ *   resolves the answer the user gives.
  * - `native` is the shell's filesystem (M4.11): `fs` is the Tauri adapter
  *   (`createNativeFs`), `dataRoot` is the shell's app data root
  *   (`pluginDataRoot`), and `openExternal` / `pickDirectory` are the app's own
@@ -43,23 +43,28 @@ import type { TranscriptStore } from "@/session/transcriptStore";
  * host built here gets, so `host.ui.kit` stays empty until a row supplies one.
  */
 
-/** A notice kind's ARIA role: a toast/banner is `status`, a modal is `alert`. */
-const NOTICE_ROLE: Readonly<Record<PluginNoticeKind, ToastRole>> = {
-	[PLUGIN_NOTICE_KIND.toast]: TOAST_ROLE.status,
-	[PLUGIN_NOTICE_KIND.banner]: TOAST_ROLE.status,
-	[PLUGIN_NOTICE_KIND.modal]: TOAST_ROLE.alert,
-};
-
 /**
- * The app's notifier: `show` draws through the toast host. `confirm` has no
- * chrome in this build, so it resolves `false` — the host's documented
- * "a dialog nobody drew" answer, not a hang.
+ * The app's notifier (M4.20): each kind reaches **its own** sink — a toast that
+ * self-dismisses, a banner that persists until dismissed, and a modal dialog —
+ * and `confirm` opens that dialog and resolves **the answer the user gives**,
+ * never a constant. A toast's role is the app's own (`TOAST_ROLE`); the banner's
+ * and the modal's are named in `constants/notify.ts`, so no kind is flattened
+ * into another.
  */
-export const TOAST_NOTIFIER: PluginNotifier = {
+export const APP_NOTIFIER: PluginNotifier = {
 	show: (notice) => {
-		pushToast(notice.message, NOTICE_ROLE[notice.kind]);
+		switch (notice.kind) {
+			case PLUGIN_NOTICE_KIND.banner:
+				pushBanner(notice.message);
+				return;
+			case PLUGIN_NOTICE_KIND.modal:
+				pushModal(notice.message);
+				return;
+			default:
+				pushToast(notice.message, TOAST_ROLE.status);
+		}
 	},
-	confirm: async () => false,
+	confirm: (message) => requestConfirm(message),
 };
 
 export type HostPortInput = {
@@ -84,7 +89,7 @@ export async function buildHostPorts(input: HostPortInput): Promise<HostDeps> {
 			return route.kind === ROUTE_KIND.session ? input.transcripts.get(route.id) : undefined;
 		},
 		storage: createLocalStorageBackend(),
-		notifier: TOAST_NOTIFIER,
+		notifier: APP_NOTIFIER,
 		native:
 			root === null || root === undefined
 				? undefined

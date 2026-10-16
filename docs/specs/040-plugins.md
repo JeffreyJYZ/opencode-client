@@ -67,7 +67,7 @@ Registries register **synchronously** and return a `Disposable`; services return
 | `storage.get/set/delete/keys` | your own key-value store, **capped and namespace-scoped per plugin id** (`src/plugins/services/storage.ts`; the cap is `PLUGIN_DATA_MAX_BYTES`) | service |
 | `native` | `pickDirectory`, `openExternal` (**`pickFiles` is named here and built nowhere** — the bridge offers only `pickDirectory`), and path-scoped `read`/`write`/`list`/`remove`/`dataDir` under `plugin-data/<id>/`; `null` on web | service |
 | `native.http` | **not built** — named here, implemented nowhere — an unrestricted request through the shell's `http_request`; rides `net` | service |
-| `notify.toast/banner/modal/confirm` | host-rendered notices | service |
+| `notify.toast/banner/modal/confirm` | host-rendered notices, each its own chrome: `toast` self-dismisses, `banner` persists until dismissed, `modal` is a dialog the user dismisses; `confirm` opens that dialog and resolves **the answer the user gives** (affirmative → `true`, cancel or Escape → `false`) | service |
 | `on(event, handler)` | app events: `turn-start`, `turn-end`, `chunk`, `session-changed`, `settings-changed`, `plugin-loaded`, `plugin-unloaded`, `theme-changed` | service |
 | `log.info/warn/error/debug` | the scoped logger, shown in the manager's log panel | service |
 | `signal` | an `AbortSignal` aborted when your plugin unloads | object |

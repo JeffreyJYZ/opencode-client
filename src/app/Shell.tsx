@@ -16,6 +16,8 @@ import {
 import { getTabSnapshot } from "@/app/tabs";
 import { useTurnEndNotification } from "@/app/turnEndNotification";
 import { CommandPalette } from "@/components/CommandPalette";
+import { BannerHost } from "@/components/notify/BannerHost";
+import { ModalHost } from "@/components/notify/ModalHost";
 import { SessionPicker } from "@/components/SessionPicker";
 import { Slot } from "@/components/Slot";
 import { Sidebar } from "@/components/sidebar/Sidebar";
@@ -66,6 +68,9 @@ export function Shell() {
 	}, []);
 	return (
 		<>
+			{/* A plugin's persistent notices (M4.20): in the shell's own column, above
+			    the nav, so a banner pushes the app down rather than covering it. */}
+			<BannerHost />
 			<TopNav />
 			<div style={SHELL_BODY_STYLE}>
 				<div style={SHELL_ROW_STYLE}>
@@ -83,6 +88,8 @@ export function Shell() {
 			    not instead of them. An empty slot renders nothing. */}
 			<Slot id={SLOT.overlays} />
 			<ToastHost />
+			{/* A plugin's modal and its `confirm` (M4.20), beside the toast stack. */}
+			<ModalHost />
 		</>
 	);
 }
