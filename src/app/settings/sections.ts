@@ -1,17 +1,8 @@
 import { type ComponentType, useSyncExternalStore } from "react";
 import { sectionProblem } from "@/app/settings/sectionValidation";
-import { AppearanceSection } from "@/components/AppearanceSection";
-import { ConnectSection } from "@/components/ConnectSection";
-import { PluginsSection } from "@/components/PluginsSection";
-import { TypographySection } from "@/components/TypographySection";
-import { VersionSection } from "@/components/VersionSection";
-import { APPEARANCE_TITLE } from "@/constants/appearance";
-import { CONNECT_TITLE } from "@/constants/connect";
-import { PLUGINS_TITLE } from "@/constants/plugins";
-import { SETTINGS_SECTION_ID, SETTINGS_SECTION_ORDER } from "@/constants/settings";
-import { TYPOGRAPHY_TITLE } from "@/constants/typography";
-import { VERSION_SECTION_LABEL, VERSION_SECTION_ORDER } from "@/constants/version";
+import { compareByOrder, NO_ORDER } from "@/plugins/collection";
 import { FAULT_AREAS, FAULT_REASONS, recordFault } from "@/plugins/faults";
+import { BUILTIN_SECTIONS } from "./builtinSections";
 
 /**
  * The settings-section registry (spec 010 §Routes: the settings surface).
@@ -36,17 +27,20 @@ export type SettingsSection = {
 	readonly order?: number;
 };
 
-/** The order a section that names none gets. */
-export const DEFAULT_SECTION_ORDER = 0;
+/**
+ * The order a section that names none gets: **last**, after every ordered one
+ * (M4.3's ruling — M3.5 measured the old default, which put a plugin section
+ * above the built-in Typography section). A contribution belongs after the
+ * built-ins registered before it.
+ */
+export const DEFAULT_SECTION_ORDER = NO_ORDER;
 
 const byId = new Map<string, SettingsSection>();
 const listeners = new Set<() => void>();
 let snapshot: readonly SettingsSection[] = [];
 
 function sorted(): SettingsSection[] {
-	return [...byId.values()].sort(
-		(a, b) => (a.order ?? DEFAULT_SECTION_ORDER) - (b.order ?? DEFAULT_SECTION_ORDER),
-	);
+	return [...byId.values()].sort(compareByOrder);
 }
 
 function publish(): void {
@@ -97,52 +91,12 @@ export function registerSettingsSection(section: SettingsSection): () => void {
 export function useSettingsSections(): readonly SettingsSection[] {
 	return useSyncExternalStore(subscribeToSettingsSections, getSettingsSections);
 }
-
-/**
- * The built-ins the registry ships (M1.6, M3.2, M3.5). They are registered as
- * built-ins through the same map a plugin writes to, and in the row's own order —
- * Appearance, Typography, Server, Plugins — so the surface's order is one table
- * rather than a sequence of numbers spread across the registrations.
- */
-const BUILTINS: readonly SettingsSection[] = [
-	{
-		id: SETTINGS_SECTION_ID.appearance,
-		label: APPEARANCE_TITLE,
-		component: AppearanceSection,
-		order: SETTINGS_SECTION_ORDER.appearance,
-	},
-	{
-		id: SETTINGS_SECTION_ID.typography,
-		label: TYPOGRAPHY_TITLE,
-		component: TypographySection,
-		order: SETTINGS_SECTION_ORDER.typography,
-	},
-	{
-		id: SETTINGS_SECTION_ID.connect,
-		label: CONNECT_TITLE,
-		component: ConnectSection,
-		order: SETTINGS_SECTION_ORDER.connect,
-	},
-	{
-		id: SETTINGS_SECTION_ID.plugins,
-		label: PLUGINS_TITLE,
-		component: PluginsSection,
-		order: SETTINGS_SECTION_ORDER.plugins,
-	},
-	{
-		id: SETTINGS_SECTION_ID.version,
-		label: VERSION_SECTION_LABEL,
-		component: VersionSection,
-		order: VERSION_SECTION_ORDER,
-	},
-];
-
-for (const section of BUILTINS) byId.set(section.id, section);
+for (const section of BUILTIN_SECTIONS) byId.set(section.id, section);
 publish();
 
 /** The tests' reset: the built-ins only, nothing a test registered. */
 export function resetSettingsSections(): void {
 	byId.clear();
-	for (const section of BUILTINS) byId.set(section.id, section);
+	for (const section of BUILTIN_SECTIONS) byId.set(section.id, section);
 	publish();
 }

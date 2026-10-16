@@ -1,0 +1,11 @@
+{
+	"id": "session-export",
+	"name": "Session Export",
+	"version": "1.0.0",
+	"apiVersion": "0.1",
+	"entry": "main.js",
+	"engines": { "app": ">=0.1.0" },
+	"capabilities": ["plugin-data"],
+	"description": "Exports the open session's transcript through the capped, namespaced storage and, when the shell offers a filesystem, into the plugin's own data directory.",
+	"author": "opencode desktop"
+}

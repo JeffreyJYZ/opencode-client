@@ -8,6 +8,7 @@ import { disposeTopnavBuiltins, registerTopnavBuiltins } from "@/app/topnavBuilt
 import { APPEARANCE_TITLE } from "@/constants/appearance";
 import { CONNECT_TITLE } from "@/constants/connect";
 import { PLUGINS_TITLE } from "@/constants/plugins";
+import { REFERENCE_TITLE } from "@/constants/reference";
 import { TYPOGRAPHY_TITLE } from "@/constants/typography";
 import { VERSION_SECTION_LABEL } from "@/constants/version";
 import { clearFaults, FAULT_AREAS, FAULT_REASONS, listFaults } from "@/plugins/faults";
@@ -64,6 +65,7 @@ describe("a plugin-contributed settings section", () => {
 			"Contributed",
 			CONNECT_TITLE,
 			PLUGINS_TITLE,
+			REFERENCE_TITLE,
 			VERSION_SECTION_LABEL,
 		]);
 	});
@@ -94,6 +96,7 @@ describe("a plugin-contributed settings section", () => {
 				TYPOGRAPHY_TITLE,
 				CONNECT_TITLE,
 				PLUGINS_TITLE,
+				REFERENCE_TITLE,
 				VERSION_SECTION_LABEL,
 			]);
 			const faults = listFaults().filter((fault) => fault.area === FAULT_AREAS.settings);

@@ -1,0 +1,11 @@
+{
+	"id": "theme-gruvbox",
+	"name": "Gruvbox",
+	"version": "1.0.0",
+	"apiVersion": "0.1",
+	"entry": "main.js",
+	"engines": { "app": ">=0.1.0" },
+	"capabilities": ["plugin-data"],
+	"description": "A dark theme with a settings section to apply or clear it, remembered in the plugin's own storage. Its font claim is refused so the user's typography wins.",
+	"author": "opencode desktop"
+}

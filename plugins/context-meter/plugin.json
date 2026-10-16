@@ -1,0 +1,11 @@
+{
+	"id": "context-meter",
+	"name": "Context Meter",
+	"version": "1.0.0",
+	"apiVersion": "0.1",
+	"entry": "main.js",
+	"engines": { "app": ">=0.1.0" },
+	"capabilities": [],
+	"description": "A sidebar panel showing the session's own token and cost figures from session.usage.updated — no context window is assumed.",
+	"author": "opencode desktop"
+}

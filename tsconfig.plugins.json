@@ -1,0 +1,11 @@
+{
+	"extends": "./tsconfig.app.json",
+	"compilerOptions": {
+		"tsBuildInfoFile": "./node_modules/.tmp/tsconfig.plugins.tsbuildinfo"
+	},
+	/* The example plugins are source, not app code: `tsc -b` typechecks them here
+	   so a plugin's use of the host API cannot drift from `@/plugins/sdk` while the
+	   gate stays green. They are excluded from the app project, which includes
+	   `src` only. */
+	"include": ["plugins"]
+}

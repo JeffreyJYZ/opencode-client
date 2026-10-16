@@ -26,6 +26,13 @@ export const APPEARANCE_SECTION = "appearance";
 export const APPEARANCE_THEME_NOTE =
 	"A theme can change colours and sizes; your typography is set in the Typography section and always wins.";
 
+/**
+ * The first choice in the control (M3.6): follow the system's own appearance.
+ * The label lives here so the section holds no literal; its **value** is the
+ * sentinel `FOLLOW_SYSTEM_THEME_ID`, which the applier reads before the registry.
+ */
+export const APPEARANCE_FOLLOW_SYSTEM_LABEL = "Follow system";
+
 /** The live readout's labels: which theme is in force right now. */
 export const APPEARANCE_IN_FORCE_LABEL = "In force";
 export const APPEARANCE_UNKNOWN_THEME = "the built-in default";

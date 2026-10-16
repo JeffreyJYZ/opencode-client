@@ -36,7 +36,10 @@ export type SettingsData = {
 	readonly lastOpened: string | null;
 	readonly sidebar: SidebarState;
 	readonly fonts: FontPreferences;
-	/** The id of the theme in force, or `null` for the built-in default (M3.4). */
+	/**
+	 * The stored theme **choice** (M3.4): a theme id, the follow-system sentinel
+	 * `FOLLOW_SYSTEM_THEME_ID` (M3.6), or `null` for the built-in default.
+	 */
 	readonly theme: string | null;
 	readonly recentDirectories: readonly string[];
 	/** The connect flow's stored target, or `null` before one is stored. */
@@ -121,10 +124,12 @@ function normalizeFontRole(role: FontRole, raw: unknown): FontRolePreference {
 }
 
 /**
- * The stored theme id, or `null`. It is **not** checked against the registry
- * here: a plugin's theme is registered when its plugin loads, after this read, so
- * an unknown id is a normal state to boot through — `applyAppearance()` resolves
- * it and falls back to the built-in, leaving the id stored for that later load.
+ * The stored theme id, the follow-system sentinel, or `null`. It is **not**
+ * checked against the registry here: a plugin's theme is registered when its
+ * plugin loads, after this read, so an unknown id is a normal state to boot
+ * through — `applyAppearance()` resolves it and falls back to the built-in,
+ * leaving the id stored for that later load. The sentinel is a plain string like
+ * any other here; only the applier gives it meaning (M3.6).
  */
 function normalizeTheme(raw: unknown): string | null {
 	return typeof raw === "string" && raw.trim() !== "" ? raw.trim() : null;

@@ -1,0 +1,11 @@
+{
+	"id": "hello-world",
+	"name": "Hello World",
+	"version": "1.0.0",
+	"apiVersion": "0.1",
+	"entry": "main.js",
+	"engines": { "app": ">=0.1.0" },
+	"capabilities": ["window"],
+	"description": "The smallest real contribution: one home slot, one palette command, and a document marker the lifecycle clears.",
+	"author": "opencode desktop"
+}

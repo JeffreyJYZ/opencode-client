@@ -12,16 +12,29 @@ function host(): Record<string, unknown> {
 	return globalThis as unknown as Record<string, unknown>;
 }
 
+/** Install the two globals the loader owns for **every** plugin (spec 040 §Entry file). */
+export function installRuntimeGlobals(values: {
+	readonly react: unknown;
+	readonly jsx: unknown;
+}): void {
+	const target = host();
+	target[HOST_GLOBAL.react] = values.react;
+	target[HOST_GLOBAL.jsx] = values.jsx;
+}
+
+/** Install the host API for the plugin about to be imported; one host per plugin. */
+export function installPluginHost(value: unknown): void {
+	host()[HOST_GLOBAL.host] = value;
+}
+
 /** Install the three globals. Idempotent — each load rewrites the same values. */
 export function installHostGlobals(values: {
 	readonly host: unknown;
 	readonly react: unknown;
 	readonly jsx: unknown;
 }): void {
-	const target = host();
-	target[HOST_GLOBAL.host] = values.host;
-	target[HOST_GLOBAL.react] = values.react;
-	target[HOST_GLOBAL.jsx] = values.jsx;
+	installRuntimeGlobals(values);
+	installPluginHost(values.host);
 }
 
 /** The globals a module would reach for that are not installed; empty when all are. */
