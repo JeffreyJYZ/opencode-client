@@ -12,6 +12,13 @@ import { chordLabel, KEY_MODIFIER, type KeyBinding, tabRangeLabel } from "@/cons
  * key — never typed as a glyph — so `⌘1…⌘9` is a range the bounds build.
  */
 
+/**
+ * `Escape` has **no chord row** in the map: it is not a window shortcut but the
+ * key a surface, popover or dialog recognises as its own dismissal. It is named
+ * here all the same, so the two places that match it hold no literal.
+ */
+export const KEY_ESCAPE = "Escape";
+
 /** The action each chord names — the map's vocabulary. */
 export const KEY_ACTION = {
 	commandPalette: "command-palette",

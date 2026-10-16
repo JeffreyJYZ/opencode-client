@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { act, cleanup, fireEvent, screen, waitFor } from "@testing-library/react";
-import { resetSettingsSections } from "@/app/settings/sections";
+import { getSettingsSections, resetSettingsSections } from "@/app/settings/sections";
 import { sessionTab } from "@/app/tabModel";
 import { openTab, resetTabs } from "@/app/tabs";
 import { entryOptionId } from "@/components/CommandPaletteRow";
@@ -21,6 +21,20 @@ const PAGE = {
 };
 const COMMANDS = [{ name: "commit", description: "Commit changes" }];
 
+/**
+ * The rows a full palette holds: one per registry section (four built-ins today,
+ * read from the registry rather than typed), then the tab, session and command
+ * sources the fixture supplies. `extras` counts those three sources.
+ */
+function fullRows(extras: number): number {
+	return getSettingsSections().length + extras;
+}
+
+/** The section id the registry lists first — the palette's first row. */
+function firstSectionOption(): string {
+	return entryOptionId(`settings:${getSettingsSections()[0].id}`);
+}
+
 function client() {
 	return paletteClient(PAGE, COMMANDS);
 }
@@ -30,7 +44,7 @@ describe("CommandPalette", () => {
 		openTab(sessionTab("ses_1"));
 		renderPalette(client());
 		openPalette();
-		await waitFor(() => expect(screen.getAllByRole("option")).toHaveLength(6));
+		await waitFor(() => expect(screen.getAllByRole("option")).toHaveLength(fullRows(4)));
 		const text = screen
 			.getAllByRole("option")
 			.map((option) => option.textContent)
@@ -44,7 +58,7 @@ describe("CommandPalette", () => {
 	test("it filters as you type", async () => {
 		renderPalette(client());
 		const input = openPalette();
-		await waitFor(() => expect(screen.getAllByRole("option")).toHaveLength(5));
+		await waitFor(() => expect(screen.getAllByRole("option")).toHaveLength(fullRows(3)));
 		fireEvent.change(input, { target: { value: "beta" } });
 		await waitFor(() => expect(screen.getAllByRole("option")).toHaveLength(1));
 		expect(screen.getByRole("option").textContent).toContain("Beta");
@@ -53,12 +67,14 @@ describe("CommandPalette", () => {
 	test("↑/↓ move the highlight and never wrap past either end", async () => {
 		renderPalette(client());
 		const input = openPalette();
-		await waitFor(() => expect(screen.getAllByRole("option")).toHaveLength(5));
-		expect(input.getAttribute("aria-activedescendant")).toBe(entryOptionId("settings:connect"));
-		for (let index = 0; index < 8; index++) fireEvent.keyDown(input, { key: "ArrowDown" });
+		await waitFor(() => expect(screen.getAllByRole("option")).toHaveLength(fullRows(3)));
+		expect(input.getAttribute("aria-activedescendant")).toBe(firstSectionOption());
+		for (let index = 0; index < fullRows(4); index++)
+			fireEvent.keyDown(input, { key: "ArrowDown" });
 		expect(input.getAttribute("aria-activedescendant")).toBe(entryOptionId("command:commit"));
-		for (let index = 0; index < 8; index++) fireEvent.keyDown(input, { key: "ArrowUp" });
-		expect(input.getAttribute("aria-activedescendant")).toBe(entryOptionId("settings:connect"));
+		for (let index = 0; index < fullRows(4); index++)
+			fireEvent.keyDown(input, { key: "ArrowUp" });
+		expect(input.getAttribute("aria-activedescendant")).toBe(firstSectionOption());
 	});
 
 	test("Escape closes it and returns focus to the opener", async () => {

@@ -1,4 +1,5 @@
 import { type RefObject, useEffect } from "react";
+import { KEY_ESCAPE } from "@/constants/keys";
 
 /**
  * Dismiss a popover on Escape or a mousedown outside the anchor element.
@@ -12,7 +13,7 @@ export function useMenuDismiss(
 	useEffect(() => {
 		if (!open) return;
 		const onKey = (event: KeyboardEvent) => {
-			if (event.key === "Escape") setOpen(false);
+			if (event.key === KEY_ESCAPE) setOpen(false);
 		};
 		const onClick = (event: MouseEvent) => {
 			if (!anchor.current?.contains(event.target as Node)) setOpen(false);

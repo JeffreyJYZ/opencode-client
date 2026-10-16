@@ -16,6 +16,8 @@ export const FAULT_REASONS = {
 	invalidTheme: "invalid-theme",
 	/** A theme claiming one of the `--oc-font*` variables; the user's typography wins. */
 	protectedVariable: "protected-variable",
+	/** A settings section threw while rendering; the surface drops it and keeps the rest (M3.5). */
+	sectionThrew: "section-threw",
 } as const;
 
 export type FaultReason = (typeof FAULT_REASONS)[keyof typeof FAULT_REASONS];
@@ -25,6 +27,7 @@ export const FAULT_AREAS = {
 	slots: "slots",
 	routes: "routes",
 	themes: "themes",
+	settings: "settings",
 } as const;
 
 export type FaultArea = (typeof FAULT_AREAS)[keyof typeof FAULT_AREAS];

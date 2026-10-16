@@ -1,18 +1,29 @@
 import { type ComponentType, useSyncExternalStore } from "react";
+import { sectionProblem } from "@/app/settings/sectionValidation";
+import { AppearanceSection } from "@/components/AppearanceSection";
 import { ConnectSection } from "@/components/ConnectSection";
+import { PluginsSection } from "@/components/PluginsSection";
 import { TypographySection } from "@/components/TypographySection";
+import { APPEARANCE_TITLE } from "@/constants/appearance";
 import { CONNECT_TITLE } from "@/constants/connect";
-import { SETTINGS_SECTION_ID } from "@/constants/settings";
+import { PLUGINS_TITLE } from "@/constants/plugins";
+import { SETTINGS_SECTION_ID, SETTINGS_SECTION_ORDER } from "@/constants/settings";
 import { TYPOGRAPHY_TITLE } from "@/constants/typography";
+import { FAULT_AREAS, FAULT_REASONS, recordFault } from "@/plugins/faults";
 
 /**
  * The settings-section registry (spec 010 §Routes: the settings surface).
  *
  * **One registry, two readers**: the settings view renders it and the command
- * palette lists it, so a section cannot exist in one and not the other. M3.5
- * adds Appearance/Typography/Plugins by `registerSettingsSection`, not by
- * editing a list in two places — which is why the palette must read this and not
- * a hardcoded array (M1.6 requirement 4).
+ * palette lists it, so a section cannot exist in one and not the other. The four
+ * built-ins (Appearance, Typography, Server, Plugins) and a plugin's own section
+ * are the same kind of row in the same map; M3.5 registers the built-ins here so
+ * the palette lists them without a change and the surface names none of them.
+ *
+ * A malformed contribution is **refused**: never listed, recorded as a
+ * `PluginFault` (area `settings`), the same rule `plugins/registry.ts` gives a
+ * slot. A section that throws at render is the surface's own concern — see
+ * `SettingsSectionBoundary`.
  */
 
 export type SettingsSection = {
@@ -55,9 +66,26 @@ export function getSettingsSections(): readonly SettingsSection[] {
 
 /** Add or replace a section; returns a handle that removes exactly this one. */
 export function registerSettingsSection(section: SettingsSection): () => void {
+	const problem = sectionProblem(section);
+	if (problem !== null) {
+		const subject = typeof section?.id === "string" ? section.id : "?";
+		recordFault({
+			area: FAULT_AREAS.settings,
+			reason: FAULT_REASONS.malformedEntry,
+			subject,
+			message: `the settings section "${subject}" has ${problem}`,
+		});
+		return () => {
+			// A refusal has nothing to retract, and the settings registry's handle is
+			// callable (its callers dispose it as a function).
+		};
+	}
 	byId.set(section.id, section);
 	publish();
 	return () => {
+		// A handle removes exactly the section it registered: a later registration
+		// under this id is a different section, and disposing the old handle must
+		// not take it away (the slot registry's contract).
 		if (byId.get(section.id) !== section) return;
 		byId.delete(section.id);
 		publish();
@@ -68,19 +96,36 @@ export function useSettingsSections(): readonly SettingsSection[] {
 	return useSyncExternalStore(subscribeToSettingsSections, getSettingsSections);
 }
 
-/** The built-ins the registry ships; M3.5 grows the surface by registering alongside them. */
+/**
+ * The built-ins the registry ships (M1.6, M3.2, M3.5). They are registered as
+ * built-ins through the same map a plugin writes to, and in the row's own order —
+ * Appearance, Typography, Server, Plugins — so the surface's order is one table
+ * rather than a sequence of numbers spread across the registrations.
+ */
 const BUILTINS: readonly SettingsSection[] = [
 	{
-		id: SETTINGS_SECTION_ID.connect,
-		label: CONNECT_TITLE,
-		component: ConnectSection,
-		order: DEFAULT_SECTION_ORDER,
+		id: SETTINGS_SECTION_ID.appearance,
+		label: APPEARANCE_TITLE,
+		component: AppearanceSection,
+		order: SETTINGS_SECTION_ORDER.appearance,
 	},
 	{
 		id: SETTINGS_SECTION_ID.typography,
 		label: TYPOGRAPHY_TITLE,
 		component: TypographySection,
-		order: DEFAULT_SECTION_ORDER + 1,
+		order: SETTINGS_SECTION_ORDER.typography,
+	},
+	{
+		id: SETTINGS_SECTION_ID.connect,
+		label: CONNECT_TITLE,
+		component: ConnectSection,
+		order: SETTINGS_SECTION_ORDER.connect,
+	},
+	{
+		id: SETTINGS_SECTION_ID.plugins,
+		label: PLUGINS_TITLE,
+		component: PluginsSection,
+		order: SETTINGS_SECTION_ORDER.plugins,
 	},
 ];
 

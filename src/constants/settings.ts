@@ -55,12 +55,28 @@ export const DEFAULT_LAST_ROUTE = ROUTE_PATH.home;
 
 /**
  * The settings sections a built-in registers (spec 010 §Routes). The registry is
- * `src/app/settings/sections.ts`; M3.5 adds Appearance/Plugins there and the
- * command palette lists them without a change. Typography landed with M3.2.
+ * `src/app/settings/sections.ts`; the surface renders it and the command palette
+ * lists it, so this table is the one place the four built-ins are named. M3.5
+ * added Appearance and Plugins (the Plugins section is registered here so M4.5
+ * needs no settings change); Typography landed with M3.2, Server with M1.6.
  */
 export const SETTINGS_SECTION_ID = {
-	connect: "connect",
+	appearance: "appearance",
 	typography: "typography",
+	connect: "connect",
+	plugins: "plugins",
+} as const;
+
+/**
+ * The built-ins' sort order — the row's own list, Appearance first. Named rather
+ * than written at each registration, so a later section inserts by its neighbours
+ * instead of by a magic number.
+ */
+export const SETTINGS_SECTION_ORDER = {
+	appearance: 0,
+	typography: 1,
+	connect: 2,
+	plugins: 3,
 } as const;
 
 /** Sidebar defaults — spec 010 §Persistence's "visible + width"; M2.7 owns its UI. */
