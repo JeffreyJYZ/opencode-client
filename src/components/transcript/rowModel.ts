@@ -9,7 +9,9 @@ import {
 	OUTPUT_MORE_PREFIX,
 	OUTPUT_MORE_SUFFIX,
 	SHELL_STATUS_LABEL,
-	SUBAGENT_DETAIL_FIELDS,
+	SUBAGENT_AGENT_FIELD,
+	SUBAGENT_DESCRIPTION_FIELD,
+	SUBAGENT_MODEL_FIELD,
 	SUBAGENT_SESSION_FIELD,
 	SUBAGENT_TOOL_NAME,
 } from "@/constants/transcriptUi";
@@ -52,18 +54,34 @@ export function isSubagent(row: ToolRow): boolean {
 	return row.name === SUBAGENT_TOOL_NAME;
 }
 
-/** What a subagent row is *about*: its description, else its agent, else nothing. */
-export function subagentDetail(row: ToolRow): string | undefined {
-	for (const field of SUBAGENT_DETAIL_FIELDS) {
-		const value = inputField(row, field);
-		if (value !== undefined) return value;
-	}
-	return undefined;
+/** The subagent's own agent name, when the input carried one. */
+export function subagentAgent(row: ToolRow): string | undefined {
+	return inputField(row, SUBAGENT_AGENT_FIELD);
+}
+
+/** What a subagent row is about, when the input carried one. */
+export function subagentDescription(row: ToolRow): string | undefined {
+	return inputField(row, SUBAGENT_DESCRIPTION_FIELD);
+}
+
+/** The model override a subagent call asked for, when the input carried one. */
+export function subagentModel(row: ToolRow): string | undefined {
+	return inputField(row, SUBAGENT_MODEL_FIELD);
 }
 
 /** The child session a subagent call continues, when the input names one. */
 export function subagentSession(row: ToolRow): string | undefined {
 	return inputField(row, SUBAGENT_SESSION_FIELD);
+}
+
+/**
+ * Whether a subagent call continues an earlier child conversation: the real
+ * tool's input carries `sessionID` only then (`subagent.ts`: "Calls without a
+ * sessionID start a new conversation"), so the marker reads the input's own
+ * shape, never a guess.
+ */
+export function isSubagentContinuation(row: ToolRow): boolean {
+	return subagentSession(row) !== undefined;
 }
 
 /** A shell's status word; an unknown value is shown verbatim rather than hidden. */
