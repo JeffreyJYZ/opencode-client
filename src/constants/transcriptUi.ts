@@ -107,8 +107,12 @@ export const DURATION_SECONDS_DECIMALS = 1;
 /** Between the two figures of a compound duration (`1m 5s`). */
 export const DURATION_PAIR_SEPARATOR = " ";
 
-/** Cost decimals for the statusline's spend figure (M2.8). */
+/** Cost decimals for the statusline's spend figure (M2.8): the maximum kept —
+ * trailing zeros are trimmed, but a nonzero figure never shows fewer than
+ * `SPEND_MIN_DECIMALS`, so a real charge keeps its cents (M2.28). */
 export const COST_DECIMALS = 4;
+/** A nonzero spend always shows at least cents; an exact zero shows `$0`. */
+export const SPEND_MIN_DECIMALS = 2;
 
 /**
  * The per-prompt footer's four fields (M2.16; spec 020 §Transcript:

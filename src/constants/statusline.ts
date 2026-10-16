@@ -27,9 +27,16 @@ export const STATUSLINE_BRANCH_SEPARATOR = ":";
 /** A segment with nothing to show yet. */
 export const STATUSLINE_UNKNOWN = "…";
 
-/** The compact token formatter: `1 234` renders as `1.2k`. */
+/** The compact token formatter: `1 234` renders as `1.2k`, with `M` past a
+ * million and `G` past a billion — one decimal at every rung (M2.28). */
 export const TOKEN_COMPACT_UNIT = 1000;
+export const TOKEN_COMPACT_MILLION_UNIT = 1_000_000;
+export const TOKEN_COMPACT_BILLION_UNIT = 1_000_000_000;
 export const TOKEN_COMPACT_DECIMALS = 1;
+/** The suffix pinned to each rung of the compact ladder, in rung order. */
+export const TOKEN_COMPACT_SUFFIX_K = "k";
+export const TOKEN_COMPACT_SUFFIX_M = "M";
+export const TOKEN_COMPACT_SUFFIX_G = "G";
 
 /** Each segment's tooltip/title: what a click does — copy a value or open a panel. */
 export const STATUSLINE_SEGMENT_TITLE = {
