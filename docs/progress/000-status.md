@@ -8,7 +8,7 @@ Last updated: 2026-10-15 · Current focus: **M3 — Type and theme** (`M3.0`, th
 | M1 Shell and home | 17 / 17 | home → session view end to end; restart restores tabs |
 | M2 Session view | 14 / 17 | a live session streams, interrupts, queues and replies from the keyboard |
 | M3 Type and theme | 8 / 8 | both faces change live and survive a restart; theme applies and clears |
-| M4 Plugin host 0.1 | 18 / 22 | four example plugins install, work and uninstall through the documented API |
+| M4 Plugin host 0.1 | 19 / 22 | four example plugins install, work and uninstall through the documented API |
 | M5 Desktop polish | 5 / 5 | packaged app, updater, `verify-release` exits 0 |
 
 ## M0 — Foundations
@@ -103,7 +103,7 @@ Last updated: 2026-10-15 · Current focus: **M3 — Type and theme** (`M3.0`, th
 - [ ] `M4.19` **A plugin command keybinding is displayed but never bound** — `commands.register` accepts it, `paletteModel.ts:100` shows the chord, and `keymap.ts:29-52` binds only the app own chords, so pressing the displayed chord does nothing; the worst kind of silent no-op, because it presents as functional — found by the plugins review — evidence: a plugin chord that dispatches while the plugin is loaded and releases on dispose, or a refusal recorded at register time
 - [ ] `M4.20` **`notify` degrades silently** — `banner`/`modal` become toasts and `confirm` always resolves `false` (`hostPorts.ts:58-63`), with no caveat where the host table names them — found by the plugins review — evidence: a banner and a modal that reach their own sink, and a `confirm` that returns the answer the user gave (a constant `false` is indistinguishable from a user cancelling)
 - [ ] `M4.21` **`ui.kit` is an empty frozen object** — `kit.ts:15` returns `Object.freeze({})` while spec 040 line 57 names concrete primitives — found by the plugins review — evidence: the primitives exist and are covered, or the primary host table stops naming them
-- [ ] `M4.22` **A comment points at a file that does not exist** — `src/constants/slots.ts:6` names `SlotHosts.test.tsx`, while the real file is `src/constants/slots.test.ts` — found by the plugins review — evidence: the referenced path resolves on disk
+- [x] `M4.22` **A comment points at a file that does not exist** — `src/constants/slots.ts:6` names `SlotHosts.test.tsx`, while the real file is `src/constants/slots.test.ts` — found by the plugins review — evidence: the referenced path resolves on disk
 
 ## M5 — Desktop polish
 

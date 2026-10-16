@@ -2,16 +2,16 @@ import type { SlotName } from "@/plugins/slots";
 
 /**
  * The slot ids, by the place that hosts them (M4.12). Every **non-locked** id in
- * `slots.ts` appears here, so the map is the host registry `SlotHosts.test.tsx`
- * reads: a slot added to the tuple with no host fails there, which is what stops
- * the in-app reference advertising a slot that renders nowhere.
+ * `slots.ts` appears here, and a mount names its slot through this map (`id={SLOT.x}`);
+ * `slots.test.ts` scans the real mount sites and resolves that name back to the slot
+ * it advertises, so a slot added to the tuple with no host fails there — which is what
+ * stops the in-app reference advertising a slot that renders nowhere.
  *
  * The locked two (`app.substrate`, `app.builtins`) are deliberately absent — M4.17
  * mounts the substrate through the same `register`, and the reference keeps both
  * flagged `locked`.
  *
- * A value is a `SlotName`, so a typo is a compile error, and `Object.values` is the
- * set the coverage test compares against the tuple.
+ * A value is a `SlotName`, so a typo is a compile error.
  */
 export const SLOT = {
 	topnavLeft: "topnav.left",
