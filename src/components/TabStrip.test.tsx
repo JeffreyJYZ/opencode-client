@@ -1,10 +1,14 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { Providers } from "@/app/providers";
-import { sessionTab } from "@/app/tabModel";
+import { sessionTab, settingsTab } from "@/app/tabModel";
 import { openTab, resetTabs } from "@/app/tabs";
-import { TAB_DRAG_MIME } from "@/components/Tab";
+import { TAB_DRAG_MIME, tabTitle } from "@/components/Tab";
 import { TabStrip } from "@/components/TabStrip";
+import { SETTINGS_TAB_LABEL } from "@/constants/tabs";
+import { ClientProvider } from "@/session/ClientProvider";
+import { flush } from "@/test/act";
+import { fakeProbe } from "@/test/session";
 
 const A = "ses_strip_a";
 const B = "ses_strip_b";
@@ -72,4 +76,42 @@ describe("TabStrip", () => {
 		fireEvent.mouseDown(document.body);
 		expect(screen.queryByRole("menu")).toBeNull();
 	});
+
+	test("a session tab shows the held title", async () => {
+		openTab(sessionTab(A));
+		renderStripWithSessions([{ id: A, title: "Chrome work", parentID: undefined }]);
+		await flush();
+		expect(screen.getByText("Chrome work")).toBeDefined();
+		expect(screen.queryByText(A)).toBeNull();
+	});
+
+	test("an untitled or unheld session falls back to the id", async () => {
+		openTab(sessionTab(A));
+		openTab(sessionTab(B));
+		renderStripWithSessions([{ id: A, title: "  ", parentID: undefined }]);
+		await flush();
+		expect(screen.getByText(A)).toBeDefined();
+		expect(screen.getByText(B)).toBeDefined();
+	});
+
+	test("tabTitle prefers the held title and keeps the settings label", () => {
+		const titles = new Map([[A, "Chrome work"]]);
+		expect(tabTitle(sessionTab(A), titles)).toBe("Chrome work");
+		expect(tabTitle(sessionTab(B), titles)).toBe(B);
+		expect(tabTitle(sessionTab(A))).toBe(A);
+		expect(tabTitle(settingsTab(), titles)).toBe(SETTINGS_TAB_LABEL);
+	});
 });
+
+function renderStripWithSessions(sessions: unknown[]) {
+	const client = {
+		session: { list: () => Promise.resolve({ data: sessions }) },
+		server: { info: () => Promise.resolve({ version: "2.0.29" }) },
+	};
+	const probe = fakeProbe("resolve");
+	return render(
+		<ClientProvider client={client as never} probe={probe.run}>
+			<TabStrip />
+		</ClientProvider>,
+	);
+}

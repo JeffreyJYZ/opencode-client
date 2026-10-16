@@ -30,8 +30,10 @@ import {
 
 export const TAB_DRAG_MIME = "application/x-oc-tab-index";
 
-export function tabTitle(tab: TabState): string {
-	return tab.kind === TAB_KIND.settings ? SETTINGS_TAB_LABEL : tab.id;
+export function tabTitle(tab: TabState, titles?: ReadonlyMap<string, string>): string {
+	if (tab.kind === TAB_KIND.settings) return SETTINGS_TAB_LABEL;
+	const title = titles?.get(tab.id)?.trim();
+	return title === undefined || title === "" ? tab.id : title;
 }
 
 export type TabProps = {
@@ -40,6 +42,8 @@ export type TabProps = {
 	readonly active: boolean;
 	readonly running: boolean;
 	readonly unread: boolean;
+	/** Session titles the app already holds (id → title); absent ids read as the id. */
+	readonly titles?: ReadonlyMap<string, string>;
 	readonly onActivate: (tab: TabState) => void;
 	readonly onClose: (tab: TabState) => void;
 	readonly onMove: (from: number, to: number) => void;
@@ -51,11 +55,12 @@ export function Tab({
 	active,
 	running,
 	unread,
+	titles,
 	onActivate,
 	onClose,
 	onMove,
 }: TabProps) {
-	const title = tabTitle(tab);
+	const title = tabTitle(tab, titles);
 	const menu = useSurfaceMenu(tabKey(tab));
 	const items = tabMenuItems(tab);
 	const onAuxClick = (event: MouseEvent) => {

@@ -5,6 +5,7 @@ import { activateTabAndGo, closeTabAndGo } from "@/app/tabSync";
 import { moveTab } from "@/app/tabs";
 import { useTabs } from "@/app/useTabs";
 import { Tab, tabTitle } from "@/components/Tab";
+import { useTabTitles } from "@/components/tabTitles";
 import { useMenuDismiss } from "@/components/useMenuDismiss";
 import { LAYER } from "@/constants/layers";
 import { OVERFLOW_LABEL, OVERFLOW_TITLE } from "@/constants/tabs";
@@ -73,6 +74,9 @@ const OVERFLOW_BUTTON_STYLE: CSSProperties = {
 export function TabStrip() {
 	const { tabs, activeIndex, unread } = useTabs();
 	const running = useSessionActivity();
+	// The strip's titles are the sessions list the app already holds (M1.2) —
+	// one read for the whole strip, never one per tab. See `useTabTitles`.
+	const titles = useTabTitles();
 	const [menuOpen, setMenuOpen] = useState(false);
 	const stripRef = useRef<HTMLDivElement>(null);
 	const overflowRef = useRef<HTMLDivElement>(null);
@@ -96,6 +100,7 @@ export function TabStrip() {
 						active={index === activeIndex}
 						running={tab.kind === "session" && running.has(tab.id)}
 						unread={unread.has(tabKey(tab))}
+						titles={titles}
 						onActivate={activateTabAndGo}
 						onClose={closeTabAndGo}
 						onMove={moveTab}
@@ -126,7 +131,7 @@ export function TabStrip() {
 									activateTabAndGo(tab);
 								}}
 							>
-								{tabTitle(tab)}
+								{tabTitle(tab, titles)}
 							</button>
 						))}
 					</div>
