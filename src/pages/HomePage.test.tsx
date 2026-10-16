@@ -1,11 +1,12 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { getTabSnapshot, resetTabs } from "@/app/tabs";
 import { ROUTE_PATH } from "@/constants/routes";
 import { TARGET_GLOBAL } from "@/constants/server";
 import { TAB_KIND } from "@/constants/tabs";
 import { HomePage } from "@/pages/HomePage";
 import { ClientProvider } from "@/session/ClientProvider";
+import { flush } from "@/test/act";
 import { fakeProbe } from "@/test/session";
 
 /** RTL installs auto-cleanup once per process; every later importer needs its own. */
@@ -90,28 +91,32 @@ describe("HomePage", () => {
 				<HomePage />
 			</ClientProvider>,
 		);
-		expect(await screen.findByText("Root one")).toBeDefined();
+		await flush();
+		expect(screen.getByText("Root one")).toBeDefined();
 		expect(screen.queryByText("Child one")).toBeNull();
 		expect((captured as { parentID: unknown }).parentID).toBeNull();
 	});
 
 	test("empty state names the url and the server version", async () => {
 		renderHome([]);
-		const node = await screen.findByText(/Connected to/);
+		await flush();
+		const node = screen.getByText(/Connected to/);
 		expect(node.textContent).toContain(URL);
 		expect(node.textContent).toContain("(v2.0.29)");
 	});
 
 	test("failed-list state is distinct from empty and names the target", async () => {
 		renderHome([], { listThrows: true });
-		const node = await screen.findByText(/Could not load sessions from/);
+		await flush();
+		const node = screen.getByText(/Could not load sessions from/);
 		expect(node.textContent).toContain(URL);
 		expect(screen.queryByText(/Connected to/)).toBeNull();
 	});
 
 	test("clicking a recent row opens the tab and lands on its route", async () => {
 		renderHome([rootSession]);
-		const btn = await screen.findByText("Root one");
+		await flush();
+		const btn = screen.getByText("Root one");
 		act(() => fireEvent.click(btn));
 		expect(window.location.pathname).toBe(`/session/${rootSession.id}`);
 		const snap = getTabSnapshot();
@@ -121,7 +126,8 @@ describe("HomePage", () => {
 
 	test("settings entry opens the settings tab through the store", async () => {
 		renderHome([]);
-		await waitFor(() => expect(screen.queryByText(/Loading/)).toBeNull());
+		await flush();
+		expect(screen.queryByText(/Loading/)).toBeNull();
 		const settingsBtn = screen.getByText("Settings");
 		act(() => fireEvent.click(settingsBtn));
 		expect(window.location.pathname).toBe(ROUTE_PATH.settings);

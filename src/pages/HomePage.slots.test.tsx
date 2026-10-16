@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import { resetTabs } from "@/app/tabs";
 import { ROUTE_PATH } from "@/constants/routes";
 import { TARGET_GLOBAL } from "@/constants/server";
@@ -7,6 +7,7 @@ import { HomePage } from "@/pages/HomePage";
 import { register as registerPlugin } from "@/plugins/registry";
 import type { SlotName } from "@/plugins/slots";
 import { ClientProvider } from "@/session/ClientProvider";
+import { flush } from "@/test/act";
 import { fakeProbe } from "@/test/session";
 
 afterEach(cleanup);
@@ -48,8 +49,9 @@ function renderHome(sessions: unknown[]) {
 describe("HomePage", () => {
 	test("home slots empty render nothing", async () => {
 		renderHome([]);
-		// wait for settle
-		await waitFor(() => expect(screen.queryByText(/Loading/)).toBeNull());
+		// The session list is a promise chain, not a timer: drain it, never poll (M1.4d).
+		await flush();
+		expect(screen.queryByText(/Loading/)).toBeNull();
 		// empty slotted regions contribute zero nodes beyond main; check specific markers absent
 		expect(screen.queryByText("contrib-hero")).toBeNull();
 		expect(screen.queryByText("contrib-widget")).toBeNull();
@@ -79,7 +81,8 @@ describe("HomePage", () => {
 		];
 		try {
 			renderHome([]);
-			await waitFor(() => expect(screen.getByText("contrib-hero")).toBeDefined());
+			await flush();
+			expect(screen.getByText("contrib-hero")).toBeDefined();
 			expect(screen.getByText("contrib-widget")).toBeDefined();
 			expect(screen.getByText("contrib-action")).toBeDefined();
 		} finally {
