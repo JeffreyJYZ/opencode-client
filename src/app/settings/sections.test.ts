@@ -9,6 +9,7 @@ import {
 import { APPEARANCE_TITLE } from "@/constants/appearance";
 import { CONNECT_TITLE } from "@/constants/connect";
 import { PLUGINS_TITLE } from "@/constants/plugins";
+import { REFERENCE_TITLE } from "@/constants/reference";
 import { SETTINGS_SECTION_ID } from "@/constants/settings";
 import { TYPOGRAPHY_TITLE } from "@/constants/typography";
 import { VERSION_SECTION_LABEL } from "@/constants/version";
@@ -24,6 +25,7 @@ const BUILTIN_IDS = [
 	SETTINGS_SECTION_ID.typography,
 	SETTINGS_SECTION_ID.connect,
 	SETTINGS_SECTION_ID.plugins,
+	SETTINGS_SECTION_ID.reference,
 	SETTINGS_SECTION_ID.version,
 ];
 
@@ -41,6 +43,7 @@ describe("the settings-section registry", () => {
 			TYPOGRAPHY_TITLE,
 			CONNECT_TITLE,
 			PLUGINS_TITLE,
+			REFERENCE_TITLE,
 			VERSION_SECTION_LABEL,
 		]);
 	});
