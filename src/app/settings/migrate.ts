@@ -68,11 +68,24 @@ function v2ToV3(document: SettingsDocument): SettingsDocument {
 	return { ...document, [SETTING_KEYS.transcriptScroll]: {} };
 }
 
+/**
+ * The version-3 blob. Nothing in v3 carried a theme choice — the theme service
+ * lands with M3.4 — so the step introduces `settings.theme` as explicitly absent
+ * (`null`, the built-in default) rather than leaving the field's meaning to
+ * "whatever a reader defaults to". Everything the blob carried is copied through
+ * untouched.
+ */
+function v3ToV4(document: SettingsDocument): SettingsDocument {
+	if (SETTING_KEYS.theme in document) return document;
+	return { ...document, [SETTING_KEYS.theme]: null };
+}
+
 /** Registry keyed by source version: `MIGRATIONS[from]` produces `from + 1`. */
 export const SETTINGS_MIGRATIONS: Readonly<Record<number, SettingsMigration>> = {
 	[SETTINGS_BASE_VERSION]: v0ToV1,
 	[SETTINGS_BASE_VERSION + 1]: v1ToV2,
 	[SETTINGS_BASE_VERSION + 2]: v2ToV3,
+	[SETTINGS_BASE_VERSION + 3]: v3ToV4,
 };
 
 export type MigrationOutcome =

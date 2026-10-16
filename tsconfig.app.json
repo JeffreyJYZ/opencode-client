@@ -8,6 +8,10 @@
 		"allowArbitraryExtensions": true,
 		"skipLibCheck": true,
 
+		/* The vendored theme document is imported as data (`theme/themes.ts`) so the
+		   built-in themes are read out of it rather than re-typed. */
+		"resolveJsonModule": true,
+
 		/* Bundler mode */
 		"moduleResolution": "bundler",
 		"allowImportingTsExtensions": true,

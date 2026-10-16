@@ -36,6 +36,8 @@ export type SettingsData = {
 	readonly lastOpened: string | null;
 	readonly sidebar: SidebarState;
 	readonly fonts: FontPreferences;
+	/** The id of the theme in force, or `null` for the built-in default (M3.4). */
+	readonly theme: string | null;
 	readonly recentDirectories: readonly string[];
 	/** The connect flow's stored target, or `null` before one is stored. */
 	readonly server: ServerTarget | null;
@@ -63,6 +65,9 @@ export const DEFAULT_SETTINGS: SettingsData = {
 	recentDirectories: [],
 	server: null,
 	transcriptScroll: NO_TAB_SCROLL,
+	// `theme` is last on purpose: this literal's key order is the order the
+	// migration chain produces, and `storage.test.ts` compares the two (M3.4).
+	theme: null,
 };
 
 /** A document holding the defaults at the current version. */
@@ -81,6 +86,7 @@ export function settingsFromDocument(document: SettingsDocument): SettingsData {
 		lastOpened: normalizeLastOpened(document[SETTING_KEYS.lastOpened]),
 		sidebar: normalizeSidebar(document[SETTING_KEYS.sidebar]),
 		fonts: normalizeFonts(document[SETTING_KEYS.fonts]),
+		theme: normalizeTheme(document[SETTING_KEYS.theme]),
 		recentDirectories: normalizeDirectories(document[SETTING_KEYS.recentDirectories]),
 		server: normalizeServer(document[SETTING_KEYS.server]),
 		transcriptScroll: normalizeTabScroll(document[SETTING_KEYS.transcriptScroll]),
@@ -112,6 +118,16 @@ function normalizeFontRole(role: FontRole, raw: unknown): FontRolePreference {
 			typeof family === "string" && family.trim() !== "" ? family.trim() : fallback.family,
 		size: typeof size === "number" ? clampFontSize(role, size) : fallback.size,
 	};
+}
+
+/**
+ * The stored theme id, or `null`. It is **not** checked against the registry
+ * here: a plugin's theme is registered when its plugin loads, after this read, so
+ * an unknown id is a normal state to boot through — `applyAppearance()` resolves
+ * it and falls back to the built-in, leaving the id stored for that later load.
+ */
+function normalizeTheme(raw: unknown): string | null {
+	return typeof raw === "string" && raw.trim() !== "" ? raw.trim() : null;
 }
 
 function normalizeDirectories(raw: unknown): readonly string[] {

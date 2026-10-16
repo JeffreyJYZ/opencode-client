@@ -1,4 +1,8 @@
-/* Primitive hue scales read from packages/tui/src/theme/assets/v2/opencode.json. */
+/* Primitive hue scales, read from src/theme/vendor/opencode.json — the **dark**
+   mode, which is the app's default. The light mode's scales are the `light`
+   built-in theme's variables (M3.4), written by the theme service into its one
+   `<style>` element, so this block is only the pre-JS frame: the first paint
+   happens before any module runs. `themes.test.ts` fails if the two disagree. */
 :root {
 	--oc-num-blue-100: #82b4fb;
 	--oc-num-blue-200: #5c9cf5;
@@ -63,70 +67,4 @@
 	--oc-num-red-700: #591921;
 	--oc-num-red-800: #410a13;
 	--oc-num-red-900: #280207;
-}
-
-[data-theme="light"] {
-	--oc-num-blue-100: #226bcc;
-	--oc-num-blue-200: #3b7dd8;
-	--oc-num-blue-300: #518ee4;
-	--oc-num-blue-400: #67a0f0;
-	--oc-num-blue-500: #7db1fc;
-	--oc-num-blue-600: #9cc3fa;
-	--oc-num-blue-700: #b7d4fd;
-	--oc-num-blue-800: #d4e5fd;
-	--oc-num-blue-900: #f0f6fe;
-	--oc-num-cyan-100: #077786;
-	--oc-num-cyan-200: #318795;
-	--oc-num-cyan-300: #4c97a4;
-	--oc-num-cyan-400: #64a8b4;
-	--oc-num-cyan-500: #7bb8c4;
-	--oc-num-cyan-600: #92c9d4;
-	--oc-num-cyan-700: #a8dbe4;
-	--oc-num-cyan-800: #bfecf4;
-	--oc-num-cyan-900: #e3fafe;
-	--oc-num-green-100: #1f8c44;
-	--oc-num-green-200: #3d9a57;
-	--oc-num-green-300: #55a96a;
-	--oc-num-green-400: #6cb77c;
-	--oc-num-green-500: #81c68f;
-	--oc-num-green-600: #96d5a3;
-	--oc-num-green-700: #ace4b6;
-	--oc-num-green-800: #c1f3ca;
-	--oc-num-green-900: #e1fee6;
-	--oc-num-gray-100: #000000;
-	--oc-num-gray-200: #1a1a1a;
-	--oc-num-gray-300: #4e4e4e;
-	--oc-num-gray-400: #8a8a8a;
-	--oc-num-gray-500: #bebebe;
-	--oc-num-gray-600: #f5f5f5;
-	--oc-num-gray-700: #fafafa;
-	--oc-num-gray-800: #ffffff;
-	--oc-num-gray-900: #ffffff;
-	--oc-num-orange-100: #c7811e;
-	--oc-num-orange-200: #d68c27;
-	--oc-num-orange-300: #df9a44;
-	--oc-num-orange-400: #e8a85c;
-	--oc-num-orange-500: #f1b671;
-	--oc-num-orange-600: #fac386;
-	--oc-num-orange-700: #fcd4a8;
-	--oc-num-orange-800: #fee3c7;
-	--oc-num-orange-900: #fef3e7;
-	--oc-num-purple-100: #6b47a7;
-	--oc-num-purple-200: #7b5bb6;
-	--oc-num-purple-300: #8c6fc5;
-	--oc-num-purple-400: #9d83d4;
-	--oc-num-purple-500: #af98e3;
-	--oc-num-purple-600: #c1acf2;
-	--oc-num-purple-700: #d3c3fc;
-	--oc-num-purple-800: #e4dbfd;
-	--oc-num-purple-900: #f6f3ff;
-	--oc-num-red-100: #c20f26;
-	--oc-num-red-200: #d1383d;
-	--oc-num-red-300: #e05352;
-	--oc-num-red-400: #ee6b68;
-	--oc-num-red-500: #fc837d;
-	--oc-num-red-600: #fda19b;
-	--oc-num-red-700: #fcbeb9;
-	--oc-num-red-800: #fed8d5;
-	--oc-num-red-900: #fff2f0;
 }

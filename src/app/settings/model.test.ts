@@ -95,6 +95,14 @@ describe("settingsFromDocument — hostile or missing fields", () => {
 			"/settings",
 		);
 	});
+
+	test("the stored theme is a trimmed id or the built-in default (M3.4)", () => {
+		expect(settingsFromDocument({}).theme).toBeNull();
+		expect(settingsFromDocument({ [SETTING_KEYS.theme]: " gruvbox " }).theme).toBe("gruvbox");
+		expect(settingsFromDocument({ [SETTING_KEYS.theme]: "" }).theme).toBeNull();
+		expect(settingsFromDocument({ [SETTING_KEYS.theme]: 7 }).theme).toBeNull();
+		expect(settingsFromDocument({ [SETTING_KEYS.theme]: { id: "gruvbox" } }).theme).toBeNull();
+	});
 });
 
 describe("freshDocument", () => {
