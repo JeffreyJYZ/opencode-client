@@ -37,7 +37,9 @@ export type ComposerIdentityProps = {
 
 export function ComposerIdentity(props: ComposerIdentityProps) {
 	// `modelOptionKey` is `providerID/id`: an `id` alone is not unique across providers,
-	// so both the key, the value and this lookup use the pair (see `composerReads.ts`).
+	// so the key, the value, this lookup **and the option's own text** all use the pair
+	// (see `composerReads.ts`). Key/value/text are one string on purpose — the friendly
+	// `name` is dropped, because a bare name cannot tell two providers' same `id` apart.
 	const current = props.models.find(
 		(model) => model.providerID === props.model?.providerID && model.id === props.model?.id,
 	);
@@ -86,7 +88,7 @@ export function ComposerIdentity(props: ComposerIdentityProps) {
 						<option value="">—</option>
 						{props.models.map((model) => (
 							<option key={modelOptionKey(model)} value={modelOptionKey(model)}>
-								{model.name}
+								{modelOptionKey(model)}
 							</option>
 						))}
 					</select>
