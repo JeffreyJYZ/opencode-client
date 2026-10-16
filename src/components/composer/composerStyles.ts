@@ -76,6 +76,16 @@ export const COMPOSER_CONTROL_STYLE: CSSProperties = {
 	outlineColor: "var(--oc-focus)",
 };
 
+/** The Send/Interrupt end of the toolbar line (M2.30): `marginLeft: auto` pins it
+ * to the row's end, and right-aligns it when it wraps below the identity controls. */
+export const COMPOSER_SEND_GROUP_STYLE: CSSProperties = {
+	display: "flex",
+	alignItems: "center",
+	flexWrap: "wrap",
+	gap: "var(--oc-space-2)",
+	marginLeft: "auto",
+};
+
 /** The menu: above its own box, in the strip's layer, over the transcript. */
 export const COMPOSER_MENU_STYLE: CSSProperties = {
 	position: "absolute",
