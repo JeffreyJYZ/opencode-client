@@ -8,6 +8,7 @@ import {
 import { setSidebarWidth } from "@/app/settings/sidebarActions";
 import { useSettings } from "@/app/settings/useSettings";
 import { useActiveSessionId } from "@/app/useActiveSession";
+import { Slot } from "@/components/Slot";
 import { SidebarPanel } from "@/components/sidebar/SidebarPanel";
 import { SidebarDataContext } from "@/components/sidebar/sidebarData";
 import {
@@ -16,6 +17,7 @@ import {
 	SIDEBAR_STYLE,
 } from "@/components/sidebar/sidebarStyles";
 import { SIDEBAR_LABEL, SIDEBAR_RESIZE_LABEL } from "@/constants/sidebar";
+import { SLOT } from "@/constants/slots";
 import { listPanels, subscribeToPanels } from "@/plugins/panels";
 import { usePanelData } from "@/session/usePanelData";
 
@@ -30,6 +32,18 @@ import { usePanelData } from "@/session/usePanelData";
  * the contributions and there is no second route. The data is read **once**
  * (`usePanelData`) and provided through `SidebarDataContext`, so a body that
  * needs figures reaches them without fetching.
+ *
+ * **Two registries meet in this column, and a panel author must pick the right
+ * one (M4.12).** `panels.register({ id, title, component, order? })` is the
+ * *panel* registry: it draws the frame (`SidebarPanel`) from the registered
+ * `title`, so a contribution carries chrome, and the built-in five (M2.7) come
+ * from it. The *slot* `session.sidebar.panels` is the plugin `ui.register` route:
+ * a bare component with no chrome, rendered below the panels. Both are advertised
+ * (spec 040 §Slots), so both render — reach for `panels.register` for a titled
+ * region and for the slot to add a node to the column. They stay two because the
+ * panel's `title`/`order` have nowhere to go in a bare slot contribution; the
+ * slot below used to be advertised with no host at all, which is the defect M4.12
+ * closes.
  *
  * The drag listens on `window` while it is live, so the pointer may leave the
  * thin handle without losing the resize; the width is written on every move, and
@@ -87,6 +101,7 @@ export function Sidebar() {
 							<entry.component />
 						</SidebarPanel>
 					))}
+					<Slot id={SLOT.sessionSidebarPanels} />
 				</SidebarDataContext.Provider>
 			</div>
 		</aside>
