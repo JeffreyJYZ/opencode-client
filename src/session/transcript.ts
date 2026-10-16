@@ -41,6 +41,13 @@ export type TextRow = RowBase & {
 	readonly kind: typeof ROW_KIND.prose | typeof ROW_KIND.reasoning;
 	readonly text: Payload;
 	readonly ended: boolean;
+	/**
+	 * When the part finished (M2.17), from the reasoning `.ended` frame's own
+	 * `created` or a refetched part's `time.completed`. Absent while a part streams,
+	 * which is what makes a duration honest: it is only ever a measured pair
+	 * (`created` → `endedAt`), never an invented one.
+	 */
+	readonly endedAt?: number;
 };
 
 /** One tool call. A subagent call is this row with a child session in its input (M2.2). */

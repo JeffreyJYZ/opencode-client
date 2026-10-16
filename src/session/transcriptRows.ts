@@ -76,9 +76,13 @@ function assistantRows(message: SessionMessageAssistant): TranscriptRow[] {
 		}
 		const isReasoning = part.type === "reasoning";
 		const ordinal = isReasoning ? reasoning++ : prose++;
+		// A reasoning part carries its own `time` pair (`reasoning.started`/`.ended`
+		// write it); a text part carries none. The pair is the duration M2.17 shows, so
+		// it is read here rather than from the message's own span.
+		const partTime = part.type === "reasoning" ? part.time : undefined;
 		rows.push({
 			id: `${message.id}:${isReasoning ? "r" : "t"}${ordinal}`,
-			created: message.time.created,
+			created: partTime?.created ?? message.time.created,
 			seq: 0,
 			kind: isReasoning ? ROW_KIND.reasoning : ROW_KIND.prose,
 			text: capPayload(part.text),
@@ -86,6 +90,7 @@ function assistantRows(message: SessionMessageAssistant): TranscriptRow[] {
 			// has not completed (`time.completed` absent) may still be streaming, so
 			// its refetched parts keep accepting deltas.
 			ended: message.time.completed !== undefined,
+			endedAt: partTime?.completed,
 		});
 	}
 	if (message.finish !== undefined) {

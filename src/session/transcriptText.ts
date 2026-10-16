@@ -56,7 +56,6 @@ function textRow(
 		ended,
 	};
 }
-
 function freshTextRow(event: TextEvent, id: string, kind: "prose" | "reasoning"): TextRow {
 	return textRow(event, id, kind, capPayload(""), false);
 }
@@ -90,6 +89,9 @@ export function reduceText(transcript: Transcript, event: TextEvent): Transcript
 				...base,
 				text: capPayload(event.data.text),
 				ended: true,
+				// The pair that makes a duration measurable (M2.17): the row's own
+				// `created` is the `.started` frame's, and this is the `.ended` frame's.
+				endedAt: createdAtOf(event),
 			});
 		}
 		default:
