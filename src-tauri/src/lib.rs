@@ -113,7 +113,14 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             native::open_external,
             native::open_in_editor,
-            native::notify_turn_end
+            native::notify_turn_end,
+            native::fs::commands::native_data_root,
+            native::fs::commands::native_realpath,
+            native::fs::commands::native_read_text,
+            native::fs::commands::native_write_text,
+            native::fs::commands::native_list,
+            native::fs::commands::native_remove,
+            native::fs::commands::native_mkdirp
         ])
         .run(tauri::generate_context!())
         .expect("the opencode client shell failed to run");
