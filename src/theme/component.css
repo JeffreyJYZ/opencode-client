@@ -2,7 +2,10 @@
 
 :root {
 	--oc-prompt-rail: var(--oc-surface-raised-high);
-	--oc-band-surface: var(--oc-surface-raised);
+	/* The user band sits two steps above the page (gray-500, not raised), so it
+	   reads as a band at a glance in both modes: gray-600 still measures ~1.1
+	   against the page. Only UserBand reads this token. */
+	--oc-band-surface: var(--oc-num-gray-500);
 	/* The modal scrim: a translucent black shared by every overlay. No semantic
 	   token names one, so it is hand-set here rather than invented as a hue. */
 	--oc-scrim: rgb(0 0 0 / 50%);
