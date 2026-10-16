@@ -10,7 +10,7 @@
 		"tauri": "tauri",
 		"fix": "biome check . --write",
 		"e2e": "bun scripts/e2e.ts",
-		"verify": "tsc -b && biome check . && bun scripts/check-file-length.ts && cargo fmt --check --manifest-path src-tauri/Cargo.toml && cargo check --manifest-path src-tauri/Cargo.toml && bun test"
+		"verify": "tsc -b && biome check . && bun scripts/check-file-length.ts && cargo fmt --check --manifest-path src-tauri/Cargo.toml && cargo check --manifest-path src-tauri/Cargo.toml && cargo test --manifest-path src-tauri/Cargo.toml && bun test"
 	},
 	"dependencies": {
 		"@opencode/client": "^2.0.29",

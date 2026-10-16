@@ -30,6 +30,7 @@ afterEach(() => {
 
 describe("the row's native actions report their outcome", () => {
 	test("a copy the clipboard accepts says so as a status", async () => {
+		resetToasts();
 		const written: string[] = [];
 		stubClipboard({
 			writeText: async (value: string) => {
@@ -38,8 +39,10 @@ describe("the row's native actions report their outcome", () => {
 		});
 		await copyToClipboard("payload");
 		expect(written).toEqual(["payload"]);
-		expect(getToasts().at(-1)).toEqual({
-			id: 1,
+		// Not the toast's id: it is a process-wide counter, so its value depends on
+		// which file ran before this one. The behaviour is the role and the message.
+		expect(getToasts()).toHaveLength(1);
+		expect(getToasts().at(-1)).toMatchObject({
 			role: TOAST_ROLE.status,
 			message: TOAST_COPIED,
 		});
