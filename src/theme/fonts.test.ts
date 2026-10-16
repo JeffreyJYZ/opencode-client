@@ -2,6 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
+	BUNDLED_CODE_FONT_FAMILY,
 	CODE_FONT_SIZE_MAX,
 	CODE_FONT_SIZE_MIN,
 	DEFAULT_CODE_FONT_FAMILY,
@@ -87,7 +88,7 @@ describe("foundations.css agrees with the font constants", () => {
 		expect(css).toContain("--oc-font-ui: var(--oc-font-ui-family)");
 		// Biome wraps a long declaration onto its own line, so match across whitespace.
 		expect(css.replace(/\s+/g, " ")).toContain(
-			'--oc-font-code: var(--oc-font-code-family), "Geist Mono"',
+			`--oc-font-code: var(--oc-font-code-family), "${BUNDLED_CODE_FONT_FAMILY}"`,
 		);
 	});
 });

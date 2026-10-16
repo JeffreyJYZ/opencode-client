@@ -8,6 +8,27 @@
 	font-display: swap;
 }
 
+/* The two bundled faces (spec 030 §Two font roles, M3.1). Both are variable cuts
+   with a single wght axis, so one declaration per family covers 400–900 and the
+   interface section can pick 400/500/600 without a static file each. Declaring a
+   family that also exists on the host (Geist, Geist Mono) makes the bundled copy
+   win for this origin — the shipped build then never depends on the machine. */
+@font-face {
+	font-family: "Geist";
+	src: url("../assets/fonts/geist/Geist-VariableFont_wght.ttf") format("truetype");
+	font-weight: 100 900;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Geist Mono";
+	src: url("../assets/fonts/geist-mono/GeistMono-VariableFont_wght.ttf") format("truetype");
+	font-weight: 100 900;
+	font-style: normal;
+	font-display: swap;
+}
+
 *,
 *::before,
 *::after {
@@ -79,6 +100,19 @@ code,
 
 .oc-app-mark {
 	font-family: var(--oc-font-mark);
+}
+
+/* The typography section's live sample (M3.2): the same text rendered in each
+   role, so a choice is visible before it is committed. The family comes from the
+   role token here — the component may not name one (the font guard forbids it). */
+.oc-font-sample {
+	font-family: var(--oc-font-ui);
+	font-size: var(--oc-font-ui-size);
+}
+
+.oc-font-sample-code {
+	font-family: var(--oc-font-code);
+	font-size: var(--oc-font-code-size);
 }
 
 .oc-row {

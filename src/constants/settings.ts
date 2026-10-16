@@ -53,11 +53,12 @@ export const DEFAULT_LAST_ROUTE = ROUTE_PATH.home;
 
 /**
  * The settings sections a built-in registers (spec 010 §Routes). The registry is
- * `src/app/settings/sections.ts`; M3.5 adds Appearance/Typography/Plugins there
- * and the command palette lists them without a change.
+ * `src/app/settings/sections.ts`; M3.5 adds Appearance/Plugins there and the
+ * command palette lists them without a change. Typography landed with M3.2.
  */
 export const SETTINGS_SECTION_ID = {
 	connect: "connect",
+	typography: "typography",
 } as const;
 
 /** Sidebar defaults — spec 010 §Persistence's "visible + width"; M2.7 owns its UI. */
@@ -73,6 +74,8 @@ export const DEFAULT_UI_FONT_FAMILY = "Geist";
 export const DEFAULT_CODE_FONT_FAMILY = "GeistMono Nerd Font";
 export const DEFAULT_UI_FONT_SIZE = 15;
 export const DEFAULT_CODE_FONT_SIZE = 13;
+/** The bundled code face: the fallback behind the machine's Nerd Font (M3.1). */
+export const BUNDLED_CODE_FONT_FAMILY = "Geist Mono";
 export const UI_FONT_SIZE_MIN = 12;
 export const UI_FONT_SIZE_MAX = 20;
 export const CODE_FONT_SIZE_MIN = 11;
