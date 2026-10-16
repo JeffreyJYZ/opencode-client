@@ -4,9 +4,16 @@ import type {
 	SessionMessageInfo,
 	ToolContent,
 } from "@opencode/client";
-import { DELIVERY, ROW_KIND, TOOL_ANCHOR_FIELD, TOOL_STATUS } from "@/constants/transcript";
+import {
+	DELIVERY,
+	FINISH_TOOL_CALLS,
+	ROW_KIND,
+	TOOL_ANCHOR_FIELD,
+	TOOL_STATUS,
+} from "@/constants/transcript";
 import { capInput, capPayload, capString } from "@/session/payloadCaps";
 import type { TranscriptRow } from "@/session/transcript";
+import { footerID } from "@/session/transcriptFooter";
 
 /**
  * The server's own messages, mapped to the rows M2.2 renders (spec 050 §Event
@@ -88,14 +95,20 @@ function assistantRows(message: SessionMessageAssistant): TranscriptRow[] {
 			ended: message.time.completed !== undefined,
 		});
 	}
-	if (message.finish !== undefined) {
+	// The footer is the message's own four fields (M2.16), and a `tool-calls` message
+	// carries none — the same guard the stream's `step.ended` applies.
+	if (message.finish !== undefined && message.finish !== FINISH_TOOL_CALLS) {
+		const completed = message.time.completed;
 		rows.push({
-			id: `${message.id}:f`,
-			created: message.time.completed ?? message.time.created,
+			id: footerID(message.id),
+			created: completed ?? message.time.created,
 			seq: 0,
 			kind: ROW_KIND.footer,
-			finish: message.finish,
-			cost: message.cost,
+			agent: message.agent,
+			model: message.model,
+			durationMs:
+				completed === undefined ? undefined : Math.max(0, completed - message.time.created),
+			outputTokens: message.tokens?.output,
 		});
 	}
 	return rows;

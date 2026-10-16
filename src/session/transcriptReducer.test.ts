@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { DELIVERY, ROW_KIND } from "@/constants/transcript";
 import { sessionIDOf } from "@/session/eventEnvelope";
-import { emptyTranscript, type Transcript } from "@/session/transcript";
+import { emptyTranscript, type FooterRow, type Transcript } from "@/session/transcript";
 import { reduceTranscript } from "@/session/transcriptReducer";
 import { capturedFrames, sessionOfType } from "@/test/capture";
 
@@ -72,16 +72,31 @@ describe("reduceTranscript — against captured frames", () => {
 		expect(row.status).toBe("exited");
 	});
 
-	test("a step footer is appended once per assistant message", () => {
-		const footers = reduce(streaming).rows.filter((row) => row.kind === ROW_KIND.footer);
+	test("a step footer carries the step's own agent, model, span and tokens", () => {
+		const footers = reduce(streaming).rows.filter(
+			(row) => row.kind === ROW_KIND.footer,
+		) as FooterRow[];
 		expect(footers).toHaveLength(2);
-		expect((footers[0] as { finish: string }).finish).toBe("stop");
+		// `session.step.started` (1792072635860) → `session.step.ended` (1792072637436).
+		expect(footers[0]).toMatchObject({
+			agent: "build",
+			model: { id: "cat-jam-free", providerID: "opencode" },
+			durationMs: 1576,
+			outputTokens: 13,
+		});
 	});
 
 	test("a failed step is a footer plus an error row, and execution clears running", () => {
 		const rows = reduce(failed).rows;
-		const footer = rows.find((row) => row.kind === ROW_KIND.footer) as { finish: string };
-		expect(footer.finish).toBe("error");
+		const footer = rows.find((row) => row.kind === ROW_KIND.footer) as FooterRow;
+		// The failed payload carries no tokens, so the footer has none to print — but
+		// its agent, model and span are the step's own (`step.started` → `step.failed`).
+		expect(footer).toMatchObject({
+			agent: "build",
+			model: { id: "exo-free", providerID: "opencode" },
+			durationMs: 1798,
+		});
+		expect(footer.outputTokens).toBeUndefined();
 		const errors = rows.filter((row) => row.kind === ROW_KIND.error);
 		expect(errors.length).toBe(2);
 		expect((errors[0] as { message: string }).message).toBe(

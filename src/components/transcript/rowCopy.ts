@@ -1,7 +1,7 @@
 import { DEFAULT_EDITOR_LINE } from "@/constants/native";
 import { ROW_KIND, TOOL_LINE_FIELD } from "@/constants/transcript";
 import type { TranscriptRow } from "@/session/transcript";
-import { inputField } from "./rowModel";
+import { footerText, inputField } from "./rowModel";
 
 /**
  * What a transcript row offers the two native affordances (M5.2): the text a copy
@@ -38,7 +38,7 @@ function copySource(row: TranscriptRow): string {
 		case ROW_KIND.notice:
 			return row.text;
 		case ROW_KIND.footer:
-			return row.finish;
+			return footerText(row);
 	}
 }
 

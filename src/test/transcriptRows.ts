@@ -88,7 +88,10 @@ export const footerRow = (): FooterRow => ({
 	created: 1,
 	seq: 7,
 	kind: ROW_KIND.footer,
-	finish: "stop",
+	agent: "build",
+	model: { id: "cat-jam-free", providerID: "opencode" },
+	durationMs: 2000,
+	outputTokens: 30,
 });
 
 /** Every row kind and its built-in component; `never` lets each one keep its own props. */

@@ -42,6 +42,14 @@ export const TOOL_STATUS = {
 
 export type ToolStatus = (typeof TOOL_STATUS)[keyof typeof TOOL_STATUS];
 
+/**
+ * The one `session.step.ended` finish that carries **no** footer row (spec 020
+ * §Transcript: "printed once per prompt (a `tool-calls` step carries none)"). A step
+ * that ended by asking for a tool has no prompt-completion to summarise, so the
+ * guard and the spec must not drift — hence a name, not a literal.
+ */
+export const FINISH_TOOL_CALLS = "tool-calls";
+
 /** The input key a tool row anchors on — `path`, never `filePath` (api §4). */
 export const TOOL_ANCHOR_FIELD = "path";
 

@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { cleanup, render, screen } from "@testing-library/react";
+import { footerText } from "@/components/transcript/rowModel";
 import { TranscriptEntry } from "@/components/transcript/TranscriptEntry";
 import { DELIVERY, type Delivery, ROW_KIND } from "@/constants/transcript";
 import { RAIL_LABEL, REASONING_LABEL } from "@/constants/transcriptUi";
@@ -100,18 +101,20 @@ describe("the remaining row families", () => {
 		expect(screen.getByRole("alert").textContent).toBe("Model exo-free has been deprecated.");
 	});
 
-	test("a footer shows the finish word, and its cost when the step had one", () => {
-		const bare: FooterRow = {
+	test("a footer shows the step's own agent, model, duration and rate", () => {
+		const row: FooterRow = {
 			id: "msg_a:f",
 			created: 1,
 			seq: 5,
 			kind: ROW_KIND.footer,
-			finish: "stop",
+			agent: "build",
+			model: { id: "cat-jam-free", providerID: "opencode" },
+			durationMs: 2000,
+			outputTokens: 30,
 		};
-		const { unmount } = render(<TranscriptEntry row={bare} />);
-		expect(screen.getByText("stop")).toBeDefined();
-		unmount();
-		render(<TranscriptEntry row={{ ...bare, cost: 0.0012 }} />);
-		expect(screen.getByText("stop · 0.0012")).toBeDefined();
+		render(<TranscriptEntry row={row} />);
+		// The line is the pure derivation's own (`rowModel.test.ts` pins its parts);
+		// this asserts the row component wires it, not a second copy of the format.
+		expect(screen.getByText(footerText(row))).toBeDefined();
 	});
 });

@@ -4,6 +4,7 @@ import { createdAtOf, durableSeqOf } from "@/session/eventEnvelope";
 import { capPayload, capString } from "@/session/payloadCaps";
 import type { ShellRow, Transcript, TranscriptRow } from "@/session/transcript";
 import { appendRow, removeRow, replaceRow, setRunning, upsertRow } from "@/session/transcriptEdits";
+import { stepEnded, stepFailed, stepStarted } from "@/session/transcriptFooter";
 import { isTextEvent, reduceText } from "@/session/transcriptText";
 import { isToolEvent, reduceTool } from "@/session/transcriptTools";
 
@@ -24,11 +25,6 @@ import { isToolEvent, reduceTool } from "@/session/transcriptTools";
 /** Compaction and revert each own one notice row per session, updated in place. */
 const COMPACTION_NOTICE_ID = "notice:compaction";
 const REVERT_NOTICE_ID = "notice:revert";
-
-/** The per-prompt footer's id: one per assistant message, so it is appended once. */
-function footerID(messageID: string): string {
-	return `${messageID}:f`;
-}
 
 function rowBase(event: V2Event, id: string): { id: string; created: number; seq: number } {
 	return { id, created: createdAtOf(event), seq: durableSeqOf(event) ?? 0 };
@@ -95,20 +91,13 @@ export function reduceTranscript(transcript: Transcript, event: V2Event): Transc
 		case "session.shell.ended":
 			// `output` is a paged object: the row stores `output.output`, never the pages.
 			return upsertRow(transcript, shellRow(event, event.data.output.output));
+		case "session.step.started":
+			return stepStarted(transcript, event);
 		case "session.step.ended":
-			return upsertRow(transcript, {
-				...rowBase(event, footerID(event.data.assistantMessageID)),
-				kind: ROW_KIND.footer,
-				finish: event.data.finish,
-				cost: event.data.cost,
-			});
+			return stepEnded(transcript, event);
 		case "session.step.failed":
 			return appendRow(
-				upsertRow(transcript, {
-					...rowBase(event, footerID(event.data.assistantMessageID)),
-					kind: ROW_KIND.footer,
-					finish: event.data.finish ?? "error",
-				}),
+				stepFailed(transcript, event),
 				errorRow(event, event.data.error.message),
 			);
 		case "session.retry.scheduled":

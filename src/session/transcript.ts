@@ -1,3 +1,4 @@
+import type { ModelRef } from "@opencode/client";
 import { type Delivery, ROW_KIND, type ToolStatus } from "@/constants/transcript";
 import type { Payload } from "@/session/payloadCaps";
 
@@ -65,11 +66,31 @@ export type ErrorRow = RowBase & { readonly kind: typeof ROW_KIND.error; readonl
 
 export type NoticeRow = RowBase & { readonly kind: typeof ROW_KIND.notice; readonly text: string };
 
-/** The per-prompt footer, appended once per assistant message (spec 050 §Event ingest). */
+/**
+ * A step's own start, kept from `session.step.started` until its end builds the
+ * footer (M2.16). Held per assistant message so a step that ends by asking for a
+ * tool can be dropped **without** a half-footer ever being painted.
+ */
+export type StepStart = {
+	readonly agent: string;
+	readonly model: ModelRef;
+	/** `session.step.started`'s own `started` timestamp — the footer's clock start. */
+	readonly started: number;
+};
+
+/**
+ * The per-prompt footer (M2.16; spec 020 §Transcript: `agent · model · duration ·
+ * tok/s`, printed once per prompt). Each field is the assistant message's **own** —
+ * its agent and model (`session.step.started`), the span between that step's start
+ * and its end, and the step's own output tokens — so the line describes the step,
+ * never the session's current selection.
+ */
 export type FooterRow = RowBase & {
 	readonly kind: typeof ROW_KIND.footer;
-	readonly finish: string;
-	readonly cost?: number;
+	readonly agent?: string;
+	readonly model?: ModelRef;
+	readonly durationMs?: number;
+	readonly outputTokens?: number;
 };
 
 export type TranscriptRow =
@@ -90,10 +111,12 @@ export type Transcript = {
 	readonly lastSeq: number;
 	/** Event ids already applied; bounded by `EVENT_ID_MEMORY`. */
 	readonly seen: ReadonlySet<string>;
+	/** `session.step.started` frames still awaiting their end, keyed by assistant message. */
+	readonly steps: ReadonlyMap<string, StepStart>;
 };
 
 export function emptyTranscript(sessionID: string): Transcript {
-	return { sessionID, rows: [], running: false, lastSeq: -1, seen: new Set() };
+	return { sessionID, rows: [], running: false, lastSeq: -1, seen: new Set(), steps: new Map() };
 }
 
 /** Whether a row kind is prose or reasoning — the two the stream appends to. */

@@ -1,5 +1,11 @@
 import {
-	COST_DECIMALS,
+	FOOTER_DURATION_DECIMALS,
+	FOOTER_DURATION_UNIT,
+	FOOTER_RATE_DECIMALS,
+	FOOTER_RATE_GAP,
+	FOOTER_RATE_UNIT,
+	FOOTER_SEPARATOR,
+	MS_PER_SECOND,
 	OUTPUT_MORE_PREFIX,
 	OUTPUT_MORE_SUFFIX,
 	SHELL_STATUS_LABEL,
@@ -7,6 +13,7 @@ import {
 	SUBAGENT_SESSION_FIELD,
 	SUBAGENT_TOOL_NAME,
 } from "@/constants/transcriptUi";
+import { modelOptionKey } from "@/session/composerReads";
 import { lineBreaks, type Payload } from "@/session/payloadCaps";
 import type { FooterRow, ToolRow } from "@/session/transcript";
 
@@ -65,11 +72,33 @@ export function shellStatusLabel(status: string): string {
 	return known ?? status;
 }
 
-/** The per-prompt footer's one line: what finished, and its cost when the step had one. */
+/** A step's duration as the footer prints it: seconds to one decimal, e.g. `2.1s`. */
+export function durationLabel(ms: number): string {
+	return `${(ms / MS_PER_SECOND).toFixed(FOOTER_DURATION_DECIMALS)}${FOOTER_DURATION_UNIT}`;
+}
+
+/** A step's generation rate: the step's own output tokens over its own span. */
+export function rateLabel(outputTokens: number, ms: number): string {
+	const perSecond = ms <= 0 ? 0 : outputTokens / (ms / MS_PER_SECOND);
+	return `${perSecond.toFixed(FOOTER_RATE_DECIMALS)}${FOOTER_RATE_GAP}${FOOTER_RATE_UNIT}`;
+}
+
+/**
+ * The per-prompt footer's one line (M2.16; spec 020 §Transcript): the assistant
+ * message's own `agent · model · duration · tok/s`. A field the step did not carry
+ * is left off rather than invented — a step whose start the app never saw, or a
+ * failed step whose payload carries no tokens, prints only what it has. Pure, so
+ * the line is asserted without a component.
+ */
 export function footerText(row: FooterRow): string {
-	return row.cost === undefined
-		? row.finish
-		: `${row.finish} · ${row.cost.toFixed(COST_DECIMALS)}`;
+	const fields: string[] = [];
+	if (row.agent !== undefined) fields.push(row.agent);
+	if (row.model !== undefined) fields.push(modelOptionKey(row.model));
+	if (row.durationMs !== undefined) fields.push(durationLabel(row.durationMs));
+	if (row.durationMs !== undefined && row.durationMs > 0 && row.outputTokens !== undefined) {
+		fields.push(rateLabel(row.outputTokens, row.durationMs));
+	}
+	return fields.join(FOOTER_SEPARATOR);
 }
 
 /**
