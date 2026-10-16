@@ -1,4 +1,5 @@
 import type { OpenCodeClient } from "@opencode/client";
+import { PROBE_AGENTS, PROBE_SESSION_AGENT_ID } from "@/test/agentFixtures";
 import { type FakeStream, fakeStream } from "@/test/stream";
 
 /**
@@ -54,7 +55,9 @@ export function composerProbe(options: ComposerProbeOptions = {}): ComposerProbe
 			active: async () => ({}),
 			get: async () => ({
 				id: "ses_test",
-				agent: "Build",
+				// `session.get`'s agent is an **id** (`AgentInfo.id`), not the label: the
+				// picker keys and values by it (M2.11), so the fixture must be one too.
+				agent: PROBE_SESSION_AGENT_ID,
 				model: { id: "test/model", providerID: "test" },
 				location: { directory: "/tmp/m25" },
 			}),
@@ -94,7 +97,7 @@ export function composerProbe(options: ComposerProbeOptions = {}): ComposerProbe
 			},
 		},
 		command: { list: async () => ({ data: commands }) },
-		agent: { list: async () => ({ data: [{ id: "build", name: "Build" }] }) },
+		agent: { list: async () => ({ data: PROBE_AGENTS }) },
 		model: {
 			list: async () => ({
 				data: [{ id: "test/model", name: "Test model", providerID: "test", variants: [] }],
