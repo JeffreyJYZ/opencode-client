@@ -33,3 +33,18 @@ export const BUTTON_STYLE: CSSProperties = {
 	...INPUT_STYLE,
 	cursor: "pointer",
 };
+
+/**
+ * The surface's frame (M3.5): the column the registered sections render in. It
+ * owns the scroll — a settings list grows past the window — so a section never
+ * has to; the sections keep their own padding and measure (`SECTION_STYLE`).
+ */
+export const SURFACE_STYLE: CSSProperties = {
+	display: "flex",
+	flexDirection: "column",
+	overflowY: "auto",
+	overflowWrap: "anywhere",
+	flex: "1 1 0%",
+	minHeight: 0,
+	color: "var(--oc-text)",
+};

@@ -1,18 +1,56 @@
+import type { KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useEffect, useRef } from "react";
 import { useSettingsSections } from "@/app/settings/sections";
+import { closeSettingsSurface } from "@/app/tabSync";
+import { SettingsSectionBoundary } from "@/components/SettingsSectionBoundary";
+import { KEY_ESCAPE } from "@/constants/keys";
 import { ROUTE_KIND } from "@/constants/routes";
-import { PLACEHOLDER_STYLE } from "@/constants/styles";
+import { SURFACE_STYLE } from "@/constants/settingsUi";
+import { SETTINGS_TAB_LABEL } from "@/constants/tabs";
 
 /**
- * The settings surface (spec 010 §Routes). M3.5 owns its hierarchy; M1.6 makes it
- * render **from the section registry** so this view and the command palette read
- * one list — a section registered for the surface is listed by the palette too.
+ * The settings surface (spec 010 §Routes): **a view that renders as a tab while
+ * it is open**, never an entry of its own in the nav. It is reached by the four
+ * entries — the nav gear, ⌘,, the home page's button and the palette — all of
+ * which open, or focus, this one tab: the tab store is idempotent, so a second
+ * press activates the open tab instead of adding a second.
+ *
+ * The surface knows no section by name. It renders the registry in registry
+ * order, each section inside its own boundary, so a section that throws is inert
+ * plus a logged fault while the others keep rendering (M3.5 requirement 5).
+ *
+ * Focus enters the surface when it opens, so Tab reaches the first control
+ * without a click; Escape leaves it by closing the tab — the same move ⌘W makes,
+ * because this is a view, not a modal overlay. Focus is programmatic
+ * (`tabIndex={-1}`), so the surface itself is never a Tab stop.
  */
 export function SettingsPage() {
 	const sections = useSettingsSections();
+	const surfaceRef = useRef<HTMLElement | null>(null);
+
+	useEffect(() => {
+		surfaceRef.current?.focus();
+	}, []);
+
+	const onKeyDown = (event: ReactKeyboardEvent<HTMLElement>): void => {
+		if (event.key !== KEY_ESCAPE) return;
+		event.preventDefault();
+		closeSettingsSurface();
+	};
+
 	return (
-		<main data-route={ROUTE_KIND.settings} style={PLACEHOLDER_STYLE}>
+		<main
+			ref={surfaceRef}
+			tabIndex={-1}
+			aria-label={SETTINGS_TAB_LABEL}
+			data-route={ROUTE_KIND.settings}
+			style={SURFACE_STYLE}
+			onKeyDown={onKeyDown}
+		>
 			{sections.map(({ id, component: Section }) => (
-				<Section key={id} />
+				<SettingsSectionBoundary key={id} id={id}>
+					<Section />
+				</SettingsSectionBoundary>
 			))}
 		</main>
 	);

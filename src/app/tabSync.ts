@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { setLastOpenedSession } from "@/app/lastOpened";
-import { navigate, type Route, sessionRoute, settingsRoute } from "@/app/router";
+import { homeRoute, navigate, type Route, sessionRoute, settingsRoute } from "@/app/router";
 import { sameTab } from "@/app/tabModel";
 import { activateTab, closeTab, getTabSnapshot, openTab, type Tab } from "@/app/tabs";
 import { useRoute } from "@/app/useRoute";
@@ -111,4 +111,19 @@ export function requestSessionPicker(): void {
 /** The ⌘K palette's signal; the palette toggles on it and closes the other overlays. */
 export function requestCommandPalette(): void {
 	window.dispatchEvent(new CustomEvent(COMMAND_PALETTE_EVENT));
+}
+
+/**
+ * Escape's action inside the settings surface (M3.5): close the view, landing
+ * where the strip lands — the neighbour it activates, or home once the strip is
+ * empty. A failed invariant (the surface showed with no tab in the strip) still
+ * leaves the surface rather than trapping the key.
+ */
+export function closeSettingsSurface(): void {
+	const tab = getTabSnapshot().tabs.find((candidate) => candidate.kind === TAB_KIND.settings);
+	if (tab === undefined) {
+		navigate(homeRoute());
+		return;
+	}
+	closeTabAndGo(tab);
 }
