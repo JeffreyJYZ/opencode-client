@@ -16,6 +16,14 @@ export const PLUGIN_CAPABILITIES = [
 
 export type PluginCapability = (typeof PLUGIN_CAPABILITIES)[number];
 
+/**
+ * The one label that is **enforced** rather than merely declared: the shell's
+ * `safe_id` scopes every path the native bridge joins under `plugin-data/<id>/`.
+ * Named here so the in-app reference (M4.8) reads the enforced set instead of
+ * repeating the one string that matters in a second place.
+ */
+export const PLUGIN_ENFORCED_CAPABILITIES: readonly PluginCapability[] = ["plugin-data"];
+
 const KNOWN: ReadonlySet<string> = new Set<string>(PLUGIN_CAPABILITIES);
 
 /** The runtime half of the tuple: how a declared capability is checked. */
