@@ -92,7 +92,7 @@ Panels, in this order by default; user-reorderable, plugin-extensible, each coll
 | Panel | Source |
 | --- | --- |
 | Session | session info: title, directory (with branch), agent, model, created/updated |
-| Context | tokens used, spend (`session.stats`, `session.context`, usage events), and a **percentage of the window only if the payload carries the window size** — at the pinned client no payload does, so the panel shows the server's token count rather than an invented divisor (M2.7's finding) |
+| Context | **this session's own** tokens and spend (`session.get` → `SessionInfo.tokens` / `.cost`, the same source the statusline reads) and how many messages are in the window (`session.context`); a **percentage of the window only if the payload carries the window size** — at the pinned client no payload does, so the panel shows the server's token count rather than an invented divisor (M2.7's finding). It deliberately does **not** read `session.stats`, whose route has no session in its path and is a project/server-wide report (M2.15) |
 | Subagents | children of the open session (`session.list({ parentID })`), running vs finished, click to open, interrupt |
 | MCP servers | `mcp.list()` — name, status word, its error; click opens a detail with connect/disconnect and the config path |
 | Files changed | `vcs.status` / `vcs.diff` for the session's directory |
@@ -123,7 +123,7 @@ Panels, in this order by default; user-reorderable, plugin-extensible, each coll
 - A live session streams prose, reasoning and tool rows without a full re-render per delta (measured: row re-renders per delta stay flat as the transcript grows).
 - A tool row collapses to its head, expands to the full capped payload, and copies as text.
 - Reasoning expands while it is still streaming; a finished group keeps its duration.
-- The sidebar's Context panel shows the same token count and spend the server reports — **no percentage**, because that needs a payload exposing the window size and none does; Files changed lists the session's own diff through `vcs.status`/`vcs.diff`, not a directory listing.
+- The sidebar's Context panel shows the same token count and spend the server reports **for this session** — `session.get`'s `SessionInfo.tokens`/`.cost`, the same figures the statusline shows, never `session.stats` (a project/server-wide report; M2.15) — **no percentage**, because that needs a payload exposing the window size and none does; Files changed lists the session's own diff through `vcs.status`/`vcs.diff`, not a directory listing.
 - Esc interrupts while a turn is running and only then; a queued prompt shows with the queued tone and lands at the tail on delivery.
 - A permission request and a question form each take the composer's slot, are fully keyboard-operable, and reply with the documented values.
 - Scrolling up unpins follow and shows jump-to-latest; the scroll position survives a tab switch.
