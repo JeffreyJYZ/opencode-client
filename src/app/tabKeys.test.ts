@@ -2,8 +2,8 @@ import { describe, expect, test } from "bun:test";
 import { handleTabKey, indexForDigit, matchesShortcut, type TabKeyActions } from "@/app/tabKeys";
 import { SHORTCUT_CLOSE_TAB, SHORTCUT_NEW_SESSION } from "@/constants/keys";
 
-function keydown(key: string, metaKey: boolean): KeyboardEvent {
-	return new KeyboardEvent("keydown", { key, metaKey, bubbles: true, cancelable: true });
+function keydown(key: string, metaKey: boolean, altKey = false): KeyboardEvent {
+	return new KeyboardEvent("keydown", { key, metaKey, altKey, bubbles: true, cancelable: true });
 }
 
 function spy(): TabKeyActions & { calls: string[] } {
@@ -12,6 +12,7 @@ function spy(): TabKeyActions & { calls: string[] } {
 		calls,
 		onNewSession: () => calls.push("new"),
 		onCloseActive: () => calls.push("close"),
+		onCloseOthers: () => calls.push("closeOthers"),
 		onSwitchTab: (index: number) => calls.push(`switch:${index}`),
 	};
 }
@@ -47,6 +48,16 @@ describe("tabKeys", () => {
 		expect(actions.calls).toEqual(["new"]);
 	});
 
+	test("⌘⌥W closes the others and is not read as ⌘W", () => {
+		const others = spy();
+		expect(handleTabKey(keydown("w", true, true), 3, others)).toBe(true);
+		expect(others.calls).toEqual(["closeOthers"]);
+		// The reverse: ⌘W must not match the ⌘⌥W row either.
+		const active = spy();
+		expect(handleTabKey(keydown("w", true), 3, active)).toBe(true);
+		expect(active.calls).toEqual(["close"]);
+	});
+
 	test("⌘2 switches to the second tab; ⌘9 with two tabs does nothing", () => {
 		const actions = spy();
 		expect(handleTabKey(keydown("2", true), 2, actions)).toBe(true);
@@ -63,6 +74,7 @@ describe("tabKeys", () => {
 	test("⌘W and ⌘T are inert while a modal is open", () => {
 		const actions = spy();
 		expect(handleTabKey(keydown("w", true), 3, actions, true)).toBe(false);
+		expect(handleTabKey(keydown("w", true, true), 3, actions, true)).toBe(false);
 		expect(handleTabKey(keydown("t", true), 3, actions, true)).toBe(false);
 		expect(handleTabKey(keydown("1", true), 3, actions, true)).toBe(false);
 		expect(actions.calls).toEqual([]);

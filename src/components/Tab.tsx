@@ -1,5 +1,8 @@
 import type { DragEvent, MouseEvent, KeyboardEvent as ReactKeyboardEvent } from "react";
 import { type Tab as TabState, tabKey } from "@/app/tabModel";
+import { ContextMenu } from "@/components/contextmenu/ContextMenu";
+import { tabMenuItems } from "@/components/contextmenu/surfaceItems";
+import { useSurfaceMenu } from "@/components/contextmenu/useContextMenu";
 import {
 	TAB_ACTIVE_STYLE,
 	TAB_CLOSE_STYLE,
@@ -53,6 +56,8 @@ export function Tab({
 	onMove,
 }: TabProps) {
 	const title = tabTitle(tab);
+	const menu = useSurfaceMenu(tabKey(tab));
+	const items = tabMenuItems(tab);
 	const onAuxClick = (event: MouseEvent) => {
 		if (event.button === 1) {
 			event.preventDefault();
@@ -64,58 +69,65 @@ export function Tab({
 		const from = Number.parseInt(event.dataTransfer.getData(TAB_DRAG_MIME), 10);
 		if (Number.isInteger(from)) onMove(from, index);
 	};
-	const onKeyDown = (event: ReactKeyboardEvent) => {
+	const onKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+		if (menu.onMenuKey(event)) return;
 		if (event.key === "Enter" || event.key === " ") {
 			event.preventDefault();
 			onActivate(tab);
 		}
 	};
 	return (
-		<div
-			role="tab"
-			aria-selected={active}
-			data-tab={tabKey(tab)}
-			draggable
-			tabIndex={0}
-			onDragStart={(event) => {
-				event.dataTransfer.setData(TAB_DRAG_MIME, String(index));
-				event.dataTransfer.effectAllowed = "move";
-			}}
-			onDragOver={(event) => {
-				event.preventDefault();
-				event.dataTransfer.dropEffect = "move";
-			}}
-			onDrop={onDrop}
-			onClick={() => onActivate(tab)}
-			onKeyDown={onKeyDown}
-			onAuxClick={onAuxClick}
-			style={active ? TAB_ACTIVE_STYLE : TAB_STYLE}
-			title={title}
-		>
-			<span
-				title={running ? TAB_RUNNING_TITLE : TAB_IDLE_TITLE}
-				style={{
-					...TAB_DOT_STYLE,
-					background: running ? "var(--oc-accent)" : "var(--oc-border)",
+		<>
+			<div
+				role="tab"
+				aria-selected={active}
+				data-tab={tabKey(tab)}
+				draggable
+				tabIndex={0}
+				onDragStart={(event) => {
+					event.dataTransfer.setData(TAB_DRAG_MIME, String(index));
+					event.dataTransfer.effectAllowed = "move";
 				}}
-			/>
-			<span style={TAB_TITLE_STYLE}>{title}</span>
-			{unread && !active ? (
-				<span role="img" aria-label={TAB_UNREAD_LABEL}>
-					{UNREAD_MARK}
-				</span>
-			) : null}
-			<button
-				type="button"
-				aria-label={`Close ${title}`}
-				style={TAB_CLOSE_STYLE}
-				onClick={(event) => {
-					event.stopPropagation();
-					onClose(tab);
+				onDragOver={(event) => {
+					event.preventDefault();
+					event.dataTransfer.dropEffect = "move";
 				}}
+				onDrop={onDrop}
+				onClick={() => onActivate(tab)}
+				onKeyDown={onKeyDown}
+				onAuxClick={onAuxClick}
+				onContextMenu={menu.onContextMenu}
+				style={active ? TAB_ACTIVE_STYLE : TAB_STYLE}
+				title={title}
 			>
-				{TAB_CLOSE_LABEL}
-			</button>
-		</div>
+				<span
+					title={running ? TAB_RUNNING_TITLE : TAB_IDLE_TITLE}
+					style={{
+						...TAB_DOT_STYLE,
+						background: running ? "var(--oc-accent)" : "var(--oc-border)",
+					}}
+				/>
+				<span style={TAB_TITLE_STYLE}>{title}</span>
+				{unread && !active ? (
+					<span role="img" aria-label={TAB_UNREAD_LABEL}>
+						{UNREAD_MARK}
+					</span>
+				) : null}
+				<button
+					type="button"
+					aria-label={`Close ${title}`}
+					style={TAB_CLOSE_STYLE}
+					onClick={(event) => {
+						event.stopPropagation();
+						onClose(tab);
+					}}
+				>
+					{TAB_CLOSE_LABEL}
+				</button>
+			</div>
+			{menu.point !== null ? (
+				<ContextMenu items={items} at={menu.point} onClose={menu.close} />
+			) : null}
+		</>
 	);
 }

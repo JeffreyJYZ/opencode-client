@@ -8,4 +8,6 @@ export const LAYER = {
 	stripMenu: 1,
 	/** A modal overlay above the app content: the new-session flow and picker. */
 	overlay: 50,
+	/** A context menu and its click-swallowing backdrop: above every overlay. */
+	contextMenu: 60,
 } as const;

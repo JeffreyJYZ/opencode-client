@@ -2,7 +2,14 @@ import { useEffect } from "react";
 import { setLastOpenedSession } from "@/app/lastOpened";
 import { navigate, type Route, sessionRoute, settingsRoute } from "@/app/router";
 import { sameTab } from "@/app/tabModel";
-import { activateTab, closeTab, getTabSnapshot, openTab, type Tab } from "@/app/tabs";
+import {
+	activateTab,
+	closeOtherTabs,
+	closeTab,
+	getTabSnapshot,
+	openTab,
+	type Tab,
+} from "@/app/tabs";
 import { useRoute } from "@/app/useRoute";
 import { ROUTE_KIND } from "@/constants/routes";
 import {
@@ -87,6 +94,23 @@ export function closeActiveTabAndGo(): void {
 	const snapshot = getTabSnapshot();
 	const active = snapshot.activeIndex >= 0 ? snapshot.tabs[snapshot.activeIndex] : undefined;
 	if (active !== undefined) closeTabAndGo(active);
+}
+
+/**
+ * Close every tab but `keep`, and land on it. ⌘⌥W's action and the tab menu's
+ * second item: the store's `closeOtherTabs` keeps the tab, and the route follows
+ * because the tab that was on screen may be one of the closed ones.
+ */
+export function closeOtherTabsAndGo(keep: Tab): void {
+	closeOtherTabs(keep);
+	navigate(tabToRoute(keep));
+}
+
+/** The ⌘⌥W action's active-tab form: the menu item passes its own tab instead. */
+export function closeOtherActiveTabsAndGo(): void {
+	const snapshot = getTabSnapshot();
+	const active = snapshot.activeIndex >= 0 ? snapshot.tabs[snapshot.activeIndex] : undefined;
+	if (active !== undefined) closeOtherTabsAndGo(active);
 }
 
 /** Switch to the strip position, when one sits there. ⌘1…⌘9's action. */

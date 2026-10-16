@@ -3,6 +3,7 @@ import { SessionComposer } from "@/components/composer/SessionComposer";
 import { TranscriptView } from "@/components/transcript/TranscriptView";
 import { ROUTE_KIND } from "@/constants/routes";
 import { SESSION_PAGE_STYLE } from "@/constants/styles";
+import { useClient } from "@/session/ClientProvider";
 import type { TranscriptRow } from "@/session/transcript";
 import { useTranscript } from "@/session/useTranscript";
 
@@ -46,12 +47,19 @@ const TRANSCRIPT_CELL_STYLE: CSSProperties = {
 
 export function SessionPage({ id }: { readonly id: string }) {
 	const transcript = useTranscript(id);
+	const running = transcript?.running ?? false;
+	const client = useClient();
 	return (
 		<main data-route={ROUTE_KIND.session} data-session={id} style={PAGE_STYLE}>
 			<div style={TRANSCRIPT_CELL_STYLE}>
-				<TranscriptView rows={transcript?.rows ?? NO_ROWS} />
+				<TranscriptView
+					rows={transcript?.rows ?? NO_ROWS}
+					sessionID={id}
+					running={running}
+					client={client}
+				/>
 			</div>
-			<SessionComposer sessionID={id} running={transcript?.running ?? false} />
+			<SessionComposer sessionID={id} running={running} />
 		</main>
 	);
 }
