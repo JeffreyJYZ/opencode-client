@@ -65,6 +65,7 @@ export const SETTINGS_SECTION_ID = {
 	typography: "typography",
 	connect: "connect",
 	plugins: "plugins",
+	reference: "reference",
 	version: "version",
 } as const;
 
@@ -78,6 +79,7 @@ export const SETTINGS_SECTION_ORDER = {
 	typography: 1,
 	connect: 2,
 	plugins: 3,
+	reference: 4,
 } as const;
 
 /** Sidebar defaults — spec 010 §Persistence's "visible + width"; M2.7 owns its UI. */

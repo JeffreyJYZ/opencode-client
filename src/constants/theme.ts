@@ -28,6 +28,19 @@ export const BUILTIN_THEME_IDS: readonly string[] = Object.values(BUILTIN_THEME)
 );
 export const DEFAULT_THEME_ID: string = BUILTIN_THEME.dark.id;
 
+/**
+ * The query the follow-system preference resolves through (M3.6). Named here so
+ * neither the service nor the media edge holds a literal.
+ */
+export const FOLLOW_SYSTEM_MEDIA_QUERY = "(prefers-color-scheme: dark)";
+
+/**
+ * The `settings.theme` value that means "follow the system" (M3.6). It is **not**
+ * a theme: nothing registers it, no plugin may take it (the registry reserves
+ * it), and the applier reads it before it resolves an id.
+ */
+export const FOLLOW_SYSTEM_THEME_ID = "system";
+
 /** The primitive layer's prefix: the hue scales a mode is made of. */
 export const PRIMITIVE_VARIABLE_PREFIX = "--oc-num-";
 

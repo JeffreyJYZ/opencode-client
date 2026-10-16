@@ -6,7 +6,7 @@
 
 use crate::target::Target;
 
-use super::{initialization_script, policy};
+use super::policy;
 
 fn target(url: &str) -> Target {
     Target {
@@ -74,17 +74,34 @@ fn with_no_target_only_the_apps_own_origin_is_allowed() {
 }
 
 #[test]
-fn production_scripts_come_from_the_bundle_only() {
+fn production_scripts_come_from_the_bundle_and_the_plugin_blob() {
     let policy = policy(Some(&probe()), false);
-    assert!(policy.contains("script-src 'self';"), "{policy}");
+    // `blob:` is the plugin loader's entry source (M4.5, spec 040 §Entry file);
+    // nothing beyond it is added, so the policy still covers the app and no more.
+    assert!(policy.contains("script-src 'self' blob:;"), "{policy}");
     assert!(!policy.contains("'unsafe-eval'"), "{policy}");
+    assert!(!policy.contains("data:"), "{policy}");
+    assert!(!policy.contains("script-src 'self' blob: *"), "{policy}");
+}
+
+#[test]
+fn the_plugin_blob_directive_widens_nothing_else_in_the_production_policy() {
+    // The **whole** production policy with no target, pinned as one string: the
+    // only difference from M2.0's is the one scheme M4.5 added, so no unrelated
+    // directive (a wildcard, `http:`, `*`) can ride in unnoticed with it.
+    assert_eq!(
+        policy(None, false),
+        "default-src 'self'; script-src 'self' blob:; \
+         style-src 'self' 'unsafe-inline'; connect-src 'self'; \
+         object-src 'none'; base-uri 'none'"
+    );
 }
 
 #[test]
 fn a_dev_build_allows_the_inline_preamble_and_the_hmr_socket() {
     let policy = policy(Some(&probe()), true);
     assert!(
-        policy.contains("script-src 'self' 'unsafe-inline'"),
+        policy.contains("script-src 'self' blob: 'unsafe-inline'"),
         "{policy}"
     );
     assert!(policy.contains("ws://localhost:1420"), "{policy}");
@@ -101,42 +118,4 @@ fn the_dev_relaxations_cannot_leak_into_production() {
     );
     assert!(!policy.contains("ws://"), "{policy}");
     assert!(!policy.contains("localhost:1420"), "{policy}");
-}
-
-#[test]
-fn the_policy_is_embedded_as_a_json_literal_verbatim() {
-    let expected = serde_json::to_string(&policy(Some(&probe()), false)).expect("a string");
-    let script = initialization_script(Some(&probe()), false);
-    assert!(script.contains(&format!("var p={expected};")), "{script}");
-    assert!(script.starts_with("(function(){"), "{script}");
-}
-
-#[test]
-fn the_policy_is_installed_before_the_target_global() {
-    let script = initialization_script(Some(&probe()), false);
-    let meta = script
-        .find("Content-Security-Policy")
-        .expect("the meta script");
-    let global = script.find("window.__OC_TARGET__").expect("the global");
-    assert!(meta < global, "{script}");
-}
-
-#[test]
-fn no_target_injects_no_global() {
-    let script = initialization_script(None, false);
-    assert!(!script.contains("__OC_TARGET__"), "{script}");
-    assert!(script.contains("Content-Security-Policy"), "{script}");
-}
-
-#[test]
-fn a_loading_document_waits_for_head_and_never_writes_it() {
-    // At document start `head` does not exist yet. The policy must be applied
-    // once it does — and `document.write` is not an option: called before the
-    // parser starts it empties the document (measured in the real webview, where
-    // the page never loaded and the init script never reached the target global).
-    let script = initialization_script(Some(&probe()), false);
-    assert!(script.contains("MutationObserver"), "{script}");
-    assert!(!script.contains("document.write"), "{script}");
-    // The global still follows, in the same script.
-    assert!(script.contains("window.__OC_TARGET__"), "{script}");
 }

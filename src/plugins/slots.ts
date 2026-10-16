@@ -35,3 +35,18 @@ const SLOT_NAMES: ReadonlySet<string> = new Set<string>(SLOTS);
 export function isSlotName(value: string): value is SlotName {
 	return SLOT_NAMES.has(value);
 }
+
+/**
+ * The two areas a **plugin** may not contribute to (spec 040 §Model: the app
+ * substrate and the plugin manager). The substrate registers into them through
+ * the same function, which is what proves the lock is a check rather than a
+ * convention.
+ */
+export const LOCKED_SLOTS: readonly SlotName[] = ["app.substrate", "app.builtins"];
+
+const LOCKED: ReadonlySet<string> = new Set<string>(LOCKED_SLOTS);
+
+/** Whether a slot is one of the locked areas. */
+export function isLockedSlot(value: string): boolean {
+	return LOCKED.has(value);
+}

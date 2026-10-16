@@ -40,6 +40,18 @@ export const FAULT_REASONS = {
 	setupThrew: "setup-threw",
 	/** A plugin's `dispose` threw while the loader was closing its instance (M4.2). */
 	disposeThrew: "dispose-threw",
+	/** A plugin tried to contribute to a locked area (M4.3). */
+	lockedArea: "locked-area",
+	/** A renderer for a kind the transcript does not have (M4.3). */
+	unknownKind: "unknown-kind",
+	/** A call naming an id nobody registered, e.g. `commands.run` (M4.3). */
+	unknownId: "unknown-id",
+	/** A `storage` write that would put a plugin over `PLUGIN_DATA_MAX_BYTES` (M4.4). */
+	storageOverCap: "storage-over-cap",
+	/** A `storage` key that is empty or not one path-safe component (M4.4). */
+	invalidKey: "invalid-key",
+	/** A `native` path that is absolute, climbs out, or resolves outside the data dir (M4.4). */
+	pathEscape: "path-escape",
 } as const;
 
 export type FaultReason = (typeof FAULT_REASONS)[keyof typeof FAULT_REASONS];
@@ -52,6 +64,16 @@ export const FAULT_AREAS = {
 	settings: "settings",
 	/** A manifest refused, or a plugin entry refused at load (M4.1, M4.2). */
 	plugins: "plugins",
+	/** A palette command contribution (M4.3). */
+	commands: "commands",
+	/** A sidebar panel contribution (M4.3). */
+	panels: "panels",
+	/** A transcript renderer contribution (M4.3). */
+	renderers: "renderers",
+	/** A `storage` service refusal (M4.4). */
+	storage: "storage",
+	/** A `native` service refusal (M4.4). */
+	native: "native",
 } as const;
 
 export type FaultArea = (typeof FAULT_AREAS)[keyof typeof FAULT_AREAS];
@@ -92,6 +114,19 @@ export function listFaults(): readonly PluginFault[] {
 /** Drop every fault. The tests' reset; the manager (M4.5) may offer it as "clear". */
 export function clearFaults(): void {
 	faults = [];
+	notify();
+}
+
+/**
+ * Drop the faults recorded against one subject (M4.5): uninstalling a plugin
+ * removes the faults its **id** carries, so a removed plugin leaves nothing behind.
+ * A fault a registry recorded against a contribution id is not addressed here — the
+ * registry's `subject` is the contribution, not the plugin that offered it.
+ */
+export function clearFaultsFor(subject: string): void {
+	const remaining = faults.filter((fault) => fault.subject !== subject);
+	if (remaining.length === faults.length) return;
+	faults = remaining;
 	notify();
 }
 

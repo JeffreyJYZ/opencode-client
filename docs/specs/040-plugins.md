@@ -10,7 +10,7 @@ The sketch: "this should be built from the ground up to be modular and plugin co
 - **Full-trust, in-process.** A plugin runs in the app's own context with the app's own reach: the DOM, the client, and the injected server target (`window.__OC_TARGET__`, spec 010 §Window). The capability list is a consent *label*, not a boundary — only `plugin-data` is enforced, by path scoping in Rust `safe_id`. Never describe it as a sandbox.
 - **Capabilities are consent labels, not a boundary** (table below). Only the path-scoped data directory is enforced for real.
 - **The API is unstable at `0.1`** and may change between minor releases.
-- **Everything is a contribution.** The shell, home page, transcript renderers, sidebar panels and settings sections are registered through the same host API a plugin uses. Two areas are locked and cannot be disabled: the app substrate (`app.substrate`) and the plugin manager (`app.builtins`).
+- **Everything is a contribution.** The shell, home page, transcript renderers, sidebar panels and settings sections are registered through the same host API a plugin uses. Two areas are locked and cannot be disabled: the app substrate (`app.substrate`, a **slot** area) and the plugin manager — which is a **settings section** (id `plugins`), not a slot, so its lock belongs to the settings registry (`M4.9`).
 
 ## Manifest — `plugin.json`
 
@@ -36,7 +36,7 @@ export default { setup(host: Host) { /* register; return void or { dispose } */ 
 ```
 
 - **The built file must import nothing.** The host supplies its API and React through globals set immediately before the import: `__ocHost`, `__ocReact`, `__ocJsx`. A bundled app has no module resolver for a plugin directory, so the build script fails if the emitted chunk keeps a bare specifier, and the loader refuses one at load time.
-- In your **source** you may import: `react` and `react/jsx-runtime` are rewritten onto the host's React (so `useState` is the app's instance, not a second copy) and every other bare specifier is bundled into your file. Do not import a host module by path — that resolves to a second copy whose state is not the app's. Import **types** only (`import type { Host } from "@/plugins/sdk"`), which is erased at build time and is the supported way to get the API types.
+- In your **source** you may import: `react` and `react/jsx-runtime` are rewritten onto the host's React (so `useState` is the app's instance, not a second copy) and every other bare specifier is bundled into your file — **except** `react-dom` and `react-dom/client`, which the build script externalises deliberately so a plugin uses the host React DOM rather than a second copy. Do not import a host module by path — that resolves to a second copy whose state is not the app's. Import **types** only (`import type { Host } from "@/plugins/sdk"`), which is erased at build time and is the supported way to get the API types.
 - `main.tsx` is preferred; `main.ts` works with `createElement`.
 - JSX uses the automatic runtime; no `import React`.
 - **`setup` is synchronous and must be cheap.** It is not bounded by a load timeout and cannot be preempted, so async work belongs behind `host.signal` (an `AbortSignal` the host aborts on unload) or a subscription, not in a floating promise you cannot cancel.
@@ -58,15 +58,15 @@ Registries register **synchronously** and return a `Disposable`; services return
 | `commands.register({ id, title, run, keybinding? })` | a palette command, optionally keybound | registry |
 | `panels.register({ id, title, component })` | a sidebar panel (`session.sidebar.panels`) | registry |
 | `routes.register({ id, path, component })` | a route the router serves | registry |
-| `settings.registerSection({ id, title, component })` | a foldable section on `/settings` | registry |
+| `settings.registerSection({ id, title, component, order? })` (the **plugin-facing** name is `title`; the app registry stores it as `label`, and a plugin passing `label` is refused as malformed) | a section on `/settings` — **always expanded**: folding is a non-goal until a row owns it, and a contribution naming no `order` sorts **last**, never above the built-ins | registry |
 | `renderers.register({ id, kind, component })` | override a transcript renderer: `message`, `markdown`, `reasoning`, `tool`, `marker` | registry |
 | `themes.register(theme)` / `apply(id)` / `clear()` / `active()` | a theme in the app's one theme service (spec 030) | registry + service |
 | `opencode.client` | the raw `@opencode/client` instance (full server API, `docs/opencode-api.md`) | service |
 | `opencode.on(event, handler)` | the server's event stream, filtered for you (`session.*`, `mcp.*`, `permission.*`, …); returns an unsubscribe | service |
 | `transcript.snapshot()` | the open session's rows, synchronously (what is rendered now) | service |
-| `storage.get/set/delete/keys` | your own key-value store, persisted in `settings.plugins[].data` | service |
+| `storage.get/set/delete/keys` | your own key-value store, **capped and namespace-scoped per plugin id** (`src/plugins/services/storage.ts`; the cap is `PLUGIN_DATA_MAX_BYTES`) | service |
 | `native` | `pickDirectory`, `pickFiles`, `openExternal`, and path-scoped `read`/`write`/`list`/`remove`/`dataDir` under `plugin-data/<id>/`; `null` on web | service |
-| `native.http` | an unrestricted request through the shell's `http_request`; rides `net` | service |
+| `native.http` | **not built** — named here, implemented nowhere — an unrestricted request through the shell's `http_request`; rides `net` | service |
 | `notify.toast/banner/modal/confirm` | host-rendered notices | service |
 | `on(event, handler)` | app events: `turn-start`, `turn-end`, `chunk`, `session-changed`, `settings-changed`, `plugin-loaded`, `plugin-unloaded`, `theme-changed` | service |
 | `log.info/warn/error/debug` | the scoped logger, shown in the manager's log panel | service |
@@ -104,7 +104,7 @@ Never describe these as a sandbox.
 ## Build, install, develop
 
 - `bun scripts/build-plugins.ts [id]` builds every `plugins/<id>/main.tsx|main.ts` to `public/plugins/<id>/main.js` (gitignored), rewriting `react`/`react/jsx-runtime` onto the host globals and failing the build if any bare specifier survives.
-- Install in **Settings → Plugins**: paste manifest + entry source, install from a URL, or pick files. Then enable. Enable/disable/reload/uninstall, version and declared capabilities, the fault list, and the log panel live there.
+- Install in **Settings → Plugins**: paste manifest + entry source — **the only path actually built** (`M4.5`); installing from a URL and picking files are not implemented, and this line should not read as if they were. Then enable. Enable/disable/reload/uninstall, version and declared capabilities, the fault list, and the log panel live there.
 - **A pasted or installed plugin's source is imported from a `Blob` — the production path.** Dev (`vite dev`) imports a built asset URL instead, so a plugin under development cannot be exercised in the dev server: the loop is build → install → `bun run preview`. Say so in the plugin README, and make the gate `bun run build && bun run preview`.
 - The **in-app API reference** is generated from the SDK types and the slot/registry tables (`src/docs/reference.generated.ts`), the same way `ai-client-oss` does it, so the signature list can never drift from the code.
 
@@ -112,7 +112,7 @@ Never describe these as a sandbox.
 
 | Plugin | Proves |
 | --- | --- |
-| `hello-world` | a slot contribution, the kit, the lifecycle (marker set in `setup`, cleared in `dispose`) |
+| `hello-world` | a slot contribution, the lifecycle (**not** `host.ui.kit` — that seam is deliberately empty) (marker set in `setup`, cleared in `dispose`) |
 | `theme-gruvbox` | `themes.register` + `apply`, a settings section, `storage` persistence |
 | `session-export` | `commands.register` + `transcript.snapshot()` + `native.write` into the plugin's data dir |
 | `context-meter` | a sidebar panel (`panels.register`) driven by `opencode.on("session.usage.updated")` |
@@ -130,4 +130,4 @@ Never describe these as a sandbox.
 - A plugin with a bad id, an unknown slot, or a bare import in its bundle fails visibly (install error, fault, or build error) and never breaks the app.
 - A plugin theme applies and clears through the one theme service, and cannot override the user's font settings.
 - The plugin manager's gate is honest: the same plugin behaves identically after `bun run build && bun run preview`.
-- Two built-in areas can be disabled like plugins; disabling `app.substrate` or `app.builtins` is refused.
+- Two built-in areas can be disabled like plugins; disabling `app.substrate` or `app.builtins` is refused, and a plugin may not replace the manager own settings section (`plugins`) — the registry reserves every built-in id (`M4.9`).

@@ -22,9 +22,9 @@ Build order for specs [000](000-overview.md)–[050](050-opencode-integration.md
 | `HIGHLIGHT_DEBOUNCE_MS` | `src/session/markdown.ts` | 80 |
 | `SESSION_PAGE_LIMIT` | `src/constants/sessions.ts` | 50 |
 | `BRANCH_READ_ATTEMPTS` / `BRANCH_READ_RETRY_MS` | `src/session/actions.ts` | 6 / 120 |
-| `PLUGIN_DATA_MAX_BYTES` | `src/plugins/manifest.ts` | 64 KiB |
+| `PLUGIN_DATA_MAX_BYTES` | `src/constants/plugins.ts` | 256 KiB |
 | `SIDEBAR_MIN_WIDTH` / `SIDEBAR_DEFAULT_WIDTH` | `src/constants/layout.ts` | 280 / 340 |
-| `PLUGIN_API_VERSION` | `src/plugins/version.ts` | `0.1` |
+| `HOST_API_VERSION` | `src/constants/plugins.ts` | `0.1` |
 | `INTERFACE_FONT_DEFAULT` / `CODE_FONT_DEFAULT` + their fallback stacks | `src/constants/fonts.ts` | `Geist` / `GeistMono Nerd Font` → `Geist Mono` → `ui-monospace, …` |
 
 ## Ordering — vertical slices, logic first inside each
@@ -88,6 +88,7 @@ Build order for specs [000](000-overview.md)–[050](050-opencode-integration.md
 | M3.3 | Face picker: bundled faces + machine families by resolved name (both Nerd Font cuts and `GeistMono Nerd Font Mono`, aliases matched) + CSS generics; misspelt families refused (measure the `"0"` advance) | a misspelt family cannot be selected; the Nerd Font families are offered by their canonical names |
 | M3.4 | Theme service: one `<style>` + `data-theme`, built-in dark/light in the registry, plugin themes; fonts win over a theme | apply/clear a theme; fonts unchanged |
 | M3.5 | Settings **surface**: a view that renders as a tab *while it is open* — never an entry of its own in the nav — with sections from a registry: Appearance, Typography, Server, Plugins, plus plugin-contributed ones. Four entries: nav gear, ⌘,, the home page button, the palette. The Plugins section is registered here so M4.5 needs no settings change | the section registry exists, not a hardcoded list; **no settings tab is in the strip while it is closed**; every section keyboard reachable |
+| M3.6 | **Follow system** appearance: the Appearance control gains *Follow system* beside the registry's themes, and the app then applies the built-in **dark or light** per `prefers-color-scheme` and **re-applies when the OS flips**. The **theme service** owns the resolution and the media listener (it is the only writer of `data-theme`); resolving a preference to a theme id is a **pure function of the media state**, so it is testable with no media query in sight | choose *Follow system*, flip the OS appearance (or stub the media state) and the app follows in **both directions**; with a named theme chosen, **no media listener is attached** and an OS flip changes nothing |
 
 ### M4 — Plugin host `0.1`
 
@@ -101,6 +102,9 @@ Build order for specs [000](000-overview.md)–[050](050-opencode-integration.md
 | M4.6 | `scripts/build-plugins.ts` → `public/plugins/<id>/main.js`, bare-specifier check, react rewritten to globals | the build fails on a surviving bare import |
 | M4.7 | Four example plugins: `hello-world`, `theme-gruvbox`, `session-export`, `context-meter` | each installs, works, and uninstalls cleanly |
 | M4.8 | In-app API reference generated from the SDK types + slot table | the reference lists every registry and slot in code |
+| M4.9 | Lock the built-in settings sections: the registry reserves every built-in id and a contribution naming one is refused inert with `FAULT_REASONS.lockedArea` | a plugin contributing `{ id: "plugins" }` leaves the manager on screen and the fault names the reserved id |
+| M4.10 | **The host is live in the app**: hydrate the installed-plugins store on boot (it is written today and never read) and give `createLoader` its real **ports**, so `opencode.*`, the event source, `transcript`, `native` and `notify` are not inert | after a real reload the manager still lists the installed plugin, and a plugin `opencode.*` call reaches the server |
+| M4.11 | **Contributions actually render**: the palette consumes `commands.register` (it reads only the server `command.list` today), a component hosts `session.sidebar.panels`, and a settings section registered title is rendered (`SettingsPage` ignores it today) | a plugin command appears in the palette, a panel renders in the sidebar, and a plugin section shows its own title |
 
 ### M5 — Desktop polish
 

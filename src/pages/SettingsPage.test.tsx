@@ -10,6 +10,7 @@ import { APPEARANCE_TITLE } from "@/constants/appearance";
 import { CONNECT_TITLE } from "@/constants/connect";
 import { KEY_ESCAPE } from "@/constants/keys";
 import { PLUGINS_TITLE } from "@/constants/plugins";
+import { REFERENCE_TITLE } from "@/constants/reference";
 import { ROUTE_KIND, ROUTE_PATH } from "@/constants/routes";
 import { TYPOGRAPHY_TITLE } from "@/constants/typography";
 import { VERSION_SECTION_LABEL } from "@/constants/version";
@@ -63,6 +64,7 @@ describe("the settings surface", () => {
 			TYPOGRAPHY_TITLE,
 			CONNECT_TITLE,
 			PLUGINS_TITLE,
+			REFERENCE_TITLE,
 			VERSION_SECTION_LABEL,
 		]);
 	});
