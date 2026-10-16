@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import { LAYER } from "@/constants/layers";
+import { COMPOSER_PREVIEW_MAX_PX } from "@/constants/preview";
 
 /**
  * The composer's and the docks' surfaces (M2.5/M2.6; spec 020 §Prompt box, §Docks).
@@ -105,4 +106,34 @@ export const COMPOSER_ROW_STYLE: CSSProperties = {
 export const COMPOSER_ROW_ACTIVE_STYLE: CSSProperties = {
 	...COMPOSER_ROW_STYLE,
 	background: "var(--oc-surface-raised)",
+};
+
+/**
+ * The attached images, above the input (spec 020 §Prompt box, M2.24). The size is
+ * the named `COMPOSER_PREVIEW_MAX_PX`, not a literal: it is a user-visible size.
+ */
+export const COMPOSER_PREVIEW_STRIP_STYLE: CSSProperties = {
+	display: "flex",
+	flexWrap: "wrap",
+	alignItems: "center",
+	gap: "var(--oc-space-2)",
+	listStyle: "none",
+	margin: 0,
+	padding: 0,
+};
+
+export const COMPOSER_PREVIEW_STYLE: CSSProperties = {
+	maxWidth: COMPOSER_PREVIEW_MAX_PX,
+	maxHeight: COMPOSER_PREVIEW_MAX_PX,
+	border: "var(--oc-hairline) solid var(--oc-border)",
+	borderRadius: "var(--oc-radius)",
+	objectFit: "contain",
+	outlineColor: "var(--oc-focus)",
+};
+
+export const COMPOSER_PREVIEW_FAILED_STYLE: CSSProperties = {
+	display: "flex",
+	gap: "var(--oc-space-1)",
+	fontSize: "var(--oc-font-size-meta)",
+	color: "var(--oc-text-muted)",
 };

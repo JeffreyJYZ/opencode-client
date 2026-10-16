@@ -9,11 +9,12 @@
  * a path with a space, a quote or a `;` can never become a command).
  */
 
-/** The three commands the page invokes on the shell. */
+/** The four commands the page invokes on the shell. */
 export const NATIVE_COMMAND = {
 	openExternal: "open_external",
 	openInEditor: "open_in_editor",
 	notifyTurnEnd: "notify_turn_end",
+	readImage: "native_read_image",
 } as const;
 
 /**

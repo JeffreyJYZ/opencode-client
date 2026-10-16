@@ -3,6 +3,7 @@ import { PromptBoxView } from "@/components/composer/PromptBoxView";
 import { useComposerDrop } from "@/components/composer/useComposerDrop";
 import { useComposerEdits } from "@/components/composer/useComposerEdits";
 import { useComposerMenu } from "@/components/composer/useComposerMenu";
+import { useImagePreviews } from "@/components/composer/useImagePreviews";
 import { useComposerData } from "@/session/useComposerData";
 import { useSessionIdentity } from "@/session/useSessionIdentity";
 
@@ -29,6 +30,7 @@ export function PromptBox({ sessionID, running }: PromptBoxProps) {
 	// The shell's own drop (M5.2) appends through the same path the DOM drop uses.
 	useComposerDrop(edits.attachFiles);
 	const data = useComposerData(sessionID, edits.text, edits.caret, identity.directory);
+	const imagePreviews = useImagePreviews(edits.attachments);
 	commandNames.current = data.commands.map((command) => command.name);
 	const menu = useComposerMenu({
 		token: data.token,
@@ -83,6 +85,7 @@ export function PromptBox({ sessionID, running }: PromptBoxProps) {
 			}}
 			onHover={menu.onHover}
 			attachments={edits.attachments}
+			imagePreviews={imagePreviews}
 			onRemoveAttachment={edits.onRemoveAttachment}
 			onDrop={edits.onDrop}
 			onSend={() => void edits.trySend()}

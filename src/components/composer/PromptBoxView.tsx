@@ -3,8 +3,10 @@ import type {
 	KeyboardEvent as ReactKeyboardEvent,
 	RefObject,
 } from "react";
+import type { ImagePreview } from "@/components/composer/attachmentImage";
 import { ComposerAttachments } from "@/components/composer/ComposerAttachments";
 import type { ComposerIdentityProps } from "@/components/composer/ComposerIdentity";
+import { ComposerImagePreviews } from "@/components/composer/ComposerImagePreviews";
 import { ComposerMenu, menuOptionId } from "@/components/composer/ComposerMenu";
 import { ComposerToolbar } from "@/components/composer/ComposerToolbar";
 import {
@@ -58,6 +60,8 @@ export type PromptBoxViewProps = {
 	readonly onPick: (entry: ComposerEntry) => void;
 	readonly onHover: (index: number) => void;
 	readonly attachments: readonly Attachment[];
+	/** The attached images, resolved by `useImagePreviews` (M2.24). */
+	readonly imagePreviews: readonly ImagePreview[];
 	readonly onRemoveAttachment: (uri: string) => void;
 	readonly onDrop: (event: ReactDragEvent<HTMLElement>) => void;
 	readonly onSend: () => void;
@@ -80,6 +84,7 @@ export function PromptBoxView(props: PromptBoxViewProps) {
 							onHover={props.onHover}
 						/>
 					) : null}
+					<ComposerImagePreviews previews={props.imagePreviews} />
 					<textarea
 						ref={props.areaRef}
 						role="combobox"

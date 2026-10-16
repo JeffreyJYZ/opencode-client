@@ -13,6 +13,7 @@
 
 mod editor;
 pub(crate) mod fs;
+pub(crate) mod image;
 pub(crate) mod links;
 #[cfg(test)]
 mod tests;
@@ -131,6 +132,8 @@ pub fn handle_drop<R: Runtime>(app: &AppHandle<R>, event: &tauri::DragDropEvent)
             .iter()
             .map(|path| path.to_string_lossy().into_owned())
             .collect();
+        // The preview's read (M2.24) may read exactly these paths, and nothing else.
+        image::remember(&paths);
         let _ = app.emit_to(crate::MAIN_WINDOW_LABEL, FILES_DROPPED_EVENT, paths);
     }
 }
