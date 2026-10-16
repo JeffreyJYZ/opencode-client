@@ -10,6 +10,7 @@ import {
 	PANEL_STYLE,
 	PANEL_TITLE_STYLE,
 } from "@/components/sidebar/sidebarStyles";
+import { PANEL_ID_ATTRIBUTE } from "@/constants/panelDom";
 
 /**
  * The shared frame every sidebar panel sits in (spec 020 §Sidebar): a titled
@@ -23,17 +24,21 @@ import {
 
 export function SidebarPanel({
 	title,
+	panelId,
 	children,
 }: {
 	readonly title: string;
+	readonly panelId: string;
 	readonly children: ReactNode;
 }) {
 	const menu = useSurfaceMenu(title);
 	const items = panelMenuItems();
+	const idProps = { [PANEL_ID_ATTRIBUTE]: panelId };
 	return (
 		<>
 			<section
 				aria-label={title}
+				{...idProps}
 				// biome-ignore lint/a11y/noNoninteractiveTabindex: the panel is its own context-menu surface, so ⇧F10 must be able to reach it
 				tabIndex={0}
 				style={PANEL_STYLE}

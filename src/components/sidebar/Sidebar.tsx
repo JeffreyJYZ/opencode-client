@@ -103,7 +103,7 @@ export function Sidebar() {
 			<div style={SIDEBAR_SCROLL_STYLE}>
 				<SidebarDataContext.Provider value={data}>
 					{panels.map((entry) => (
-						<SidebarPanel key={entry.id} title={entry.title}>
+						<SidebarPanel key={entry.id} title={entry.title} panelId={entry.id}>
 							<entry.component />
 						</SidebarPanel>
 					))}

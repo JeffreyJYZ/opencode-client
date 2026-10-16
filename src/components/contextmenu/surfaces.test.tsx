@@ -12,6 +12,7 @@ import {
 } from "@/constants/keys";
 import { CONTEXT_MENU_LABEL } from "@/constants/menu";
 import { ROUTE_PATH, SESSION_PATH_PREFIX } from "@/constants/routes";
+import { SIDEBAR_PANEL } from "@/constants/sidebar";
 import { TAB_KIND } from "@/constants/tabs";
 import { RecentsRow } from "@/pages/RecentsRow";
 import type { SessionRow } from "@/session/useSessions";
@@ -134,7 +135,11 @@ describe("a recents row's context menu", () => {
 
 describe("a panel's context menu", () => {
 	test("the panel's own item is the sidebar toggle, with the registry's chord", () => {
-		render(<SidebarPanel title="Session">nothing</SidebarPanel>);
+		render(
+			<SidebarPanel title="Session" panelId={SIDEBAR_PANEL.session}>
+				nothing
+			</SidebarPanel>,
+		);
 		fireEvent.contextMenu(screen.getByLabelText("Session"));
 		expect(acceleratorFor(SHORTCUT_TOGGLE_SIDEBAR.description)).toBe(
 			SHORTCUT_TOGGLE_SIDEBAR.label,
