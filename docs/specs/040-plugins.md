@@ -10,7 +10,7 @@ The sketch: "this should be built from the ground up to be modular and plugin co
 - **Full-trust, in-process.** A plugin runs in the app's own context with the app's own reach: the DOM, the client, and the injected server target (`window.__OC_TARGET__`, spec 010 §Window). The capability list is a consent *label*, not a boundary — only `plugin-data` is enforced, by path scoping in Rust `safe_id`. Never describe it as a sandbox.
 - **Capabilities are consent labels, not a boundary** (table below). Only the path-scoped data directory is enforced for real.
 - **The API is unstable at `0.1`** and may change between minor releases.
-- **Everything is a contribution.** The shell, home page, transcript renderers, sidebar panels and settings sections are registered through the same host API a plugin uses. Two areas are locked and cannot be disabled: the app substrate (`app.substrate`, a **slot** area) and the plugin manager — which is a **settings section** (id `plugins`), not a slot, so its lock belongs to the settings registry (`M4.9`).
+- **Everything is a contribution.** The shell, home page, transcript renderers, sidebar panels and settings sections are registered through the same host API a plugin uses — **including the shell itself**, which registers into `app.substrate` and renders through that slot at the root (`M4.17`). Three things are locked: the slot areas `app.substrate` and `app.builtins`, and the plugin manager's own **settings section** (id `plugins`), whose lock belongs to the settings registry (`M4.9`). A plugin's contribution to any of them is refused.
 
 ## Manifest — `plugin.json`
 
@@ -77,7 +77,7 @@ Registry semantics that matter:
 
 - A contribution the host **refuses** yields the same inert handle: an unknown slot name, a duplicate id, or a malformed entry is dropped, logged as a `PluginFault` and never throws. Nothing renders — so a typo is invisible until the manager's log panel is open, and the manager's default view surfaces the fault count.
 - Disposing a handle removes exactly that entry. Closing a plugin's scope (disable, uninstall, reload) disposes every one of its contributions plus its `setup` handle.
-- A built-in area registers through this same API and is disabled the same way, so a contribution, its lifetime and its teardown behave identically for a built-in and for a plugin.
+- A built-in area registers through this same API, so a contribution, its lifetime and its teardown behave identically for a built-in and for a plugin. A **locked** area is the one exception: a disable attempt on it is **refused** with a locked-area fault and acts on nothing — never an empty window with no way back (`M4.17`).
 
 ## Slots (v0.1)
 
@@ -86,7 +86,8 @@ Registry semantics that matter:
 `app.substrate` (locked) · `topnav.left` · `topnav.center` · `topnav.right` · `home.hero` · `home.widgets` · `home.actions` · `session.toolbar` · `session.sidebar.panels` · `transcript.row.actions` · `transcript.footer` · `composer.toolbar` · `composer.above` · `composer.below` · `statusline.left` · `statusline.right` · `settings.sections` · `overlays` · `app.builtins` (locked).
 
 - A slot renders whatever is registered where the host component puts `<Slot id="…">`, in registration order, with an optional per-contribution order key.
-- `settings.sections` is the surface the plugin manager's own section renders into; a plugin that replaces `app.substrate` owns the way back and must render a route to it itself.
+- `app.substrate` is hosted once, at the root; `app.builtins` is the built-ins' **grouping**, not a place to draw — it has no `<Slot>` host, and its members (topnav controls, sidebar panels, settings sections) render where their own hosts already put them.
+- `settings.sections` is the surface the plugin manager's own section renders into. A plugin **may not** contribute to `app.substrate` or `app.builtins`: the lock is a check on the contributing actor, so there is no replacement for a user to recover from.
 
 ## Capabilities and trust
 
@@ -130,4 +131,4 @@ Never describe these as a sandbox.
 - A plugin with a bad id, an unknown slot, or a bare import in its bundle fails visibly (install error, fault, or build error) and never breaks the app.
 - A plugin theme applies and clears through the one theme service, and cannot override the user's font settings.
 - The plugin manager's gate is honest: the same plugin behaves identically after `bun run build && bun run preview`.
-- Two built-in areas can be disabled like plugins; disabling `app.substrate` or `app.builtins` is refused, and a plugin may not replace the manager own settings section (`plugins`) — the registry reserves every built-in id (`M4.9`).
+- The two locked slot areas are not disabled the way a plugin is: a disable attempt on `app.substrate` or `app.builtins` is **refused** with a locked-area fault, and a plugin may not replace the manager's own settings section (`plugins`) — the registry reserves every built-in id (`M4.9`).
