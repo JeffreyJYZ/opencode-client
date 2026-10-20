@@ -24,6 +24,7 @@ import { Sidebar } from "@/components/sidebar/Sidebar";
 import { Statusline } from "@/components/statusline/Statusline";
 import { TopNav } from "@/components/TopNav";
 import { ToastHost } from "@/components/toast/ToastHost";
+import { UpdateNotice } from "@/components/UpdateNotice";
 import { SLOT } from "@/constants/slots";
 import { SHELL_BODY_STYLE, SHELL_MAIN_STYLE, SHELL_ROW_STYLE } from "@/constants/styles";
 import { NewSessionFlow } from "@/pages/NewSessionFlow";
@@ -71,6 +72,10 @@ export function Shell() {
 			{/* A plugin's persistent notices (M4.20): in the shell's own column, above
 			    the nav, so a banner pushes the app down rather than covering it. */}
 			<BannerHost />
+			{/* The app's own update notice (M5.6): a release on offer, beside the
+			    plugin notices and the toast stack. It is not a plugin banner — a
+			    plugin must never gain an install affordance. */}
+			<UpdateNotice />
 			<TopNav />
 			<div style={SHELL_BODY_STYLE}>
 				<div style={SHELL_ROW_STYLE}>

@@ -14,6 +14,22 @@
 //! this repository: it lives at `~/.tauri/opencode-client.key` and reaches a build
 //! only as `TAURI_SIGNING_PRIVATE_KEY`, which is why the committed
 //! `bundle.createUpdaterArtifacts` stays off and a release build turns it on.
+//!
+//! What a **release build** must therefore set, or the page's flow can never
+//! find an offer (M5.6):
+//!
+//! - `bundle.createUpdaterArtifacts: true` — the bundle then also produces the
+//!   signed `.tar.gz`/`.zip` and its `.sig`, which the manifest points at. The
+//!   committed config leaves it off, because turning it on without the private
+//!   key fails the build.
+//! - `TAURI_SIGNING_PRIVATE_KEY` — the private key, read from
+//!   `~/.tauri/opencode-client.key`. Never committed.
+//! - the published manifest, at the endpoint above, naming this build's version
+//!   and the platform keys (`darwin-aarch64` and friends) the plugin asks for.
+//!
+//! None of that can be proven here: it needs a signed release and a machine
+//! that installs one. What *is* proven here is that the committed config names
+//! the endpoint, carries a public key, and commits no private one.
 
 /// The release manifest the updater fetches. GitHub's `latest/download` alias, so
 /// the endpoint never names a version and never needs editing at a release.

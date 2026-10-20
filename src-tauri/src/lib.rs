@@ -56,10 +56,14 @@ pub fn run() {
         )
         // The updater reads its endpoints and public key from the
         // `plugins.updater` block of `tauri.conf.json`; the private key is never
-        // in this repository (see `scripts/verify-release.ts`). Nothing calls it
-        // yet — the page's settings section does, through
-        // `src/updates/updater.ts`.
+        // in this repository (see `scripts/verify-release.ts`). The page's
+        // update flow calls it, through `src/updates/store.ts`.
         .plugin(tauri_plugin_updater::Builder::new().build())
+        // The process plugin (M5.6): the update flow restarts the app once the
+        // new build is installed, so the user does not relaunch it by hand. Only
+        // the restart permission is granted to the page — see
+        // `capabilities/default.json`.
+        .plugin(tauri_plugin_process::init())
         .setup(|app| {
             let target = target::resolve();
             match &target {

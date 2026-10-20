@@ -18,10 +18,11 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { version = "2.7.3", features = [] }
 
 [dependencies]
-# The shell's whole dependency set: the runtime, six Tauri plugins (window state
-# for size and position, dialog for the directory picker, updater for self-update,
-# and M5.2's three native integrations — opener for external links, clipboard for
-# copy, notification for the turn-end alert), and `serde`/`serde_json` to read the
+# The shell's whole dependency set: the runtime, seven Tauri plugins (window
+# state for size and position, dialog for the directory picker, updater for
+# self-update, process for the relaunch that follows an install, and M5.2's three
+# native integrations — opener for external links, clipboard for copy,
+# notification for the turn-end alert), and `serde`/`serde_json` to read the
 # service registration file and JSON-serialise the injected target. No deep links.
 # Each plugin's JS half that the page uses is pinned to the same version in
 # `package.json`; the opener and the notification are Rust-only, so they have none.
@@ -32,5 +33,6 @@ tauri-plugin-clipboard-manager = "2.5.0"
 tauri-plugin-dialog = "2"
 tauri-plugin-notification = "2.7.0"
 tauri-plugin-opener = "2.7.2"
+tauri-plugin-process = "2.4.0"
 tauri-plugin-updater = "2.14.0"
 tauri-plugin-window-state = "2"

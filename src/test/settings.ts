@@ -41,15 +41,19 @@ export const TOO_NEW_DOCUMENT_JSON = '{"dataVersion":99,"tabs":{"tabs":[],"activ
 
 /**
  * A version-3 blob — **derived, not captured**: the current writer's fields minus
- * every field a later version added (`theme`, M3.4; `pluginsEnabled`, M4.10),
- * restamped to 3. The captured v1 blob above is the migration path's real fixture;
- * this one exists so the v3 → v4 step has a shape to walk, and it says so here
- * rather than passing for a payload some release wrote.
+ * every field a later version added (`theme`, M3.4; `pluginsEnabled`, M4.10;
+ * `dismissedUpdateVersion`, M5.6), restamped to 3. The captured v1 blob above is
+ * the migration path's real fixture; this one exists so the v3 → v4 step has a
+ * shape to walk, and it says so here rather than passing for a payload some
+ * release wrote.
  */
 export const V3_DOCUMENT_JSON: string = JSON.stringify({
 	...Object.fromEntries(
 		Object.entries(freshDocument()).filter(
-			([key]) => key !== SETTING_KEYS.theme && key !== SETTING_KEYS.pluginsEnabled,
+			([key]) =>
+				key !== SETTING_KEYS.theme &&
+				key !== SETTING_KEYS.pluginsEnabled &&
+				key !== SETTING_KEYS.dismissedUpdateVersion,
 		),
 	),
 	[SETTING_KEYS.dataVersion]: SETTINGS_BASE_VERSION + 3,
@@ -57,14 +61,31 @@ export const V3_DOCUMENT_JSON: string = JSON.stringify({
 
 /**
  * A version-4 blob — **derived, not captured**: the current writer's fields minus
- * the one field v5 added (`pluginsEnabled`), restamped to 4, so the v4 → v5 step
- * has a shape to walk (M4.10).
+ * the fields v5 and v6 added (`pluginsEnabled`, `dismissedUpdateVersion`),
+ * restamped to 4, so the v4 → v5 step has a shape to walk (M4.10).
  */
 export const V4_DOCUMENT_JSON: string = JSON.stringify({
 	...Object.fromEntries(
-		Object.entries(freshDocument()).filter(([key]) => key !== SETTING_KEYS.pluginsEnabled),
+		Object.entries(freshDocument()).filter(
+			([key]) =>
+				key !== SETTING_KEYS.pluginsEnabled && key !== SETTING_KEYS.dismissedUpdateVersion,
+		),
 	),
 	[SETTING_KEYS.dataVersion]: SETTINGS_BASE_VERSION + 4,
+});
+
+/**
+ * A version-5 blob — **derived, not captured**: the current writer's fields minus
+ * the one field v6 added (`dismissedUpdateVersion`), restamped to 5, so the
+ * v5 → v6 step has a shape to walk (M5.6).
+ */
+export const V5_DOCUMENT_JSON: string = JSON.stringify({
+	...Object.fromEntries(
+		Object.entries(freshDocument()).filter(
+			([key]) => key !== SETTING_KEYS.dismissedUpdateVersion,
+		),
+	),
+	[SETTING_KEYS.dataVersion]: SETTINGS_BASE_VERSION + 5,
 });
 
 /** A map-backed storage, so a test never touches the run's real `localStorage`. */
