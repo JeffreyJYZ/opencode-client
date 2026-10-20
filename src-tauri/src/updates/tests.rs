@@ -3,6 +3,9 @@
 use super::UPDATE_ENDPOINT;
 use crate::version::TAURI_CONF_JSON;
 
+/// The window's capability file: the permissions the page holds.
+const CAPABILITIES_JSON: &str = include_str!("../../capabilities/default.json");
+
 #[test]
 fn the_config_fetches_the_endpoint_this_module_names() {
     let conf: serde_json::Value =
@@ -54,5 +57,25 @@ fn a_public_key_is_configured_and_no_private_key_is() {
     assert!(
         conf["bundle"].get("createUpdaterArtifacts").is_none(),
         "signing artifacts needs the private key, and the committed build must run without one"
+    );
+}
+
+/// The install half of the flow needs the restart permission (M5.6): the new
+/// build is installed under the running app, and only a restart runs it.
+#[test]
+fn the_window_may_restart_the_app_but_never_exit_it() {
+    let capability: serde_json::Value =
+        serde_json::from_str(CAPABILITIES_JSON).expect("capabilities/default.json parses");
+    let permissions = capability["permissions"]
+        .as_array()
+        .expect("capabilities/default.json has a permissions array");
+    let held = |name: &str| permissions.iter().any(|entry| entry == name);
+    assert!(
+        held("process:allow-restart"),
+        "the update flow restarts the app so the new build runs"
+    );
+    assert!(
+        !held("process:allow-exit"),
+        "the page restarts the app; it never terminates it"
     );
 }

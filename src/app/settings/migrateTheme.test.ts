@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { migrateDocument } from "@/app/settings/migrate";
 import type { SettingsDocument } from "@/app/settings/model";
-import { SETTING_KEYS, SETTINGS_BASE_VERSION } from "@/constants/settings";
+import { SETTING_KEYS, SETTINGS_BASE_VERSION, SETTINGS_DATA_VERSION } from "@/constants/settings";
 import { V3_DOCUMENT_JSON } from "@/test/settings";
 
 /**
@@ -23,7 +23,7 @@ describe("migrateDocument — the version-3 path", () => {
 		expect(SETTING_KEYS.theme in captured).toBe(false);
 		const outcome = migrateDocument(captured);
 		if (outcome.kind !== "ok") throw new Error("expected a migrated document");
-		expect(outcome.document[SETTING_KEYS.dataVersion]).toBe(SETTINGS_BASE_VERSION + 5);
+		expect(outcome.document[SETTING_KEYS.dataVersion]).toBe(SETTINGS_DATA_VERSION);
 		expect(outcome.document[SETTING_KEYS.theme]).toBeNull();
 		expect(outcome.document[SETTING_KEYS.transcriptScroll]).toEqual(
 			captured[SETTING_KEYS.transcriptScroll],

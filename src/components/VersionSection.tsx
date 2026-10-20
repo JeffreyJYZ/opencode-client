@@ -1,68 +1,63 @@
-import { isTauri } from "@tauri-apps/api/core";
-import type { CSSProperties } from "react";
-import { useState } from "react";
+import { useSyncExternalStore } from "react";
 import { SETTINGS_SECTION_ID } from "@/constants/settings";
 import {
 	UPDATE_CHECK_LABEL,
-	UPDATE_STATUS_TEXT,
-	type UpdateStatus,
-	VERSION_LABEL,
-	VERSION_SOURCE_NOTE,
-} from "@/constants/version";
-import { checkForUpdate } from "@/updates/updater";
+	UPDATE_DISMISS_LABEL,
+	UPDATE_INSTALL_LABEL,
+	UPDATE_OFFER_TEXT,
+	UPDATE_PHASE_TEXT,
+	UPDATE_PROGRESS_TEXT,
+	UPDATE_PROGRESS_UNKNOWN_TEXT,
+	UPDATE_UNSUPPORTED_TEXT,
+} from "@/constants/updates";
+import { VERSION_LABEL, VERSION_SOURCE_NOTE } from "@/constants/version";
+import {
+	checkForUpdates,
+	dismissUpdate,
+	getUpdateState,
+	installUpdate,
+	subscribeUpdateState,
+} from "@/updates/store";
+import { updatesSupported } from "@/updates/updater";
 import appPackage from "../../package.json";
 
 /**
- * The app version, and the update check beside it (spec 060 M5.3 and M5.4).
+ * The app version, and the update flow beside it (spec 060 M5.3, M5.4, M5.6).
  *
  * The number is `package.json`'s, imported statically: that file is the **one**
- * source of the version, the file `tauri.conf.json` reads for the bundle, and the
- * file a Rust test compares against `Cargo.toml` — so what this shows cannot drift
- * from what the app reports about itself.
+ * source of the version, the file `tauri.conf.json` reads for the bundle, and
+ * the file a Rust test compares against `Cargo.toml` — so what this shows cannot
+ * drift from what the app reports about itself.
  *
- * The check is offered only where it can work: a browser build has no updater.
+ * The flow is the **same one** the startup notice drives: both read and write
+ * `src/updates/store.ts`, so there is never a second check loop and never a
+ * second download path. A dismissal here is remembered per version, so a newer
+ * release still reaches the user.
  */
 
-const SECTION_STYLE: CSSProperties = {
+const SECTION_STYLE = {
 	display: "flex",
 	flexDirection: "column",
 	gap: "var(--oc-space-3)",
 	maxWidth: "var(--oc-content-max-width)",
 	padding: "var(--oc-space-4)",
-};
+} as const;
 
-const ROW_STYLE: CSSProperties = {
+const ROW_STYLE = {
 	display: "flex",
 	alignItems: "center",
 	gap: "var(--oc-space-2)",
 	color: "var(--oc-text-muted)",
-};
+} as const;
 
-const BUTTON_STYLE: CSSProperties = {
-	background: "var(--oc-surface-raised)",
-	color: "var(--oc-text)",
-	border: "1px solid var(--oc-border)",
-	borderRadius: "var(--oc-radius)",
-	padding: "var(--oc-space-1) var(--oc-space-2)",
-	cursor: "pointer",
-};
-
-const NOTE_STYLE: CSSProperties = {
+const NOTE_STYLE = {
 	color: "var(--oc-text-muted)",
-};
+} as const;
 
 export function VersionSection() {
-	const [status, setStatus] = useState<UpdateStatus>("idle");
-	const [remote, setRemote] = useState<string | null>(null);
-	const desktop = isTauri();
-
-	const onCheck = async (): Promise<void> => {
-		setStatus("checking");
-		const result = await checkForUpdate();
-		if (result.kind === "available") setRemote(result.version);
-		else setRemote(null);
-		setStatus(result.kind);
-	};
+	const state = useSyncExternalStore(subscribeUpdateState, getUpdateState);
+	const supported = updatesSupported();
+	const busy = state.phase === "checking" || state.phase === "downloading";
 
 	return (
 		<section style={SECTION_STYLE} data-section={SETTINGS_SECTION_ID.version}>
@@ -71,16 +66,37 @@ export function VersionSection() {
 			</p>
 			<p style={NOTE_STYLE}>{VERSION_SOURCE_NOTE}</p>
 			<div style={ROW_STYLE}>
-				{desktop ? (
-					<button type="button" style={BUTTON_STYLE} onClick={onCheck}>
+				{supported ? (
+					<button type="button" disabled={busy} onClick={() => void checkForUpdates()}>
 						{UPDATE_CHECK_LABEL}
 					</button>
 				) : null}
-				<span role="status" data-update-status={status}>
-					{UPDATE_STATUS_TEXT[status]}
-					{remote === null ? null : ` (${remote})`}
+				<span role="status" data-update-status={state.phase}>
+					{supported ? UPDATE_PHASE_TEXT[state.phase] : UPDATE_UNSUPPORTED_TEXT}
+					{state.version === null ? null : ` (${state.version})`}
 				</span>
 			</div>
+			{state.phase === "available" ? (
+				<div style={ROW_STYLE}>
+					<span>{UPDATE_OFFER_TEXT.replace("{version}", state.version ?? "")}</span>
+					<button type="button" onClick={() => void installUpdate()}>
+						{UPDATE_INSTALL_LABEL}
+					</button>
+					<button type="button" onClick={dismissUpdate}>
+						{UPDATE_DISMISS_LABEL}
+					</button>
+				</div>
+			) : null}
+			{state.phase === "downloading" ? (
+				<p style={NOTE_STYLE}>
+					{state.percent === null
+						? UPDATE_PROGRESS_UNKNOWN_TEXT
+						: UPDATE_PROGRESS_TEXT.replace("{percent}", String(state.percent))}
+				</p>
+			) : null}
+			{state.phase === "failed" && state.message !== null ? (
+				<p style={NOTE_STYLE}>{state.message}</p>
+			) : null}
 		</section>
 	);
 }

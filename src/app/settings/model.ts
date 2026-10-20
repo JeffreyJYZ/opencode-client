@@ -1,32 +1,32 @@
+import {
+	normalizeDirectories,
+	normalizeFonts,
+	normalizeLastOpened,
+	normalizeLastRoute,
+	normalizeTheme,
+} from "@/app/settings/fields";
 import { NO_TAB_SCROLL, normalizeTabScroll, type TabScrollMap } from "@/app/settings/scroll";
 import { normalizeServer, type ServerTarget } from "@/app/settings/server";
 import { normalizeSidebar, type SidebarState } from "@/app/settings/sidebar";
 import { normalizeTabs } from "@/app/settings/tabState";
 import type { SerializedTabs } from "@/app/tabModel";
-import { RECENT_DIRECTORIES_LIMIT } from "@/constants/directories";
 import {
 	DEFAULT_LAST_ROUTE,
 	DEFAULT_SIDEBAR,
-	FONT_ROLE,
 	SETTING_KEYS,
 	SETTINGS_DATA_VERSION,
 	type SETTINGS_NOTICE_KIND,
 } from "@/constants/settings";
-import {
-	clampFontSize,
-	DEFAULT_FONTS,
-	type FontPreferences,
-	type FontRole,
-	type FontRolePreference,
-} from "@/theme/fonts";
+import { DEFAULT_FONTS, type FontPreferences } from "@/theme/fonts";
 
 /**
  * The blob's fields, in memory (spec 010 §Persistence). Reading is defensive for
  * every field: a blob is user-writable state on disk, so a wrong type there must
  * degrade one field rather than refuse the whole payload or throw mid-render.
  *
- * The `settings.tabs` cell lives next door in `tabState.ts`; the fonts' own
- * arithmetic lives with the theme (`theme/fonts.ts`).
+ * The `settings.tabs` cell lives next door in `tabState.ts`; the fields with no
+ * domain of their own are read in `fields.ts`; the fonts' own arithmetic lives
+ * with the theme (`theme/fonts.ts`).
  */
 
 export type SettingsData = {
@@ -48,6 +48,12 @@ export type SettingsData = {
 	readonly transcriptScroll: TabScrollMap;
 	/** The plugin master switch (M4.10, spec 040 §Model): off by default. */
 	readonly pluginsEnabled: boolean;
+	/**
+	 * The one release the user declined (M5.6), so the self-update notice does
+	 * not return for it. A *newer* release still surfaces — the rule that decides
+	 * that is `src/updates/versions.ts`.
+	 */
+	readonly dismissedUpdateVersion: string | null;
 };
 
 /**
@@ -71,9 +77,11 @@ export const DEFAULT_SETTINGS: SettingsData = {
 	server: null,
 	transcriptScroll: NO_TAB_SCROLL,
 	// The tail's order is the migration chain's: v3→v4 appends `theme`, v4→v5
-	// appends `pluginsEnabled`, and `storage.test.ts` compares the two key orders.
+	// appends `pluginsEnabled`, v5→v6 appends `dismissedUpdateVersion`, and
+	// `storage.test.ts` compares the two key orders.
 	theme: null,
 	pluginsEnabled: false,
+	dismissedUpdateVersion: null,
 };
 
 /** A document holding the defaults at the current version. */
@@ -97,54 +105,13 @@ export function settingsFromDocument(document: SettingsDocument): SettingsData {
 		server: normalizeServer(document[SETTING_KEYS.server]),
 		transcriptScroll: normalizeTabScroll(document[SETTING_KEYS.transcriptScroll]),
 		pluginsEnabled: document[SETTING_KEYS.pluginsEnabled] === true,
+		dismissedUpdateVersion: normalizeDismissedVersion(
+			document[SETTING_KEYS.dismissedUpdateVersion],
+		),
 	};
 }
 
-function normalizeLastRoute(raw: unknown): string {
-	return typeof raw === "string" && raw.startsWith("/") ? raw : DEFAULT_LAST_ROUTE;
-}
-
-function normalizeLastOpened(raw: unknown): string | null {
-	return typeof raw === "string" && raw !== "" ? raw : null;
-}
-
-function normalizeFonts(raw: unknown): FontPreferences {
-	const record = isRecord(raw) ? raw : {};
-	return {
-		ui: normalizeFontRole(FONT_ROLE.ui, record[FONT_ROLE.ui]),
-		code: normalizeFontRole(FONT_ROLE.code, record[FONT_ROLE.code]),
-	};
-}
-
-function normalizeFontRole(role: FontRole, raw: unknown): FontRolePreference {
-	const record = isRecord(raw) ? raw : {};
-	const { family, size } = record;
-	const fallback = DEFAULT_FONTS[role];
-	return {
-		family:
-			typeof family === "string" && family.trim() !== "" ? family.trim() : fallback.family,
-		size: typeof size === "number" ? clampFontSize(role, size) : fallback.size,
-	};
-}
-
-/**
- * The stored theme id, the follow-system sentinel, or `null`. It is **not**
- * checked against the registry here: a plugin's theme is registered when its
- * plugin loads, after this read, so an unknown id is a normal state to boot
- * through — `applyAppearance()` resolves it and falls back to the built-in,
- * leaving the id stored for that later load. The sentinel is a plain string like
- * any other here; only the applier gives it meaning (M3.6).
- */
-function normalizeTheme(raw: unknown): string | null {
+/** The declined release, or `null` when none was stored or it is not a string. */
+function normalizeDismissedVersion(raw: unknown): string | null {
 	return typeof raw === "string" && raw.trim() !== "" ? raw.trim() : null;
-}
-
-function normalizeDirectories(raw: unknown): readonly string[] {
-	const entries = Array.isArray(raw) ? raw : [];
-	const directories: string[] = [];
-	for (const entry of entries) {
-		if (typeof entry !== "string" || entry === "" || directories.includes(entry)) continue;
-		directories.push(entry);
-	}
-	return directories.slice(0, RECENT_DIRECTORIES_LIMIT);
 }

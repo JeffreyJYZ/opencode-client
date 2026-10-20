@@ -1,96 +1,23 @@
+import { v0ToV1, v1ToV2, v2ToV3, v3ToV4, v4ToV5, v5ToV6 } from "@/app/settings/migrateSteps";
 import { isRecord, type SettingsDocument } from "@/app/settings/model";
-import type { Tab } from "@/app/tabModel";
 import {
-	LEGACY_ACTIVE_TAB_KEY,
 	SETTING_KEYS,
 	SETTINGS_BASE_VERSION,
 	SETTINGS_DATA_VERSION,
 	SETTINGS_MIGRATION_LIMIT,
 } from "@/constants/settings";
-import { TAB_KIND } from "@/constants/tabs";
 
 /**
  * Forward-only migrations (spec 010 §Persistence: "a newer build reads and
  * migrates an older blob"). Each step is a pure function from version `n` to
  * `n + 1`, and the loop stamps the version itself, so a step that forgets to
  * cannot stall the chain.
+ *
+ * The steps themselves live in `migrateSteps.ts`, one per version; this module
+ * is the chain that walks them.
  */
 
 export type SettingsMigration = (document: SettingsDocument) => SettingsDocument;
-
-/**
- * The version-0 strip. Spec 010's table describes `settings.tabs` as "session
- * ids, plus the settings view while it is open", so a pre-versioning blob held
- * `["ses_a", "settings"]` — a bare list — where this build serializes tab
- * objects. Everything else the blob carried is copied through untouched.
- */
-function v0ToV1(document: SettingsDocument): SettingsDocument {
-	const raw = document[SETTING_KEYS.tabs];
-	const entries = Array.isArray(raw) ? raw : [];
-	const tabs: Tab[] = [];
-	for (const entry of entries) {
-		if (entry === TAB_KIND.settings) tabs.push({ kind: TAB_KIND.settings });
-		else if (typeof entry === "string" && entry !== "") {
-			tabs.push({ kind: TAB_KIND.session, id: entry });
-		}
-	}
-	const index = document[LEGACY_ACTIVE_TAB_KEY];
-	return {
-		...document,
-		[SETTING_KEYS.tabs]: {
-			tabs,
-			activeIndex: typeof index === "number" ? index : 0,
-		},
-	};
-}
-
-/**
- * The version-1 blob. Nothing in v1 carried a server target — spec 010's table
- * had no key for it — so the step introduces `settings.server` as explicitly
- * absent rather than leaving the field's meaning to "whatever a reader defaults
- * to". Everything the blob carried is copied through untouched.
- */
-function v1ToV2(document: SettingsDocument): SettingsDocument {
-	// Never clobber a field already present: spec 010 requires a step not to drop
-	// what it does not know, and v1 has no server field by definition.
-	if (SETTING_KEYS.server in document) return document;
-	return { ...document, [SETTING_KEYS.server]: null };
-}
-
-/**
- * The version-2 blob. Nothing in v2 carried a per-tab scroll position, so the step
- * introduces `settings.transcriptScroll` as explicitly empty rather than leaving
- * the field's meaning to "whatever a reader defaults to" (M2.9). Everything the
- * blob carried is copied through untouched.
- */
-function v2ToV3(document: SettingsDocument): SettingsDocument {
-	if (SETTING_KEYS.transcriptScroll in document) return document;
-	return { ...document, [SETTING_KEYS.transcriptScroll]: {} };
-}
-
-/**
- * The version-3 blob. Nothing in v3 carried a theme choice — the theme service
- * lands with M3.4 — so the step introduces `settings.theme` as explicitly absent
- * (`null`, the built-in default) rather than leaving the field's meaning to
- * "whatever a reader defaults to". Everything the blob carried is copied through
- * untouched.
- */
-function v3ToV4(document: SettingsDocument): SettingsDocument {
-	if (SETTING_KEYS.theme in document) return document;
-	return { ...document, [SETTING_KEYS.theme]: null };
-}
-
-/**
- * The version-4 blob. Nothing in v4 carried the plugin master switch — the
- * manager's setting lands with M4.10 — so the step introduces
- * `settings.pluginsEnabled` as explicitly **off** (spec 040 §Model: "off by
- * default") rather than leaving its meaning to a reader's default. Everything
- * the blob carried is copied through untouched.
- */
-function v4ToV5(document: SettingsDocument): SettingsDocument {
-	if (SETTING_KEYS.pluginsEnabled in document) return document;
-	return { ...document, [SETTING_KEYS.pluginsEnabled]: false };
-}
 
 /** Registry keyed by source version: `MIGRATIONS[from]` produces `from + 1`. */
 export const SETTINGS_MIGRATIONS: Readonly<Record<number, SettingsMigration>> = {
@@ -99,6 +26,7 @@ export const SETTINGS_MIGRATIONS: Readonly<Record<number, SettingsMigration>> = 
 	[SETTINGS_BASE_VERSION + 2]: v2ToV3,
 	[SETTINGS_BASE_VERSION + 3]: v3ToV4,
 	[SETTINGS_BASE_VERSION + 4]: v4ToV5,
+	[SETTINGS_BASE_VERSION + 5]: v5ToV6,
 };
 
 export type MigrationOutcome =
@@ -118,7 +46,7 @@ function documentVersion(document: SettingsDocument): number | null {
 /**
  * Walk a document forward to `target`. A blob **newer** than the target is
  * refused (`newer`) rather than migrated down or reset — see the store's
- * newer-version policy; a missing step is `unreadable`, never a silent skip.
+ * newer-version policy; a missing step is `unreadable`, never a silent [REDACTED]ip.
  */
 export function migrateDocument(
 	document: SettingsDocument,
