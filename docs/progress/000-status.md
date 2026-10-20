@@ -9,7 +9,7 @@ Last updated: 2026-10-16 · Current focus: **M3 — Type and theme** (`M3.0`, th
 | M2 Session view | 33 / 34 | a live session streams, interrupts, queues and replies from the keyboard |
 | M3 Type and theme | 8 / 8 | both faces change live and survive a restart; theme applies and clears |
 | M4 Plugin host 0.1 | 22 / 22 | four example plugins install, work and uninstall through the documented API |
-| M5 Desktop polish | 5 / 5 | packaged app, updater, `verify-release` exits 0 |
+| M5 Desktop polish | 5 / 6 | packaged app, updater, `verify-release` exits 0 |
 
 ## M0 — Foundations
 
@@ -132,6 +132,7 @@ Last updated: 2026-10-16 · Current focus: **M3 — Type and theme** (`M3.0`, th
 - [x] `M5.3` Window state restore, menu bar, version display — evidence: restart restores size and position
 - [x] `M5.4` Tauri updater + committed `verify-release` — evidence: `bun scripts/verify-release.ts <tag>` prints one verdict line, exits non-zero on a gap
 - [x] `M5.5` Packaging: macOS `app` bundle + README install steps — evidence: `bun tauri build` produces a runnable app
+- [ ] `M5.6` **Auto-update does not exist** — M5.4 wired `tauri-plugin-updater` and a Settings button that only reports a version (`updater.ts` stops at `{kind:"available"}`), so a user can be told a release exists and cannot take it; nothing checks at startup — requested by the user against `ai-client-oss`'s flow — evidence: a startup check silent on failure, an offer that downloads with progress and relaunches, a dismissal surviving restart, and Settings driving the same one flow
 
 ## Decisions log
 

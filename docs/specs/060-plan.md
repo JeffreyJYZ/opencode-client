@@ -154,6 +154,7 @@ Build order for specs [000](000-overview.md)–[050](050-opencode-integration.md
 | M5.3 | Window state restore, menu bar (File/View/Help), app version in Settings | restart restores size and position |
 | M5.4 | Tauri updater on the desktop build + a committed `verify-release` script that polls the release and exits non-zero on any gap | `bun scripts/verify-release.ts <tag>` prints one verdict line |
 | M5.5 | Packaging: macOS app (bundle target `app`), README install steps | `bun tauri build` produces a runnable app |
+| M5.6 | **Auto-update does not exist**: M5.4 wired `tauri-plugin-updater` and a Settings button that only *reports* a version (`updater.ts` returns `{kind:"available"}` and stops — no download, no install, no relaunch), so a user can be told a release exists and cannot take it; nothing checks at startup — requested by the user against `ai-client-oss`'s flow | a startup check that stays silent on failure, an offer that downloads with progress and relaunches, a dismissal that survives restart, and the Settings section driving the same one flow |
 
 ### M6 — Later (not scheduled here)
 
