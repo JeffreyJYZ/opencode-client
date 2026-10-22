@@ -15,8 +15,8 @@ A desktop client for a local [opencode](https://opencode.ai) server — structur
 | --- | --- |
 | `bun run dev` | Vite dev server for the web target |
 | `bun run build` | type-check + production bundle |
-| `bun run verify` | `tsc -b` + `biome check .` — the gate |
-| `bun run lint` / `bun run fix` | Biome check / Biome check with writes |
+| `bun run verify` | `bun check` + `biome check .` + the 150-line gate — the gate |
+| `bun run fmt` / `bun run lint` | Biome format / Biome lint, both with writes |
 | `bun run preview` | serve the built bundle (the only honest way to test an installed plugin) |
 | `bun tauri dev` | the desktop window against the same frontend |
 

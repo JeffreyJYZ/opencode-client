@@ -5,11 +5,11 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vite",
-		"build": "tsc -b && vite build",
+		"build": "bun check && vite build",
 		"preview": "vite preview",
-		"lint": "biome check .",
-		"fix": "biome check . --write",
-		"verify": "tsc -b && biome check . && bun scripts/check-file-length.ts"
+		"fmt": "biome format --write .",
+		"lint": "biome lint --write .",
+		"verify": "bun check && biome check . && bun scripts/check-file-length.ts"
 	},
 	"dependencies": {
 		"@opencode/client": "^2.0.29",
