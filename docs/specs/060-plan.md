@@ -156,6 +156,8 @@ Build order for specs [000](000-overview.md)–[050](050-opencode-integration.md
 | M5.5 | Packaging: macOS app (bundle target `app`), README install steps | `bun tauri build` produces a runnable app |
 | M5.6 | **Auto-update does not exist**: M5.4 wired `tauri-plugin-updater` and a Settings button that only *reports* a version (`updater.ts` returns `{kind:"available"}` and stops — no download, no install, no relaunch), so a user can be told a release exists and cannot take it; nothing checks at startup — requested by the user against `ai-client-oss`'s flow | a startup check that stays silent on failure, an offer that downloads with progress and relaunches, a dismissal that survives restart, and the Settings section driving the same one flow |
 
+| M5.7 | **The updater never re-checks, and its manifest URL names an owner that does not exist**: `UpdateNotice` checks once on mount and never again, so a long-running window never learns of a release; `plugins.updater.endpoints`, `UPDATE_ENDPOINT` and `ISSUES_URL` all read `github.com/jyz/opencode-client` while the account is `JeffreyJYZ`, so the manifest 404s and "no update" is indistinguishable from "wrong URL" — found by the user | a periodic re-check with its interval named as a constant, and every release URL naming `JeffreyJYZ`, pinned by a test that reads the config |
+
 ### M6 — Later (not scheduled here)
 
 Virtualised transcript for very long sessions · a PTY/terminal surface · multi-window · light-mode audit across plugin UI · plugin API `0.2`.
