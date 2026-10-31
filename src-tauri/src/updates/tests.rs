@@ -37,6 +37,21 @@ fn the_endpoint_is_https_and_names_no_version() {
     );
 }
 
+/// The account that publishes is `JeffreyJYZ` (M5.7): a manifest under another
+/// owner answers 404, and a 404 is indistinguishable from "no release yet".
+#[test]
+fn every_release_url_names_the_publishing_account() {
+    for (what, url) in [
+        ("the update endpoint", UPDATE_ENDPOINT),
+        ("the issues tracker", crate::native::links::ISSUES_URL),
+    ] {
+        assert!(
+            url.contains("github.com/JeffreyJYZ/"),
+            "{what} must live under the account that publishes it, not a local directory name"
+        );
+    }
+}
+
 #[test]
 fn a_public_key_is_configured_and_no_private_key_is() {
     let conf: serde_json::Value =

@@ -7,6 +7,7 @@ import {
 	UPDATE_PROGRESS_TEXT,
 	UPDATE_PROGRESS_UNKNOWN_TEXT,
 } from "@/constants/updates";
+import { startRechecking } from "@/updates/recheck";
 import {
 	checkForUpdates,
 	dismissUpdate,
@@ -35,9 +36,12 @@ import { UPDATE_NOTICE_STYLE, UPDATE_NOTICE_TEXT_STYLE, UPDATE_ROW_STYLE } from 
 export function UpdateNotice() {
 	const state = useSyncExternalStore(subscribeUpdateState, getUpdateState);
 
-	// The startup check. A failure changes nothing, so the notice stays absent.
+	// The startup check, then a periodic one: a window left open must still learn
+	// about a release (M5.7). Both drive the same store, so a tick during a
+	// download is refused by the store rather than by a second guard here.
 	useEffect(() => {
 		void checkForUpdates();
+		return startRechecking(() => void checkForUpdates());
 	}, []);
 
 	if (!updatesSupported()) return null;
