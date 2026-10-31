@@ -28,7 +28,7 @@ The bundle is **unsigned**: no signing key or secret is committed, so on first l
 
 ### Updates are inert
 
-The updater is wired to a **named endpoint** (`https://github.com/jyz/opencode-client/releases/latest/download/latest.json`) with a **public** key committed and the private key never in the repository. That repository does not exist yet — this working copy has no git remote — so the update check is **inert**: it fails to reach a release host rather than finding an update. `bun scripts/verify-release.ts <tag>` is the committed gate a real release runs; it prints one verdict line and exits non-zero on any gap.
+The updater is wired to a **named endpoint** (`https://github.com/JeffreyJYZ/opencode-client/releases/latest/download/latest.json`) with a **public** key committed and the private key never in the repository. That repository does not exist yet — this working copy has no git remote — so the update check is **inert**: it fails to reach a release host rather than finding an update. `bun scripts/verify-release.ts <tag>` is the committed gate a real release runs; it prints one verdict line and exits non-zero on any gap.
 
 ## Commands
 

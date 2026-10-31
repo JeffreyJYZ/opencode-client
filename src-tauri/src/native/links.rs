@@ -17,7 +17,7 @@ pub const OPENABLE_SCHEMES: [&str; 3] = ["http", "https", "mailto"];
 /// tracker names the same placeholder host the updater's endpoint does; both are
 /// real URLs, so the items are performable rather than decorative.
 pub const DOCS_URL: &str = "https://opencode.ai/docs";
-pub const ISSUES_URL: &str = "https://github.com/jyz/opencode-client/issues";
+pub const ISSUES_URL: &str = "https://github.com/JeffreyJYZ/opencode-client/issues";
 
 /// Whether `url` is one the shell may hand to the OS browser.
 ///

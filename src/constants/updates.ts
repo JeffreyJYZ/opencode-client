@@ -52,3 +52,11 @@ export const UPDATE_INSTALL_FAILED_TEXT = "The update could not be installed.";
 /** Why the app did not come back up after the install. */
 export const UPDATE_RELAUNCH_FAILED_TEXT =
 	"The update was installed, but the app could not restart.";
+
+/**
+ * How often a running window asks again (M5.7). Six hours is the compromise: a
+ * release published in the morning is offered the same day, and the endpoint is
+ * touched only four times a working day — a desktop that stayed open for a week
+ * is not left believing nothing ever ships.
+ */
+export const UPDATE_RECHECK_INTERVAL_MS = 6 * 60 * 60 * 1000;

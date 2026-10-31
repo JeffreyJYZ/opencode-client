@@ -34,7 +34,7 @@
 /// The release manifest the updater fetches. GitHub's `latest/download` alias, so
 /// the endpoint never names a version and never needs editing at a release.
 pub const UPDATE_ENDPOINT: &str =
-    "https://github.com/jyz/opencode-client/releases/latest/download/latest.json";
+    "https://github.com/JeffreyJYZ/opencode-client/releases/latest/download/latest.json";
 
 #[cfg(test)]
 mod tests;
